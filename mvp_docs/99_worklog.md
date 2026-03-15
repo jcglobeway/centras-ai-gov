@@ -258,3 +258,11 @@
 - Enum 변환 함수: 모듈별 필요한 패턴 확인
 - UUID 생성 패턴: 일관성 유지 확인
 - ./gradlew test 통과 (39 tests)
+- `add-pgvector-retrieval` change로 pgvector 기반 vector search 준비
+- docker-compose.yml: postgres:15-alpine → pgvector/pgvector:pg15
+- Flyway V016: document_chunks 테이블 생성 (embedding_vector TEXT, H2 호환)
+- scripts/enable_pgvector.sql: PostgreSQL 전용 vector 타입 변환 스크립트
+- PostgreSQL에서 vector(1024) 타입 변환 완료
+- ivfflat index 생성 (vector_cosine_ops, lists=100)
+- Seed 2개 chunks
+- ./gradlew test 통과 (39 tests, H2 호환)
