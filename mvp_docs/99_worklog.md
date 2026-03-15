@@ -37,6 +37,7 @@
 - `identity-access`에 `AdminSessionRepository` 포트를 추가하고 `X-Admin-Session-Id` 기반 세션 복원 경로를 연결
 - OpenSpec 기반 변경 추적 구조와 템플릿을 추가하고, 이후 중요한 변경은 change 단위로 관리하기로 결정
 - `add-ingestion-write-contracts` change로 ingestion 쓰기 계약, 상태 전이 규칙, 개발용 쓰기 API와 테스트를 추가
+- 전체 개발 진행 추적용 `17_development_wbs_milestones.md`를 추가하고 Milestone/WBS/Mermaid 일정 기준을 고정
 
 ### Current Decision
 
@@ -71,11 +72,12 @@
 - 중요한 변경은 `OpenSpec change -> 구현 -> 검증 -> 한글 커밋` 순서로 관리한다.
 - ingestion 쓰기 흐름은 `source 생성 -> 수동 job 생성 -> 상태 전이` 3단계로 먼저 고정한다.
 - ingestion job 상태 전이 검증은 `modules/ingestion-ops`의 단일 상태 머신을 기준으로 본다.
+- 전체 진행 추적은 `17_development_wbs_milestones.md`의 마일스톤과 Gantt 상태를 기준으로 갱신한다.
 
 ### Next Actions
 
-1. `identity-access`에 실제 세션 저장소/권한 부여 규칙 포트를 분리
+1. `identity-access`에 액션 기반 권한 검증 포트와 세션 저장소 경계를 추가
 2. `python/ingestion-worker`에 crawl source 실행 흐름과 job callback 스텁 추가
 3. `tests/api`, `tests/e2e`에 ingestion 범위 회귀 케이스를 추가
 4. ingestion job 상세 조회와 재실행 API를 추가
-5. 다음 구현도 `openspec/changes/<change-id>`를 먼저 생성하고 진행 상태를 갱신
+5. 다음 구현도 `openspec/changes/<change-id>`를 먼저 생성하고 WBS 상태를 함께 갱신

@@ -1,5 +1,7 @@
 # Delivery Plan
 
+상위 WBS와 Mermaid 마일스톤 시각화는 [17_development_wbs_milestones.md](/C:/Users/User/Documents/work/mvp_docs/17_development_wbs_milestones.md)를 기준으로 본다.
+
 ## 1. Planning Rule
 
 - 구현 단위는 `화면`, `API`, `DB`, `배치`, `운영도구`로 나눈다.
