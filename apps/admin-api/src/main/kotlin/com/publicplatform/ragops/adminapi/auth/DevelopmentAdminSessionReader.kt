@@ -1,6 +1,7 @@
 package com.publicplatform.ragops.adminapi.auth
 
 import com.publicplatform.ragops.identityaccess.AdminRoleAssignment
+import com.publicplatform.ragops.identityaccess.AdminSessionRepository
 import com.publicplatform.ragops.identityaccess.AdminSessionReader
 import com.publicplatform.ragops.identityaccess.AdminSessionSnapshot
 import com.publicplatform.ragops.identityaccess.AdminUser
@@ -13,9 +14,15 @@ import java.time.Instant
 
 @Service
 class DevelopmentAdminSessionReader(
+    private val adminSessionRepository: AdminSessionRepository,
     private val organizationDirectoryReader: OrganizationDirectoryReader,
 ) : AdminSessionReader {
     override fun restoreSession(lookup: SessionLookup): AdminSessionSnapshot {
+        lookup.sessionId
+            ?.let(adminSessionRepository::findBySessionId)
+            ?.let(::normalizeSessionScope)
+            ?.let { return it }
+
         val roleCode = lookup.roleCodeHint?.ifBlank { null } ?: "ops_admin"
         val organizationId = lookup.organizationIdHint?.ifBlank { null } ?: defaultOrganizationFor(roleCode)
 
@@ -26,20 +33,8 @@ class DevelopmentAdminSessionReader(
             ),
         )
 
-        val knownOrganizationIds = organizationDirectoryReader
-            .getOrganizations(roleAssignments.mapNotNull { it.organizationId }.toSet())
-            .map { it.id }
-            .toSet()
-
-        val normalizedRoleAssignments = roleAssignments.map { assignment ->
-            if (assignment.organizationId == null || assignment.organizationId in knownOrganizationIds) {
-                assignment
-            } else {
-                assignment.copy(organizationId = null)
-            }
-        }
-
-        return AdminSessionSnapshot(
+        return normalizeSessionScope(
+            AdminSessionSnapshot(
             user = AdminUser(
                 id = lookup.userIdHint?.ifBlank { null } ?: "usr_dev_ops_001",
                 email = lookup.emailHint?.ifBlank { null } ?: "ops.admin@gov-platform.kr",
@@ -47,8 +42,26 @@ class DevelopmentAdminSessionReader(
                 status = AdminUserStatus.ACTIVE,
                 lastLoginAt = Instant.parse("2026-03-15T09:00:00Z"),
             ),
-            roleAssignments = normalizedRoleAssignments,
+            roleAssignments = roleAssignments,
             grantedActions = actionsFor(roleCode),
+        )
+        )
+    }
+
+    private fun normalizeSessionScope(session: AdminSessionSnapshot): AdminSessionSnapshot {
+        val knownOrganizationIds = organizationDirectoryReader
+            .getOrganizations(session.roleAssignments.mapNotNull { it.organizationId }.toSet())
+            .map { it.id }
+            .toSet()
+
+        return session.copy(
+            roleAssignments = session.roleAssignments.map { assignment ->
+                if (assignment.organizationId == null || assignment.organizationId in knownOrganizationIds) {
+                    assignment
+                } else {
+                    assignment.copy(organizationId = null)
+                }
+            },
         )
     }
 
@@ -120,4 +133,69 @@ class InMemoryOrganizationDirectoryReader : OrganizationDirectoryReader {
 
     override fun getOrganizations(ids: Set<String>): List<OrganizationSummary> =
         organizations.filter { it.id in ids }
+}
+
+@Service
+class InMemoryAdminSessionRepository : AdminSessionRepository {
+    private val sessions = mapOf(
+        "sess_ops_global_001" to AdminSessionSnapshot(
+            user = AdminUser(
+                id = "usr_ops_global_001",
+                email = "ops.platform@gov-platform.kr",
+                displayName = "Platform Operator",
+                status = AdminUserStatus.ACTIVE,
+                lastLoginAt = Instant.parse("2026-03-15T08:30:00Z"),
+            ),
+            roleAssignments = listOf(
+                AdminRoleAssignment(
+                    roleCode = "ops_admin",
+                    organizationId = null,
+                ),
+            ),
+            grantedActions = listOf(
+                "dashboard.read",
+                "organization.read",
+                "organization.update",
+                "crawl_source.read",
+                "crawl_source.write",
+                "ingestion_job.read",
+                "document.read",
+                "document.reingest.request",
+                "document.reindex.request",
+                "document.reindex.execute",
+                "qa.review.read",
+                "qa.review.write",
+                "metrics.read",
+                "auth.user.read",
+                "auth.role.assign",
+            ),
+        ),
+        "sess_client_busan_001" to AdminSessionSnapshot(
+            user = AdminUser(
+                id = "usr_client_busan_001",
+                email = "client.admin@busan.go.kr",
+                displayName = "Busan Client Admin",
+                status = AdminUserStatus.ACTIVE,
+                lastLoginAt = Instant.parse("2026-03-15T08:45:00Z"),
+            ),
+            roleAssignments = listOf(
+                AdminRoleAssignment(
+                    roleCode = "client_admin",
+                    organizationId = "org_busan_220",
+                ),
+            ),
+            grantedActions = listOf(
+                "dashboard.read",
+                "crawl_source.read",
+                "ingestion_job.read",
+                "document.read",
+                "document.reingest.request",
+                "document.reindex.request",
+                "metrics.read",
+            ),
+        ),
+    )
+
+    override fun findBySessionId(sessionId: String): AdminSessionSnapshot? =
+        sessions[sessionId]
 }

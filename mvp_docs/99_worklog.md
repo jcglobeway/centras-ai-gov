@@ -34,6 +34,7 @@
 - `identity-access`, `organization-directory` 모듈에 세션 복원/조직 조회 계약을 추가하고 `admin-api`를 모듈 계약 기반으로 정리
 - 작업 폴더를 `git init -b main`으로 초기화하고 로컬 Git 추적 기반을 마련
 - `ingestion-ops` 모듈에 crawl source/job 조회 계약을 추가하고 `admin-api`에 범위 기반 조회 엔드포인트를 연결
+- `identity-access`에 `AdminSessionRepository` 포트를 추가하고 `X-Admin-Session-Id` 기반 세션 복원 경로를 연결
 
 ### Current Decision
 
@@ -63,11 +64,12 @@
 - 저장소 초기 골격은 이미 생성했고, 다음 단계는 각 모듈 계약과 엔드포인트를 채우는 것이다.
 - 로컬 부트스트랩은 완료됐고 기본 실행 명령은 `.\gradlew.bat test` 다.
 - `admin-api`는 이제 모듈 계약을 통해 세션을 복원하며, 현재 구현체는 개발용 인메모리 adapter 다.
+- 개발 환경에서도 `X-Admin-Session-Id` 경로를 우선 사용해 저장소 기반 세션 복원을 먼저 검증한다.
 - ingestion 조회도 세션 조직 범위를 따라가며, 전역 역할은 전체 source/job을 조회한다.
 
 ### Next Actions
 
 1. `modules/ingestion-ops`에 쓰기 계약과 job 상태 전이 규칙을 추가
-2. `apps/admin-api`의 인메모리 세션 adapter를 실제 인증/조직 스코프 복원 흐름으로 교체
+2. `identity-access`에 실제 세션 저장소/권한 부여 규칙 포트를 분리
 3. `python/ingestion-worker`에 crawl source 실행 흐름과 job callback 스텁 추가
 4. `tests/api`, `tests/e2e`에 ingestion 범위 회귀 케이스를 추가

@@ -28,6 +28,7 @@ data class AdminSessionSnapshot(
 )
 
 data class SessionLookup(
+    val sessionId: String?,
     val userIdHint: String?,
     val emailHint: String?,
     val displayNameHint: String?,
@@ -37,4 +38,8 @@ data class SessionLookup(
 
 interface AdminSessionReader {
     fun restoreSession(lookup: SessionLookup): AdminSessionSnapshot
+}
+
+interface AdminSessionRepository {
+    fun findBySessionId(sessionId: String): AdminSessionSnapshot?
 }

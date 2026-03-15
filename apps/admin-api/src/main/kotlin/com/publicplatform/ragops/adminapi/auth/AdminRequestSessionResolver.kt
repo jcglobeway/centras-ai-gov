@@ -13,6 +13,7 @@ class AdminRequestSessionResolver(
     fun resolve(request: HttpServletRequest): AdminSessionSnapshot =
         adminSessionReader.restoreSession(
             SessionLookup(
+                sessionId = request.headerOrNull("X-Admin-Session-Id"),
                 userIdHint = request.headerOrNull("X-Debug-User-Id"),
                 emailHint = request.headerOrNull("X-Debug-Email"),
                 displayNameHint = request.headerOrNull("X-Debug-Display-Name"),

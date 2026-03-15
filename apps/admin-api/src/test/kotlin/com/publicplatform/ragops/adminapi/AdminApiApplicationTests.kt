@@ -64,6 +64,19 @@ class AdminApiApplicationTests {
     }
 
     @Test
+    fun `auth me restores session from session id header`() {
+        mockMvc.get("/admin/auth/me") {
+            header("X-Admin-Session-Id", "sess_client_busan_001")
+        }.andExpect {
+            status { isOk() }
+            jsonPath("$.user.id") { value("usr_client_busan_001") }
+            jsonPath("$.roles[0].roleCode") { value("client_admin") }
+            jsonPath("$.roles[0].organizationId") { value("org_busan_220") }
+            jsonPath("$.actions") { isArray() }
+        }
+    }
+
+    @Test
     fun `crawl sources returns all organizations for ops admin`() {
         mockMvc.get("/admin/crawl-sources")
             .andExpect {
