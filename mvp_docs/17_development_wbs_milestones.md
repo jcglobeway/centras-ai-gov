@@ -100,8 +100,9 @@ gantt
     section Foundation
     Auth session store              :done, foundation1, 2026-03-15, 2d
     Action auth policy              :done, foundation2, after foundation1, 2d
-    Organization scope repository   :active, foundation3, after foundation2, 2d
-    Audit log baseline              :foundation4, after foundation3, 2d
+    Session lifecycle API           :done, foundation3, after foundation2, 2d
+    Organization scope repository   :active, foundation4, after foundation3, 2d
+    Audit log baseline              :foundation5, after foundation4, 2d
 
     section Ingestion Ops
     Crawl source query and command  :done, ingestion1, 2026-03-15, 2d
@@ -133,13 +134,14 @@ gantt
 - 완료:
   - 저장소 부트스트랩
   - `auth/me` 개발용 세션 복원
+  - 로그인/로그아웃과 세션 만료/폐기 API
   - ingestion 조회/쓰기 API
   - ingestion 상태 전이 규칙
 - 진행 중:
   - 조직/권한 저장소화
 - 다음 착수:
   - worker callback 계약
-  - 세션 저장소 만료/폐기 처리
+  - 실제 세션 저장소 영속화
   - ingestion 회귀 테스트 확장
 
 ## 7. Change Tracking Rule

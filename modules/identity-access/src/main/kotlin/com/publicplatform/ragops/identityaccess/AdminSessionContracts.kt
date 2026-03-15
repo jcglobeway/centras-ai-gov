@@ -1,6 +1,7 @@
 package com.publicplatform.ragops.identityaccess
 
 import java.time.Instant
+import java.time.Duration
 
 enum class AdminUserStatus {
     ACTIVE,
@@ -27,6 +28,52 @@ data class AdminSessionSnapshot(
     val grantedActions: List<String>,
 )
 
+data class AdminSessionRecord(
+    val sessionId: String,
+    val snapshot: AdminSessionSnapshot,
+    val issuedAt: Instant,
+    val expiresAt: Instant,
+    val lastSeenAt: Instant,
+    val revokedAt: Instant?,
+)
+
+data class AdminSessionIssueCommand(
+    val snapshot: AdminSessionSnapshot,
+    val issuedAt: Instant,
+    val expiresAt: Instant,
+    val userAgent: String?,
+    val ipAddress: String?,
+)
+
+data class AdminLoginCommand(
+    val email: String,
+    val password: String,
+    val userAgent: String?,
+    val ipAddress: String?,
+)
+
+data class AdminLoginResult(
+    val session: AdminSessionRecord,
+    val primaryRoleCode: String,
+    val organizationScope: List<String>,
+)
+
+data class AuthenticatedAdminPrincipal(
+    val snapshot: AdminSessionSnapshot,
+)
+
+enum class AdminAuthErrorCode {
+    AUTH_UNAUTHORIZED,
+    AUTH_INVALID_CREDENTIALS,
+    AUTH_SESSION_EXPIRED,
+    AUTH_SESSION_REVOKED,
+}
+
+class AdminAuthenticationException(
+    val code: AdminAuthErrorCode,
+    override val message: String,
+) : RuntimeException(message)
+
 data class SessionLookup(
     val sessionId: String?,
     val userIdHint: String?,
@@ -41,5 +88,16 @@ interface AdminSessionReader {
 }
 
 interface AdminSessionRepository {
-    fun findBySessionId(sessionId: String): AdminSessionSnapshot?
+    fun findBySessionId(sessionId: String): AdminSessionRecord?
+    fun issue(command: AdminSessionIssueCommand): AdminSessionRecord
+    fun revoke(sessionId: String, revokedAt: Instant): AdminSessionRecord?
 }
+
+interface AdminCredentialAuthenticator {
+    fun authenticate(email: String, password: String): AuthenticatedAdminPrincipal?
+}
+
+fun AdminSessionRecord.isUsableAt(at: Instant): Boolean =
+    revokedAt == null && expiresAt.isAfter(at)
+
+fun defaultAdminSessionDuration(): Duration = Duration.ofHours(8)

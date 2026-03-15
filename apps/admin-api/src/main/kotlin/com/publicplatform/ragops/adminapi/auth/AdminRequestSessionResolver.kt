@@ -21,6 +21,13 @@ class AdminRequestSessionResolver(
                 organizationIdHint = request.headerOrNull("X-Debug-Organization-Id"),
             ),
         )
+
+    fun requireSessionId(request: HttpServletRequest): String =
+        request.headerOrNull("X-Admin-Session-Id")
+            ?: throw UnauthorizedException(
+                code = "AUTH_UNAUTHORIZED",
+                message = "Admin session header is required.",
+            )
 }
 
 fun HttpServletRequest.headerOrNull(name: String): String? =

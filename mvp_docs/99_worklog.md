@@ -40,6 +40,7 @@
 - 전체 개발 진행 추적용 `17_development_wbs_milestones.md`를 추가하고 Milestone/WBS/Mermaid 일정 기준을 고정
 - ingestion API 권한 검증을 `role` 분기 대신 `identity-access`의 액션 기반 정책으로 올리는 change를 시작
 - `identity-access`에 `AdminAuthorizationPolicy`를 추가하고 ingestion API가 액션 기반 권한 검증을 사용하도록 전환
+- `add-auth-session-lifecycle` change로 로그인/로그아웃, 세션 만료/폐기, 명시적 세션 ID 오류 응답, 개발용 자격 증명 검증을 추가
 
 ### Current Decision
 
@@ -77,11 +78,13 @@
 - 전체 진행 추적은 `17_development_wbs_milestones.md`의 마일스톤과 Gantt 상태를 기준으로 갱신한다.
 - ingestion API 권한 검증은 `grantedActions + organization scope` 조합으로 판정한다.
 - ingestion 조회/쓰기 엔드포인트는 이제 역할명이 아니라 액션 코드로 권한을 확인한다.
+- 인증 API 기준선은 이제 `login -> me -> logout -> revoked/expired 401` 라이프사이클까지 포함한다.
+- 명시적 `X-Admin-Session-Id`가 잘못됐을 때는 디버그 스텁으로 폴백하지 않는다.
 
 ### Next Actions
 
-1. `identity-access`에 세션 만료/폐기 처리와 로그인/로그아웃 저장소 경계를 추가
+1. `identity-access`와 `organization-directory`를 실제 저장소 포트 기준으로 분리
 2. `python/ingestion-worker`에 crawl source 실행 흐름과 job callback 스텁 추가
-3. `tests/api`, `tests/e2e`에 ingestion 범위 회귀 케이스를 추가
+3. `tests/api`, `tests/e2e`에 auth/ingestion 범위 회귀 케이스를 추가
 4. ingestion job 상세 조회와 재실행 API를 추가
 5. 다음 구현도 `openspec/changes/<change-id>`를 먼저 생성하고 WBS 상태를 함께 갱신
