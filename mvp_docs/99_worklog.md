@@ -218,3 +218,17 @@
 - CORS 설정: localhost:3000, localhost:8080 허용
 - 모든 endpoint permitAll (기존 세션 기반 인증 유지)
 - ./gradlew test 통과 (39 tests)
+- `add-production-logging` change로 로깅 및 에러 처리 개선
+- RequestIdFilter: request_id, trace_id 자동 생성 (UUID 기반)
+  • MDC에 추가 (로그에서 사용)
+  • Response header에 추가 (X-Request-ID, X-Trace-ID)
+- GlobalExceptionHandler: 통일된 에러 응답
+  • AdminAuthenticationException → 401 (AUTH_* code)
+  • AdminAuthorizationException → 403 (AUTH_FORBIDDEN)
+  • InvalidIngestionJobTransitionException → 400
+  • InvalidQAReviewException → 400
+  • MethodArgumentNotValidException → 400 (VALIDATION_ERROR)
+  • ResponseStatusException → 적절한 status code
+  • Exception → 500 (INTERNAL_SERVER_ERROR)
+  • ErrorResponse 포맷: error{code, message, requestId}, generatedAt
+- ./gradlew test 통과 (39 tests)
