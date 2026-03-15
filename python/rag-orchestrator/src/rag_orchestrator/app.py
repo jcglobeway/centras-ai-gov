@@ -42,21 +42,25 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
     4. LLM answer synthesis
     5. Citation extraction
     """
-    # 개발 환경: 간단한 stub 응답
-    use_openai = os.getenv("OPENAI_API_KEY") is not None
+    # Ollama를 사용한 답변 생성
+    ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
+    use_ollama = check_ollama_available(ollama_url)
 
-    if use_openai:
-        # OpenAI API를 사용한 간단한 답변 생성 (실제 retrieval 없이)
-        answer_text = generate_answer_with_llm(request.question_text)
+    if use_ollama:
+        # Ollama API를 사용한 답변 생성 (실제 retrieval 없이)
+        answer_text = generate_answer_with_ollama(
+            question=request.question_text,
+            ollama_url=ollama_url,
+        )
         answer_status = "answered"
         citation_count = 0  # stub: 실제 retrieval 없음
         fallback_reason = None
     else:
-        # LLM API 없으면 fallback
-        answer_text = f"[DEV MODE] This is a stub answer for: {request.question_text}"
+        # Ollama 없으면 fallback
+        answer_text = f"[DEV MODE] Ollama not available. Stub answer for: {request.question_text}"
         answer_status = "fallback"
         citation_count = 0
-        fallback_reason = "DEV_MODE_STUB"
+        fallback_reason = "OLLAMA_NOT_AVAILABLE"
 
     return GenerateAnswerResponse(
         question_id=request.question_id,
@@ -68,11 +72,20 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
     )
 
 
-def generate_answer_with_llm(question: str) -> str:
-    """LLM API를 사용해 답변을 생성한다."""
-    from openai import OpenAI
+def check_ollama_available(ollama_url: str) -> bool:
+    """Ollama가 실행 중인지 확인한다."""
+    import httpx
 
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    try:
+        response = httpx.get(f"{ollama_url}/api/tags", timeout=2.0)
+        return response.status_code == 200
+    except Exception:
+        return False
+
+
+def generate_answer_with_ollama(question: str, ollama_url: str) -> str:
+    """Ollama API를 사용해 답변을 생성한다."""
+    import httpx
 
     # Mock retrieval context (향후 실제 vector search로 교체)
     mock_context = """
@@ -82,29 +95,43 @@ def generate_answer_with_llm(question: str) -> str:
     - 처리 기간: 신청 후 7-14일
     """
 
-    # LLM 호출
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {
-                "role": "system",
-                "content": "당신은 공공기관 민원 안내 챗봇입니다. 제공된 문서를 기반으로 정확하고 친절하게 답변하세요.",
-            },
-            {
-                "role": "user",
-                "content": f"""참고 문서:
+    system_prompt = "당신은 공공기관 민원 안내 챗봇입니다. 제공된 문서를 기반으로 정확하고 친절하게 답변하세요."
+    user_prompt = f"""참고 문서:
 {mock_context}
 
 질문: {question}
 
-위 문서를 참고하여 질문에 답변해주세요.""",
-            },
-        ],
-        temperature=0.3,
-        max_tokens=500,
-    )
+위 문서를 참고하여 질문에 답변해주세요."""
 
-    return response.choices[0].message.content or "[답변 생성 실패]"
+    # Ollama API 호출 (chat completion)
+    model = os.getenv("OLLAMA_MODEL", "llama3.2")
+
+    try:
+        response = httpx.post(
+            f"{ollama_url}/api/chat",
+            json={
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                "stream": False,
+                "options": {
+                    "temperature": 0.3,
+                    "num_predict": 500,
+                },
+            },
+            timeout=30.0,
+        )
+
+        if response.status_code == 200:
+            result = response.json()
+            return result.get("message", {}).get("content", "[답변 생성 실패]")
+        else:
+            return f"[Ollama API 오류: {response.status_code}]"
+
+    except Exception as e:
+        return f"[Ollama 호출 실패: {str(e)}]"
 
 
 def main() -> None:

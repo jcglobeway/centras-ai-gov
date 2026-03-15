@@ -232,3 +232,14 @@
   • Exception → 500 (INTERNAL_SERVER_ERROR)
   • ErrorResponse 포맷: error{code, message, requestId}, generatedAt
 - ./gradlew test 통과 (39 tests)
+- `switch-to-ollama-llm` change로 OpenAI → Ollama 전환
+- rag-orchestrator에 Ollama API 호출 구현
+  • check_ollama_available: Ollama 실행 확인 (GET /api/tags)
+  • generate_answer_with_ollama: POST /api/chat
+  • 환경 변수: OLLAMA_URL (기본 http://localhost:11434), OLLAMA_MODEL (기본 llama3.2)
+- pyproject.toml에서 openai 의존성 제거
+- OLLAMA_SETUP.md 추가 (설치/실행 가이드)
+- Mock retrieval context 유지 (향후 vector search로 교체)
+- Ollama 없으면 fallback 응답
+- ./gradlew test 통과 (39 tests)
+- 비용 절감 및 로컬 실행 가능
