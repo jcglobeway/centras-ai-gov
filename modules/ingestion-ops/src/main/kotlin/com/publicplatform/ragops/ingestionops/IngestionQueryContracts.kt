@@ -26,7 +26,39 @@ enum class IngestionJobStatus {
     QUEUED,
     RUNNING,
     SUCCEEDED,
+    PARTIAL_SUCCESS,
     FAILED,
+    CANCELLED,
+}
+
+enum class IngestionJobType {
+    CRAWL,
+    PARSE,
+    CHUNK,
+    EMBED,
+    INDEX,
+    REINDEX,
+}
+
+enum class IngestionJobStage {
+    FETCH,
+    EXTRACT,
+    NORMALIZE,
+    CHUNK,
+    EMBED,
+    INDEX,
+    COMPLETE,
+}
+
+enum class CrawlRenderMode {
+    HTTP_STATIC,
+    BROWSER_PLAYWRIGHT,
+    BROWSER_LIGHTPANDA,
+}
+
+enum class CrawlCollectionMode {
+    FULL,
+    INCREMENTAL,
 }
 
 data class IngestionScope(
@@ -37,8 +69,12 @@ data class IngestionScope(
 data class CrawlSourceSummary(
     val id: String,
     val organizationId: String,
+    val serviceId: String,
     val name: String,
     val sourceType: CrawlSourceType,
+    val sourceUri: String,
+    val renderMode: CrawlRenderMode,
+    val collectionMode: CrawlCollectionMode,
     val schedule: String,
     val status: CrawlSourceStatus,
     val lastSucceededAt: Instant?,
@@ -48,10 +84,16 @@ data class CrawlSourceSummary(
 data class IngestionJobSummary(
     val id: String,
     val organizationId: String,
+    val serviceId: String,
     val crawlSourceId: String,
-    val step: IngestionJobStep,
+    val documentId: String?,
+    val jobType: IngestionJobType,
+    val stage: IngestionJobStage,
     val status: IngestionJobStatus,
+    val runnerType: String,
     val triggerType: String,
+    val attemptCount: Int,
+    val errorCode: String?,
     val requestedAt: Instant,
     val startedAt: Instant?,
     val finishedAt: Instant?,

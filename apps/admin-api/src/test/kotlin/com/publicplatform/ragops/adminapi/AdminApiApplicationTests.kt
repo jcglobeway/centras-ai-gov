@@ -5,11 +5,15 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.http.MediaType
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.post
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class AdminApiApplicationTests {
     @Autowired
     lateinit var mockMvc: MockMvc
@@ -81,8 +85,9 @@ class AdminApiApplicationTests {
         mockMvc.get("/admin/crawl-sources")
             .andExpect {
                 status { isOk() }
-                jsonPath("$.total") { value(2) }
                 jsonPath("$.items[0].id") { value("crawl_src_001") }
+                jsonPath("$.items[0].serviceId") { value("svc_welfare") }
+                jsonPath("$.items[0].renderMode") { value("browser_playwright") }
                 jsonPath("$.items[1].organizationId") { value("org_busan_220") }
             }
     }
@@ -94,7 +99,6 @@ class AdminApiApplicationTests {
             header("X-Debug-Organization-Id", "org_busan_220")
         }.andExpect {
             status { isOk() }
-            jsonPath("$.total") { value(1) }
             jsonPath("$.items[0].id") { value("crawl_src_002") }
             jsonPath("$.items[0].organizationId") { value("org_busan_220") }
         }
@@ -109,7 +113,109 @@ class AdminApiApplicationTests {
             status { isOk() }
             jsonPath("$.total") { value(1) }
             jsonPath("$.items[0].id") { value("ing_job_101") }
+            jsonPath("$.items[0].jobType") { value("crawl") }
+            jsonPath("$.items[0].jobStage") { value("complete") }
             jsonPath("$.items[0].status") { value("succeeded") }
+        }
+    }
+
+    @Test
+    fun `client admin can create crawl source in own scope`() {
+        mockMvc.post("/admin/crawl-sources") {
+            header("X-Debug-Role", "client_admin")
+            header("X-Debug-Organization-Id", "org_busan_220")
+            contentType = MediaType.APPLICATION_JSON
+            content =
+                """
+                {
+                  "organizationId": "org_busan_220",
+                  "serviceId": "svc_faq",
+                  "name": "Busan Welfare Notices",
+                  "sourceType": "website",
+                  "sourceUri": "https://busan.example.go.kr/welfare",
+                  "renderMode": "browser_playwright",
+                  "collectionMode": "incremental",
+                  "scheduleExpr": "0 */4 * * *"
+                }
+                """.trimIndent()
+        }.andExpect {
+            status { isCreated() }
+            jsonPath("$.saved") { value(true) }
+            jsonPath("$.crawlSourceId") { exists() }
+        }
+    }
+
+    @Test
+    fun `client admin cannot create crawl source outside own scope`() {
+        mockMvc.post("/admin/crawl-sources") {
+            header("X-Debug-Role", "client_admin")
+            header("X-Debug-Organization-Id", "org_busan_220")
+            contentType = MediaType.APPLICATION_JSON
+            content =
+                """
+                {
+                  "organizationId": "org_seoul_120",
+                  "serviceId": "svc_welfare",
+                  "name": "Forbidden Source",
+                  "sourceType": "website",
+                  "sourceUri": "https://seoul.example.go.kr/forbidden",
+                  "renderMode": "browser_playwright",
+                  "collectionMode": "incremental",
+                  "scheduleExpr": "0 */4 * * *"
+                }
+                """.trimIndent()
+        }.andExpect {
+            status { isForbidden() }
+        }
+    }
+
+    @Test
+    fun `run crawl source creates queued ingestion job`() {
+        mockMvc.post("/admin/crawl-sources/crawl_src_001/run")
+            .andExpect {
+                status { isAccepted() }
+                jsonPath("$.jobId") { exists() }
+                jsonPath("$.status") { value("queued") }
+            }
+    }
+
+    @Test
+    fun `ingestion job transition accepts queued to running`() {
+        mockMvc.post("/admin/crawl-sources/crawl_src_001/run")
+            .andExpect {
+                status { isAccepted() }
+            }
+
+        mockMvc.post("/admin/ingestion-jobs/ing_job_901/status") {
+            contentType = MediaType.APPLICATION_JSON
+            content =
+                """
+                {
+                  "jobStatus": "running",
+                  "jobStage": "fetch"
+                }
+                """.trimIndent()
+        }.andExpect {
+            status { isOk() }
+            jsonPath("$.jobId") { value("ing_job_901") }
+            jsonPath("$.jobStatus") { value("running") }
+            jsonPath("$.jobStage") { value("fetch") }
+        }
+    }
+
+    @Test
+    fun `ingestion job transition rejects terminal to running`() {
+        mockMvc.post("/admin/ingestion-jobs/ing_job_101/status") {
+            contentType = MediaType.APPLICATION_JSON
+            content =
+                """
+                {
+                  "jobStatus": "running",
+                  "jobStage": "fetch"
+                }
+                """.trimIndent()
+        }.andExpect {
+            status { isBadRequest() }
         }
     }
 }

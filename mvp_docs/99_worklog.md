@@ -36,6 +36,7 @@
 - `ingestion-ops` 모듈에 crawl source/job 조회 계약을 추가하고 `admin-api`에 범위 기반 조회 엔드포인트를 연결
 - `identity-access`에 `AdminSessionRepository` 포트를 추가하고 `X-Admin-Session-Id` 기반 세션 복원 경로를 연결
 - OpenSpec 기반 변경 추적 구조와 템플릿을 추가하고, 이후 중요한 변경은 change 단위로 관리하기로 결정
+- `add-ingestion-write-contracts` change로 ingestion 쓰기 계약, 상태 전이 규칙, 개발용 쓰기 API와 테스트를 추가
 
 ### Current Decision
 
@@ -68,11 +69,13 @@
 - 개발 환경에서도 `X-Admin-Session-Id` 경로를 우선 사용해 저장소 기반 세션 복원을 먼저 검증한다.
 - ingestion 조회도 세션 조직 범위를 따라가며, 전역 역할은 전체 source/job을 조회한다.
 - 중요한 변경은 `OpenSpec change -> 구현 -> 검증 -> 한글 커밋` 순서로 관리한다.
+- ingestion 쓰기 흐름은 `source 생성 -> 수동 job 생성 -> 상태 전이` 3단계로 먼저 고정한다.
+- ingestion job 상태 전이 검증은 `modules/ingestion-ops`의 단일 상태 머신을 기준으로 본다.
 
 ### Next Actions
 
-1. `modules/ingestion-ops`에 쓰기 계약과 job 상태 전이 규칙을 추가
-2. `identity-access`에 실제 세션 저장소/권한 부여 규칙 포트를 분리
-3. `python/ingestion-worker`에 crawl source 실행 흐름과 job callback 스텁 추가
-4. `tests/api`, `tests/e2e`에 ingestion 범위 회귀 케이스를 추가
-5. 다음 구현부터 `openspec/changes/<change-id>`를 먼저 생성하고 진행 상태를 갱신
+1. `identity-access`에 실제 세션 저장소/권한 부여 규칙 포트를 분리
+2. `python/ingestion-worker`에 crawl source 실행 흐름과 job callback 스텁 추가
+3. `tests/api`, `tests/e2e`에 ingestion 범위 회귀 케이스를 추가
+4. ingestion job 상세 조회와 재실행 API를 추가
+5. 다음 구현도 `openspec/changes/<change-id>`를 먼저 생성하고 진행 상태를 갱신

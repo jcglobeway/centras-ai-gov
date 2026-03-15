@@ -2,12 +2,15 @@ package com.publicplatform.ragops.adminapi.ingestion
 
 import com.publicplatform.ragops.adminapi.auth.AdminRequestSessionResolver
 import com.publicplatform.ragops.ingestionops.CrawlSourceReader
+import com.publicplatform.ragops.ingestionops.CrawlCollectionMode
+import com.publicplatform.ragops.ingestionops.CrawlRenderMode
 import com.publicplatform.ragops.ingestionops.CrawlSourceStatus
 import com.publicplatform.ragops.ingestionops.CrawlSourceSummary
 import com.publicplatform.ragops.ingestionops.CrawlSourceType
 import com.publicplatform.ragops.ingestionops.IngestionJobReader
 import com.publicplatform.ragops.ingestionops.IngestionJobStatus
-import com.publicplatform.ragops.ingestionops.IngestionJobStep
+import com.publicplatform.ragops.ingestionops.IngestionJobStage
+import com.publicplatform.ragops.ingestionops.IngestionJobType
 import com.publicplatform.ragops.ingestionops.IngestionJobSummary
 import com.publicplatform.ragops.ingestionops.IngestionScope
 import jakarta.servlet.http.HttpServletRequest
@@ -56,8 +59,12 @@ data class CrawlSourceListResponse(
 data class CrawlSourceResponse(
     val id: String,
     val organizationId: String,
+    val serviceId: String,
     val name: String,
     val sourceType: String,
+    val sourceUri: String,
+    val renderMode: String,
+    val collectionMode: String,
     val schedule: String,
     val status: String,
     val lastSucceededAt: Instant?,
@@ -72,10 +79,16 @@ data class IngestionJobListResponse(
 data class IngestionJobResponse(
     val id: String,
     val organizationId: String,
+    val serviceId: String,
     val crawlSourceId: String,
-    val step: String,
+    val documentId: String?,
+    val jobType: String,
+    val jobStage: String,
     val status: String,
+    val runnerType: String,
     val triggerType: String,
+    val attemptCount: Int,
+    val errorCode: String?,
     val requestedAt: Instant,
     val startedAt: Instant?,
     val finishedAt: Instant?,
@@ -85,8 +98,12 @@ private fun CrawlSourceSummary.toResponse(): CrawlSourceResponse =
     CrawlSourceResponse(
         id = id,
         organizationId = organizationId,
+        serviceId = serviceId,
         name = name,
         sourceType = sourceType.toApiValue(),
+        sourceUri = sourceUri,
+        renderMode = renderMode.toApiValue(),
+        collectionMode = collectionMode.toApiValue(),
         schedule = schedule,
         status = status.toApiValue(),
         lastSucceededAt = lastSucceededAt,
@@ -97,10 +114,16 @@ private fun IngestionJobSummary.toResponse(): IngestionJobResponse =
     IngestionJobResponse(
         id = id,
         organizationId = organizationId,
+        serviceId = serviceId,
         crawlSourceId = crawlSourceId,
-        step = step.toApiValue(),
+        documentId = documentId,
+        jobType = jobType.toApiValue(),
+        jobStage = stage.toApiValue(),
         status = status.toApiValue(),
+        runnerType = runnerType,
         triggerType = triggerType,
+        attemptCount = attemptCount,
+        errorCode = errorCode,
         requestedAt = requestedAt,
         startedAt = startedAt,
         finishedAt = finishedAt,
@@ -113,6 +136,19 @@ private fun CrawlSourceType.toApiValue(): String =
         CrawlSourceType.FILE_DROP -> "file_drop"
     }
 
+private fun CrawlRenderMode.toApiValue(): String =
+    when (this) {
+        CrawlRenderMode.HTTP_STATIC -> "http_static"
+        CrawlRenderMode.BROWSER_PLAYWRIGHT -> "browser_playwright"
+        CrawlRenderMode.BROWSER_LIGHTPANDA -> "browser_lightpanda"
+    }
+
+private fun CrawlCollectionMode.toApiValue(): String =
+    when (this) {
+        CrawlCollectionMode.FULL -> "full"
+        CrawlCollectionMode.INCREMENTAL -> "incremental"
+    }
+
 private fun CrawlSourceStatus.toApiValue(): String =
     when (this) {
         CrawlSourceStatus.ACTIVE -> "active"
@@ -120,13 +156,25 @@ private fun CrawlSourceStatus.toApiValue(): String =
         CrawlSourceStatus.ERROR -> "error"
     }
 
-private fun IngestionJobStep.toApiValue(): String =
+private fun IngestionJobType.toApiValue(): String =
     when (this) {
-        IngestionJobStep.CRAWL -> "crawl"
-        IngestionJobStep.PARSE -> "parse"
-        IngestionJobStep.CHUNK -> "chunk"
-        IngestionJobStep.EMBED -> "embed"
-        IngestionJobStep.INDEX -> "index"
+        IngestionJobType.CRAWL -> "crawl"
+        IngestionJobType.PARSE -> "parse"
+        IngestionJobType.CHUNK -> "chunk"
+        IngestionJobType.EMBED -> "embed"
+        IngestionJobType.INDEX -> "index"
+        IngestionJobType.REINDEX -> "reindex"
+    }
+
+private fun IngestionJobStage.toApiValue(): String =
+    when (this) {
+        IngestionJobStage.FETCH -> "fetch"
+        IngestionJobStage.EXTRACT -> "extract"
+        IngestionJobStage.NORMALIZE -> "normalize"
+        IngestionJobStage.CHUNK -> "chunk"
+        IngestionJobStage.EMBED -> "embed"
+        IngestionJobStage.INDEX -> "index"
+        IngestionJobStage.COMPLETE -> "complete"
     }
 
 private fun IngestionJobStatus.toApiValue(): String =
@@ -134,5 +182,7 @@ private fun IngestionJobStatus.toApiValue(): String =
         IngestionJobStatus.QUEUED -> "queued"
         IngestionJobStatus.RUNNING -> "running"
         IngestionJobStatus.SUCCEEDED -> "succeeded"
+        IngestionJobStatus.PARTIAL_SUCCESS -> "partial_success"
         IngestionJobStatus.FAILED -> "failed"
+        IngestionJobStatus.CANCELLED -> "cancelled"
     }
