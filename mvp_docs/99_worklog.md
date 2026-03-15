@@ -46,6 +46,13 @@
 - `organization-directory`에 `OrganizationRepository`, `ServiceRepository` 포트 추가
 - modules에 ConcurrentHashMap 기반 인메모리 어댑터 구현 (향후 JPA 전환 준비)
 - admin-api는 기존 개발용 구현 유지 (Bean 충돌 회피, 점진적 전환 전략)
+- `add-ingestion-worker-crawl-flow` change로 Python ingestion-worker 기본 실행 흐름 구현
+- admin-api에 crawl source/job 개별 조회 API 추가 (GET /admin/crawl-sources/{id}, /admin/ingestion-jobs/{id})
+- Python worker에 AdminApiClient 구현 (httpx 기반, X-Admin-Session-Id 인증)
+- Playwright 기반 CrawlExecutor 구현 (async API, URL fetch, 스크린샷 저장)
+- IngestionJobRunner 구현 (job lifecycle: queued → running → succeeded/failed)
+- CLI 통합 (ingestion-worker run --job-id, 환경 변수 지원)
+- pyproject.toml에 playwright, pytest 의존성 추가
 
 ### Current Decision
 

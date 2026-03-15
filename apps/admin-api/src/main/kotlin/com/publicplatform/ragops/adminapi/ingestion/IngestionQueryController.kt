@@ -16,6 +16,7 @@ import com.publicplatform.ragops.ingestionops.IngestionJobSummary
 import com.publicplatform.ragops.ingestionops.IngestionScope
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.time.Instant
@@ -37,6 +38,22 @@ class IngestionQueryController(
         return CrawlSourceListResponse(items = items, total = items.size)
     }
 
+    @GetMapping("/crawl-sources/{id}")
+    fun getCrawlSource(
+        @PathVariable id: String,
+        request: HttpServletRequest,
+    ): CrawlSourceResponse {
+        val session = adminRequestSessionResolver.resolve(request)
+        adminAuthorizationPolicy.requireAuthorized(session, actionCheck("crawl_source.read"))
+        val scope = session.toScope()
+        val source = crawlSourceReader.listSources(scope).find { it.id == id }
+            ?: throw org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.NOT_FOUND,
+                "Crawl source not found: $id",
+            )
+        return source.toResponse()
+    }
+
     @GetMapping("/ingestion-jobs")
     fun listIngestionJobs(request: HttpServletRequest): IngestionJobListResponse {
         val session = adminRequestSessionResolver.resolve(request)
@@ -44,6 +61,22 @@ class IngestionQueryController(
         val scope = session.toScope()
         val items = ingestionJobReader.listJobs(scope).map { it.toResponse() }
         return IngestionJobListResponse(items = items, total = items.size)
+    }
+
+    @GetMapping("/ingestion-jobs/{id}")
+    fun getIngestionJob(
+        @PathVariable id: String,
+        request: HttpServletRequest,
+    ): IngestionJobResponse {
+        val session = adminRequestSessionResolver.resolve(request)
+        adminAuthorizationPolicy.requireAuthorized(session, actionCheck("ingestion_job.read"))
+        val scope = session.toScope()
+        val job = ingestionJobReader.listJobs(scope).find { it.id == id }
+            ?: throw org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.NOT_FOUND,
+                "Ingestion job not found: $id",
+            )
+        return job.toResponse()
     }
 }
 
