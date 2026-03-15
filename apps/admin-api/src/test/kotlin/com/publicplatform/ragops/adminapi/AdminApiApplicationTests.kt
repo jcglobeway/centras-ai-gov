@@ -287,12 +287,16 @@ class AdminApiApplicationTests {
 
     @Test
     fun `ingestion job transition accepts queued to running`() {
-        mockMvc.post("/admin/crawl-sources/crawl_src_001/run")
+        val response = mockMvc.post("/admin/crawl-sources/crawl_src_001/run")
             .andExpect {
                 status { isAccepted() }
+                jsonPath("$.jobId") { exists() }
             }
+            .andReturn()
 
-        mockMvc.post("/admin/ingestion-jobs/ing_job_901/status") {
+        val jobId = response.response.contentAsString.contentAsJson().path("jobId").asText()
+
+        mockMvc.post("/admin/ingestion-jobs/$jobId/status") {
             contentType = MediaType.APPLICATION_JSON
             content =
                 """
@@ -303,7 +307,7 @@ class AdminApiApplicationTests {
                 """.trimIndent()
         }.andExpect {
             status { isOk() }
-            jsonPath("$.jobId") { value("ing_job_901") }
+            jsonPath("$.jobId") { value(jobId) }
             jsonPath("$.jobStatus") { value("running") }
             jsonPath("$.jobStage") { value("fetch") }
         }

@@ -10,12 +10,14 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
     basePackages = [
         "com.publicplatform.ragops.identityaccess",
         "com.publicplatform.ragops.organizationdirectory",
+        "com.publicplatform.ragops.ingestionops",
     ],
 )
 @EntityScan(
     basePackages = [
         "com.publicplatform.ragops.identityaccess",
         "com.publicplatform.ragops.organizationdirectory",
+        "com.publicplatform.ragops.ingestionops",
     ],
 )
 class AdminApiApplication

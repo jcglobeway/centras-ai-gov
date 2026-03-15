@@ -2,6 +2,7 @@ package com.publicplatform.ragops.adminapi.config
 
 import com.publicplatform.ragops.identityaccess.*
 import com.publicplatform.ragops.organizationdirectory.*
+import com.publicplatform.ragops.ingestionops.*
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -52,5 +53,34 @@ class RepositoryConfiguration {
         jpaRepository: JpaOrganizationRepository,
     ): OrganizationDirectoryReader {
         return OrganizationDirectoryReaderAdapter(jpaRepository)
+    }
+
+    @Bean
+    fun crawlSourceReader(
+        jpaRepository: JpaCrawlSourceRepository,
+    ): CrawlSourceReader {
+        return CrawlSourceReaderAdapter(jpaRepository)
+    }
+
+    @Bean
+    fun crawlSourceWriter(
+        jpaRepository: JpaCrawlSourceRepository,
+    ): CrawlSourceWriter {
+        return CrawlSourceWriterAdapter(jpaRepository)
+    }
+
+    @Bean
+    fun ingestionJobReader(
+        jpaRepository: JpaIngestionJobRepository,
+    ): IngestionJobReader {
+        return IngestionJobReaderAdapter(jpaRepository)
+    }
+
+    @Bean
+    fun ingestionJobWriter(
+        jpaIngestionJobRepository: JpaIngestionJobRepository,
+        jpaCrawlSourceRepository: JpaCrawlSourceRepository,
+    ): IngestionJobWriter {
+        return IngestionJobWriterAdapter(jpaIngestionJobRepository, jpaCrawlSourceRepository)
     }
 }

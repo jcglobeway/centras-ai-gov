@@ -68,6 +68,16 @@
 - 테스트 환경 H2 in-memory 설정, Flyway migration 자동 적용
 - AdminUser.lastLoginAt nullable로 수정
 - ./gradlew test 통과 (25 tests, H2 기반)
+- `add-jpa-entities-ingestion-ops` change로 ingestion-ops 모듈 JPA 연동 완성
+- Flyway migration 2개 추가 (V006 crawl_sources, V007 ingestion_jobs + seed)
+- ingestion-ops JPA 엔티티 2개 구현 (CrawlSourceEntity, IngestionJobEntity)
+- JPA Repository 2개 + 어댑터 4개 구현 (Reader/Writer, scope 필터링)
+- IngestionJobWriterAdapter에 상태 머신 통합, source 상태 자동 업데이트
+- RepositoryConfiguration에 ingestion-ops Bean 4개 등록
+- DevelopmentIngestionStore 제거 (JPA 어댑터로 완전 교체)
+- 테스트 수정 (동적 job ID 사용)
+- ./gradlew test 통과 (25 tests)
+- 전체 DB 영속화 완성 (identity, org, ingestion-ops)
 
 ### Current Decision
 
