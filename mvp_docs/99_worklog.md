@@ -165,3 +165,13 @@
 3. `tests/api`, `tests/e2e`에 auth/ingestion 범위 회귀 케이스를 추가
 4. ingestion job 상세 조회와 재실행 API를 추가
 5. 다음 구현도 `openspec/changes/<change-id>`를 먼저 생성하고 WBS 상태를 함께 갱신
+
+- `add-document-registry-module` change로 Document Registry 모듈 구현
+- Flyway migration 2개 추가 (V013 documents, V014 document_versions)
+- document-registry 도메인 모델 정의 (IngestionStatus, IndexStatus enum)
+- JPA 엔티티 2개 (DocumentEntity, DocumentVersionEntity)
+- JPA Repository 2개 + 어댑터 2개 (DocumentReader, DocumentVersionReader)
+- DocumentController 구현 (GET /admin/documents, GET /admin/documents/{id}/versions)
+- 테스트 2개 추가 (document 조회, version 조회)
+- 테스트 개수: 36개 → 38개
+- ./gradlew test 통과 (38 tests)

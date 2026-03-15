@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
         "com.publicplatform.ragops.ingestionops",
         "com.publicplatform.ragops.qareview",
         "com.publicplatform.ragops.chatruntime",
+        "com.publicplatform.ragops.documentregistry",
     ],
 )
 @EntityScan(
@@ -22,6 +23,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
         "com.publicplatform.ragops.ingestionops",
         "com.publicplatform.ragops.qareview",
         "com.publicplatform.ragops.chatruntime",
+        "com.publicplatform.ragops.documentregistry",
     ],
 )
 class AdminApiApplication

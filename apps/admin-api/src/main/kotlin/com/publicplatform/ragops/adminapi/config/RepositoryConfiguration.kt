@@ -5,6 +5,7 @@ import com.publicplatform.ragops.organizationdirectory.*
 import com.publicplatform.ragops.ingestionops.*
 import com.publicplatform.ragops.qareview.*
 import com.publicplatform.ragops.chatruntime.*
+import com.publicplatform.ragops.documentregistry.*
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -126,5 +127,19 @@ class RepositoryConfiguration {
         jpaRepository: JpaAnswerRepository,
     ): AnswerWriter {
         return AnswerWriterAdapter(jpaRepository)
+    }
+
+    @Bean
+    fun documentReader(
+        jpaRepository: JpaDocumentRepository,
+    ): DocumentReader {
+        return DocumentReaderAdapter(jpaRepository)
+    }
+
+    @Bean
+    fun documentVersionReader(
+        jpaRepository: JpaDocumentVersionRepository,
+    ): DocumentVersionReader {
+        return DocumentVersionReaderAdapter(jpaRepository)
     }
 }

@@ -770,6 +770,29 @@ class AdminApiApplicationTests {
     }
 
     @Test
+    fun `documents can be listed with organization scope`() {
+        val response = mockMvc.get("/admin/documents")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.items") { isArray() }
+            }
+            .andReturn()
+
+        val total = response.response.contentAsString.contentAsJson().path("total").asInt()
+        assert(total >= 2) { "Expected at least 2 documents, but got: $total" }
+    }
+
+    @Test
+    fun `document versions can be listed by document id`() {
+        mockMvc.get("/admin/documents/doc_301/versions")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.items") { isArray() }
+                jsonPath("$.items[0].documentId") { value("doc_301") }
+            }
+    }
+
+    @Test
     fun `e2e multi-tenant data isolation between organizations`() {
         // 1. ops_admin (전체 접근) 로그인
         val opsSessionId = loginAndReturnSessionId(
