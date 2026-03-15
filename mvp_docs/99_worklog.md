@@ -185,3 +185,12 @@
 - 테스트 개수: 38개 → 39개
 - ./gradlew test 통과 (39 tests)
 - 전체 6개 모듈 완성 (identity, org, ingestion, qa-review, chat-runtime, document-registry, metrics-reporting)
+- `add-rag-orchestrator-service` change로 RAG Orchestrator 기본 구조 구현
+- python/rag-orchestrator FastAPI app 구현
+- POST /generate endpoint (질문 → 답변 생성)
+- LLM API 호출 stub (OpenAI API 준비)
+- GenerateAnswerRequest/Response 모델
+- pyproject.toml에 openai, httpx 의존성 추가
+- DEV_MODE stub 응답 (LLM API 없을 때)
+- health check endpoint
+- ./gradlew test 통과 (39 tests)
