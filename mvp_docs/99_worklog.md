@@ -101,6 +101,23 @@
 - AdminApiApplicationTests에 5개 QA review 테스트 추가
 - 테스트 개수: 29개 → 34개 (QA review 5개 추가)
 - ./gradlew test 통과 (34 tests)
+- `add-chat-runtime-module` change로 Chat Runtime 모듈 구현 및 MVP 핵심 루프 완성
+- Flyway migration 4개 추가 (V009 chat_sessions, V010 questions, V011 answers, V012 qa_reviews FK)
+- chat-runtime 도메인 모델 정의 (ChatSession, Question, Answer, AnswerStatus enum)
+- JPA 엔티티 3개 + Repository 2개 구현
+- QuestionReaderAdapter, QuestionWriterAdapter, AnswerReaderAdapter, AnswerWriterAdapter 구현
+- 순환 의존성 해결 (chat-runtime ↛ qa-review, Native Query 사용)
+- JpaQuestionRepository.findUnresolvedQuestions() 구현 (Native Query)
+  • answer_status IN ('fallback', 'no_answer', 'error')
+  • OR qa_review.review_status = 'confirmed_issue' (최신)
+- QuestionController 구현 (POST /admin/questions, GET /admin/questions, GET /admin/questions/unresolved)
+- QA Review ↔ Questions FK 연결 완료
+- reviewer_id FK는 임시 제거 (디버그 세션 user 미존재)
+- AdminApiApplicationTests에 2개 chat-runtime 테스트 추가
+- 기존 테스트 수정 (seed 세션 → login 기반)
+- 테스트 개수: 34개 → 36개 (chat-runtime 2개 추가)
+- ./gradlew test 통과 (36 tests)
+- MVP 핵심 루프 완성: 시민 질문 → 답변 → Unresolved Queue → QA 검수
 
 ### Current Decision
 

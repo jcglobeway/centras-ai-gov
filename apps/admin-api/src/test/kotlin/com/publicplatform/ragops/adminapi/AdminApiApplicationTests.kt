@@ -112,8 +112,14 @@ class AdminApiApplicationTests {
 
     @Test
     fun `auth me restores session from session id header`() {
+        // login으로 실제 세션 생성
+        val sessionId = loginAndReturnSessionId(
+            email = "client.admin@busan.go.kr",
+            password = "client-pass-1234",
+        )
+
         mockMvc.get("/admin/auth/me") {
-            header("X-Admin-Session-Id", "sess_client_busan_001")
+            header("X-Admin-Session-Id", sessionId)
         }.andExpect {
             status { isOk() }
             jsonPath("$.user.id") { value("usr_client_busan_001") }
@@ -244,8 +250,13 @@ class AdminApiApplicationTests {
 
     @Test
     fun `client admin cannot run crawl source without write action`() {
+        val sessionId = loginAndReturnSessionId(
+            email = "client.admin@busan.go.kr",
+            password = "client-pass-1234",
+        )
+
         mockMvc.post("/admin/crawl-sources/crawl_src_002/run") {
-            header("X-Admin-Session-Id", "sess_client_busan_001")
+            header("X-Admin-Session-Id", sessionId)
         }.andExpect {
             status { isForbidden() }
         }
@@ -573,12 +584,16 @@ class AdminApiApplicationTests {
 
     @Test
     fun `qa review can be created with confirmed_issue status`() {
+        // 1. 먼저 question 생성
+        val questionId = createQuestionAndReturnId()
+
+        // 2. QA review 생성
         mockMvc.post("/admin/qa-reviews") {
             contentType = MediaType.APPLICATION_JSON
             content =
                 """
                 {
-                  "questionId": "question_test_001",
+                  "questionId": "$questionId",
                   "reviewStatus": "confirmed_issue",
                   "rootCauseCode": "missing_document",
                   "actionType": "document_fix_request",
@@ -588,19 +603,21 @@ class AdminApiApplicationTests {
         }.andExpect {
             status { isCreated() }
             jsonPath("$.qaReviewId") { exists() }
-            jsonPath("$.questionId") { value("question_test_001") }
+            jsonPath("$.questionId") { value(questionId) }
             jsonPath("$.reviewStatus") { value("confirmed_issue") }
         }
     }
 
     @Test
     fun `qa review rejects confirmed_issue without root_cause`() {
+        val questionId = createQuestionAndReturnId()
+
         mockMvc.post("/admin/qa-reviews") {
             contentType = MediaType.APPLICATION_JSON
             content =
                 """
                 {
-                  "questionId": "question_test_002",
+                  "questionId": "$questionId",
                   "reviewStatus": "confirmed_issue",
                   "actionType": "ops_issue"
                 }
@@ -612,12 +629,14 @@ class AdminApiApplicationTests {
 
     @Test
     fun `qa review enforces false_alarm action_type constraint`() {
+        val questionId = createQuestionAndReturnId()
+
         mockMvc.post("/admin/qa-reviews") {
             contentType = MediaType.APPLICATION_JSON
             content =
                 """
                 {
-                  "questionId": "question_test_003",
+                  "questionId": "$questionId",
                   "reviewStatus": "false_alarm",
                   "actionType": "document_fix_request"
                 }
@@ -629,13 +648,16 @@ class AdminApiApplicationTests {
 
     @Test
     fun `qa review list can be filtered by question_id`() {
-        // 1. QA review 생성
+        // 1. Question 생성
+        val questionId = createQuestionAndReturnId()
+
+        // 2. QA review 생성
         mockMvc.post("/admin/qa-reviews") {
             contentType = MediaType.APPLICATION_JSON
             content =
                 """
                 {
-                  "questionId": "question_filter_001",
+                  "questionId": "$questionId",
                   "reviewStatus": "pending",
                   "reviewComment": "Need more review"
                 }
@@ -644,18 +666,22 @@ class AdminApiApplicationTests {
             status { isCreated() }
         }
 
-        // 2. questionId로 필터링 조회
-        mockMvc.get("/admin/qa-reviews?questionId=question_filter_001")
+        // 3. questionId로 필터링 조회
+        mockMvc.get("/admin/qa-reviews?questionId=$questionId")
             .andExpect {
                 status { isOk() }
                 jsonPath("$.total") { value(1) }
-                jsonPath("$.items[0].questionId") { value("question_filter_001") }
+                jsonPath("$.items[0].questionId") { value(questionId) }
                 jsonPath("$.items[0].reviewStatus") { value("pending") }
             }
     }
 
     @Test
     fun `qa admin can create reviews but client admin cannot`() {
+        // 0. Question 2개 생성
+        val questionId1 = createQuestionAndReturnId()
+        val questionId2 = createQuestionAndReturnId()
+
         // 1. qa_admin으로 로그인
         val qaSessionId = loginAndReturnSessionId(
             email = "qa.manager@gov-platform.kr",
@@ -669,7 +695,7 @@ class AdminApiApplicationTests {
             content =
                 """
                 {
-                  "questionId": "question_auth_001",
+                  "questionId": "$questionId1",
                   "reviewStatus": "pending"
                 }
                 """.trimIndent()
@@ -690,13 +716,57 @@ class AdminApiApplicationTests {
             content =
                 """
                 {
-                  "questionId": "question_auth_002",
+                  "questionId": "$questionId2",
                   "reviewStatus": "pending"
                 }
                 """.trimIndent()
         }.andExpect {
             status { isForbidden() }
         }
+    }
+
+    @Test
+    fun `question can be created and retrieved`() {
+        val questionId = createQuestionAndReturnId()
+
+        mockMvc.get("/admin/questions")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.items") { isArray() }
+            }
+    }
+
+    @Test
+    fun `unresolved questions shows fallback and no_answer cases`() {
+        // 1. Question 생성
+        val questionId = createQuestionAndReturnId()
+
+        // 2. Fallback answer 생성
+        mockMvc.post("/admin/answers") {
+            contentType = MediaType.APPLICATION_JSON
+            content =
+                """
+                {
+                  "questionId": "$questionId",
+                  "answerText": "Fallback response",
+                  "answerStatus": "fallback",
+                  "fallbackReasonCode": "LOW_CONFIDENCE"
+                }
+                """.trimIndent()
+        }.andExpect {
+            status { isCreated() }
+        }
+
+        // 3. Unresolved queue 조회
+        val unresolvedResponse = mockMvc.get("/admin/questions/unresolved")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.items") { isArray() }
+            }
+            .andReturn()
+
+        val unresolvedTotal = unresolvedResponse.response.contentAsString.contentAsJson().path("total").asInt()
+        assert(unresolvedTotal >= 1) { "Expected at least 1 unresolved question, but got: $unresolvedTotal" }
     }
 
     @Test
@@ -754,6 +824,26 @@ class AdminApiApplicationTests {
         }.andReturn()
 
         return response.response.contentAsString.contentAsJson().path("session").path("token").asText()
+    }
+
+    private fun createQuestionAndReturnId(): String {
+        val response = mockMvc.post("/admin/questions") {
+            contentType = MediaType.APPLICATION_JSON
+            content =
+                """
+                {
+                  "organizationId": "org_seoul_120",
+                  "serviceId": "svc_welfare",
+                  "chatSessionId": "chat_session_001",
+                  "questionText": "Test question",
+                  "channel": "web"
+                }
+                """.trimIndent()
+        }.andExpect {
+            status { isCreated() }
+        }.andReturn()
+
+        return response.response.contentAsString.contentAsJson().path("questionId").asText()
     }
 
     private fun String.contentAsJson(): JsonNode =

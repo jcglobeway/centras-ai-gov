@@ -4,6 +4,7 @@ import com.publicplatform.ragops.identityaccess.*
 import com.publicplatform.ragops.organizationdirectory.*
 import com.publicplatform.ragops.ingestionops.*
 import com.publicplatform.ragops.qareview.*
+import com.publicplatform.ragops.chatruntime.*
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -97,5 +98,33 @@ class RepositoryConfiguration {
         jpaRepository: JpaQAReviewRepository,
     ): QAReviewWriter {
         return QAReviewWriterAdapter(jpaRepository)
+    }
+
+    @Bean
+    fun questionReader(
+        jpaRepository: JpaQuestionRepository,
+    ): QuestionReader {
+        return QuestionReaderAdapter(jpaRepository)
+    }
+
+    @Bean
+    fun questionWriter(
+        jpaRepository: JpaQuestionRepository,
+    ): QuestionWriter {
+        return QuestionWriterAdapter(jpaRepository)
+    }
+
+    @Bean
+    fun answerReader(
+        jpaRepository: JpaAnswerRepository,
+    ): AnswerReader {
+        return AnswerReaderAdapter(jpaRepository)
+    }
+
+    @Bean
+    fun answerWriter(
+        jpaRepository: JpaAnswerRepository,
+    ): AnswerWriter {
+        return AnswerWriterAdapter(jpaRepository)
     }
 }

@@ -21,7 +21,6 @@ CREATE INDEX idx_qa_reviews_reviewer_id ON qa_reviews(reviewer_id);
 CREATE INDEX idx_qa_reviews_reviewed_at ON qa_reviews(reviewed_at);
 
 -- Seed development QA reviews
--- Note: question_id는 아직 questions 테이블이 없으므로 임시 ID 사용
-INSERT INTO qa_reviews (id, question_id, review_status, root_cause_code, action_type, review_comment, reviewer_id, reviewed_at, created_at) VALUES
-('qa_rev_001', 'question_001', 'confirmed_issue', 'missing_document', 'document_fix_request', 'Seoul welfare document is missing', 'usr_qa_001', '2026-03-15 10:00:00', '2026-03-15 10:00:00'),
-('qa_rev_002', 'question_002', 'resolved', NULL, NULL, 'Fixed after document update', 'usr_qa_001', '2026-03-15 11:00:00', '2026-03-15 11:00:00');
+-- Note: V010에서 questions를 먼저 생성하므로 이제 FK가 작동함
+-- 하지만 V008이 먼저 실행되므로 seed는 V012 이후에 추가하거나 여기서는 제거
+-- INSERT는 V012 이후에 수동으로 추가하거나 테스트에서 생성
