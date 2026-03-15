@@ -53,6 +53,9 @@
 - IngestionJobRunner 구현 (job lifecycle: queued → running → succeeded/failed)
 - CLI 통합 (ingestion-worker run --job-id, 환경 변수 지원)
 - pyproject.toml에 playwright, pytest 의존성 추가
+- `add-auth-ingestion-test-cases` change로 개별 조회 API 테스트 추가
+- AdminApiApplicationTests에 6개 테스트 추가 (crawl source/job 개별 조회, 404, 권한 범위)
+- 전체 테스트 19개 → 25개로 확장
 
 ### Current Decision
 

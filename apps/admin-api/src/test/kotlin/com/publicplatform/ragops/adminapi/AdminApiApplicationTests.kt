@@ -324,6 +324,72 @@ class AdminApiApplicationTests {
         }
     }
 
+    @Test
+    fun `get crawl source by id returns source details`() {
+        mockMvc.get("/admin/crawl-sources/crawl_src_001")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.id") { value("crawl_src_001") }
+                jsonPath("$.organizationId") { value("org_seoul_120") }
+                jsonPath("$.serviceId") { value("svc_welfare") }
+                jsonPath("$.name") { value("Seoul Notices") }
+                jsonPath("$.sourceType") { value("website") }
+                jsonPath("$.sourceUri") { value("https://seoul.example.go.kr/notices") }
+                jsonPath("$.renderMode") { value("browser_playwright") }
+                jsonPath("$.collectionMode") { value("incremental") }
+            }
+    }
+
+    @Test
+    fun `get crawl source by id returns 404 for unknown source`() {
+        mockMvc.get("/admin/crawl-sources/crawl_src_unknown_999")
+            .andExpect {
+                status { isNotFound() }
+            }
+    }
+
+    @Test
+    fun `get crawl source by id respects organization scope`() {
+        mockMvc.get("/admin/crawl-sources/crawl_src_001") {
+            header("X-Debug-Role", "client_admin")
+            header("X-Debug-Organization-Id", "org_busan_220")
+        }.andExpect {
+            status { isNotFound() }
+        }
+    }
+
+    @Test
+    fun `get ingestion job by id returns job details`() {
+        mockMvc.get("/admin/ingestion-jobs/ing_job_101")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.id") { value("ing_job_101") }
+                jsonPath("$.organizationId") { value("org_seoul_120") }
+                jsonPath("$.crawlSourceId") { value("crawl_src_001") }
+                jsonPath("$.jobType") { value("crawl") }
+                jsonPath("$.jobStage") { value("complete") }
+                jsonPath("$.status") { value("succeeded") }
+            }
+    }
+
+    @Test
+    fun `get ingestion job by id returns 404 for unknown job`() {
+        mockMvc.get("/admin/ingestion-jobs/ing_job_unknown_999")
+            .andExpect {
+                status { isNotFound() }
+            }
+    }
+
+    @Test
+    fun `get ingestion job by id respects organization scope`() {
+        mockMvc.get("/admin/ingestion-jobs/ing_job_101") {
+            header("X-Debug-Role", "qa_admin")
+            header("X-Debug-Organization-Id", "org_busan_220")
+        }.andExpect {
+            status { isNotFound() }
+        }
+    }
+
     private fun loginAndReturnSessionId(email: String, password: String): String {
         val response = mockMvc.post("/admin/auth/login") {
             contentType = MediaType.APPLICATION_JSON
