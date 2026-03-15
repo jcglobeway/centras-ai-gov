@@ -44,3 +44,9 @@
 - 현재 상태: `JDK 21`, `Gradle 9.4.0`, `gradlew.bat` 준비 완료
 - 저장소 상태: `git init -b main` 완료
 - 기본 실행: `.\gradlew.bat test`
+
+## OpenSpec
+
+- 중요한 변경은 `openspec/changes/<change-id>` 단위로 진행한다.
+- 완료된 change는 `openspec/archive/<change-id>`로 이동하고 같은 단위로 커밋한다.
+- 운영 규칙은 `openspec/README.md`를 기준으로 따른다.
