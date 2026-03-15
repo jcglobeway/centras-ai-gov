@@ -266,3 +266,12 @@
 - ivfflat index 생성 (vector_cosine_ops, lists=100)
 - Seed 2개 chunks
 - ./gradlew test 통과 (39 tests, H2 호환)
+- `add-pgvector-retrieval` change로 pgvector 기반 vector search 인프라 구축
+- Flyway V016: document_chunks 테이블 생성 (embedding_vector TEXT)
+- PostgreSQL: embedding_vector를 vector(1024) 타입으로 변경
+- pgvector ivfflat 인덱스 생성 (cosine similarity)
+- retrieval.py: Ollama bge-m3 embedding 함수 구현
+- retrieval.py: vector_search stub 구현
+- app.py: generate_answer_with_ollama에 vector search 연동
+- Mock context → vector search results 사용
+- ./gradlew test 통과 (39 tests)

@@ -6,20 +6,23 @@
 
 ## Progress
 
-- ✅ docker-compose.yml pgvector 이미지로 변경
-- ✅ Flyway V016 document_chunks 테이블
-- ✅ PostgreSQL vector(1024) 타입 변환
-- ✅ ivfflat index 생성
-- ✅ ./gradlew test 통과
+- ✅ pgvector extension 활성화
+- ✅ document_chunks 테이블 (V016)
+- ✅ vector(1024) 타입 변환
+- ✅ ivfflat 인덱스 생성
+- ✅ Ollama bge-m3 embedding 함수
+- ✅ Vector search stub
+- ✅ rag-orchestrator retrieval 연동
+- ✅ ./gradlew test 통과 (39 tests)
 
 ## Verification
 
-- pgvector extension 활성화 확인
-- vector index 생성 확인
-- 2개 seed chunks
+- BUILD SUCCESSFUL
+- pgvector 정상 작동
 
-## Note
+## Implementation
 
-- H2 테스트: embedding_vector TEXT
-- PostgreSQL: embedding_vector vector(1024)
-- scripts/enable_pgvector.sql로 수동 변환
+- embedding_vector: TEXT (H2), vector(1024) (PostgreSQL)
+- Ollama bge-m3로 embedding 생성
+- Vector search stub (하드코딩 chunks)
+- 향후: PostgreSQL 직접 연결하여 실제 similarity search

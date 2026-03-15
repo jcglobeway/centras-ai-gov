@@ -86,18 +86,34 @@ def check_ollama_available(ollama_url: str) -> bool:
 def generate_answer_with_ollama(question: str, ollama_url: str) -> str:
     """Ollama API를 사용해 답변을 생성한다."""
     import httpx
+    from .retrieval import vector_search
 
-    # Mock retrieval context (향후 실제 vector search로 교체)
-    mock_context = """
-    서울시 복지 혜택 신청 안내:
-    - 신청 방법: 온라인 또는 주민센터 방문
-    - 필요 서류: 신분증, 소득 증빙 서류
-    - 처리 기간: 신청 후 7-14일
-    """
+    # Vector search로 관련 문서 검색
+    search_results = vector_search(
+        query_text=question,
+        top_k=3,
+        ollama_url=ollama_url,
+    )
+
+    # 검색 결과를 context로 구성
+    if search_results:
+        context_chunks = "\n\n".join([
+            f"[문서 {i+1}] {chunk['chunk_text']}"
+            for i, chunk in enumerate(search_results)
+        ])
+        retrieval_context = f"검색된 관련 문서:\n\n{context_chunks}"
+    else:
+        # Vector search 실패 시 기본 context
+        retrieval_context = """
+        서울시 복지 혜택 신청 안내:
+        - 신청 방법: 온라인 또는 주민센터 방문
+        - 필요 서류: 신분증, 소득 증빙 서류
+        - 처리 기간: 신청 후 7-14일
+        """
 
     system_prompt = "당신은 공공기관 민원 안내 챗봇입니다. 제공된 문서를 기반으로 정확하고 친절하게 답변하세요."
     user_prompt = f"""참고 문서:
-{mock_context}
+{retrieval_context}
 
 질문: {question}
 
