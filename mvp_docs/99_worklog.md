@@ -78,6 +78,14 @@
 - 테스트 수정 (동적 job ID 사용)
 - ./gradlew test 통과 (25 tests)
 - 전체 DB 영속화 완성 (identity, org, ingestion-ops)
+- `add-e2e-auth-ingestion-flow` change로 E2E 통합 테스트 추가
+- AdminApiApplicationTests에 4개 E2E 테스트 추가:
+  • 전체 인증 플로우 (login → session 복원 → logout → revoked 검증)
+  • Ingestion 전체 플로우 (source 생성 → job 실행 → 상태 전이 → source 상태 업데이트)
+  • Client admin 권한 제한 (범위 밖 접근, 쓰기 권한 검증)
+  • 멀티테넌트 격리 (ops vs client, org별 데이터 분리)
+- 테스트 개수: 25개 → 29개 (E2E 4개 추가)
+- ./gradlew test 통과 (29 tests)
 
 ### Current Decision
 

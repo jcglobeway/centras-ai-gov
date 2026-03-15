@@ -395,6 +395,222 @@ class AdminApiApplicationTests {
         }
     }
 
+    // ===== E2E Tests =====
+
+    @Test
+    fun `e2e full auth lifecycle from login to logout and session expiry`() {
+        // 1. Login
+        val sessionId = loginAndReturnSessionId(
+            email = "ops.platform@gov-platform.kr",
+            password = "ops-pass-1234",
+        )
+
+        // 2. Session 복원 확인
+        mockMvc.get("/admin/auth/me") {
+            header("X-Admin-Session-Id", sessionId)
+        }.andExpect {
+            status { isOk() }
+            jsonPath("$.user.email") { value("ops.platform@gov-platform.kr") }
+            jsonPath("$.roles[0].roleCode") { value("ops_admin") }
+        }
+
+        // 3. Logout
+        mockMvc.post("/admin/auth/logout") {
+            header("X-Admin-Session-Id", sessionId)
+        }.andExpect {
+            status { isOk() }
+            jsonPath("$.revoked") { value(true) }
+        }
+
+        // 4. Revoked 세션으로 접근 시도 → 401
+        mockMvc.get("/admin/auth/me") {
+            header("X-Admin-Session-Id", sessionId)
+        }.andExpect {
+            status { isUnauthorized() }
+            jsonPath("$.error.code") { value("AUTH_SESSION_REVOKED") }
+        }
+    }
+
+    @Test
+    fun `e2e full ingestion flow from source creation to job completion`() {
+        // 1. Crawl source 생성
+        val createResponse = mockMvc.post("/admin/crawl-sources") {
+            contentType = MediaType.APPLICATION_JSON
+            content =
+                """
+                {
+                  "organizationId": "org_seoul_120",
+                  "serviceId": "svc_welfare",
+                  "name": "E2E Test Source",
+                  "sourceType": "website",
+                  "sourceUri": "https://example.gov.kr/test",
+                  "renderMode": "browser_playwright",
+                  "collectionMode": "incremental",
+                  "scheduleExpr": "0 */6 * * *"
+                }
+                """.trimIndent()
+        }.andExpect {
+            status { isCreated() }
+            jsonPath("$.saved") { value(true) }
+            jsonPath("$.crawlSourceId") { exists() }
+        }.andReturn()
+
+        val sourceId = createResponse.response.contentAsString.contentAsJson().path("crawlSourceId").asText()
+
+        // 2. Job 실행 요청
+        val runResponse = mockMvc.post("/admin/crawl-sources/$sourceId/run")
+            .andExpect {
+                status { isAccepted() }
+                jsonPath("$.jobId") { exists() }
+                jsonPath("$.status") { value("queued") }
+            }.andReturn()
+
+        val jobId = runResponse.response.contentAsString.contentAsJson().path("jobId").asText()
+
+        // 3. Job 상태 전이: queued → running
+        mockMvc.post("/admin/ingestion-jobs/$jobId/status") {
+            contentType = MediaType.APPLICATION_JSON
+            content =
+                """
+                {
+                  "jobStatus": "running",
+                  "jobStage": "fetch"
+                }
+                """.trimIndent()
+        }.andExpect {
+            status { isOk() }
+            jsonPath("$.jobStatus") { value("running") }
+            jsonPath("$.jobStage") { value("fetch") }
+        }
+
+        // 4. Job 상태 전이: running → succeeded
+        mockMvc.post("/admin/ingestion-jobs/$jobId/status") {
+            contentType = MediaType.APPLICATION_JSON
+            content =
+                """
+                {
+                  "jobStatus": "succeeded",
+                  "jobStage": "complete"
+                }
+                """.trimIndent()
+        }.andExpect {
+            status { isOk() }
+            jsonPath("$.jobStatus") { value("succeeded") }
+            jsonPath("$.jobStage") { value("complete") }
+        }
+
+        // 5. Job 조회로 최종 상태 확인
+        mockMvc.get("/admin/ingestion-jobs/$jobId")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.id") { value(jobId) }
+                jsonPath("$.status") { value("succeeded") }
+                jsonPath("$.jobStage") { value("complete") }
+                jsonPath("$.crawlSourceId") { value(sourceId) }
+            }
+
+        // 6. Source 상태가 업데이트되었는지 확인
+        mockMvc.get("/admin/crawl-sources/$sourceId")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.id") { value(sourceId) }
+                jsonPath("$.status") { value("active") }
+                jsonPath("$.lastJobId") { value(jobId) }
+            }
+    }
+
+    @Test
+    fun `e2e client admin cannot access resources outside organization scope`() {
+        // client_admin (org_busan_220)으로 로그인
+        val sessionId = loginAndReturnSessionId(
+            email = "client.admin@busan.go.kr",
+            password = "client-pass-1234",
+        )
+
+        // 1. 자기 기관 리소스 조회 성공
+        mockMvc.get("/admin/crawl-sources/crawl_src_002") {
+            header("X-Admin-Session-Id", sessionId)
+        }.andExpect {
+            status { isOk() }
+            jsonPath("$.organizationId") { value("org_busan_220") }
+        }
+
+        // 2. 다른 기관 리소스 조회 → 404 (격리)
+        mockMvc.get("/admin/crawl-sources/crawl_src_001") {
+            header("X-Admin-Session-Id", sessionId)
+        }.andExpect {
+            status { isNotFound() }
+        }
+
+        // 3. 다른 기관 source로 job 생성 시도 → 403 (쓰기 권한 없음)
+        mockMvc.post("/admin/crawl-sources/crawl_src_001/run") {
+            header("X-Admin-Session-Id", sessionId)
+        }.andExpect {
+            status { isForbidden() }
+        }
+
+        // 4. 쓰기 권한 없는 작업 시도 → 403
+        mockMvc.post("/admin/crawl-sources") {
+            header("X-Admin-Session-Id", sessionId)
+            contentType = MediaType.APPLICATION_JSON
+            content =
+                """
+                {
+                  "organizationId": "org_busan_220",
+                  "serviceId": "svc_faq",
+                  "name": "Forbidden",
+                  "sourceType": "website",
+                  "sourceUri": "https://test.example.kr",
+                  "renderMode": "http_static",
+                  "collectionMode": "full",
+                  "scheduleExpr": "0 0 * * *"
+                }
+                """.trimIndent()
+        }.andExpect {
+            status { isForbidden() }
+        }
+    }
+
+    @Test
+    fun `e2e multi-tenant data isolation between organizations`() {
+        // 1. ops_admin (전체 접근) 로그인
+        val opsSessionId = loginAndReturnSessionId(
+            email = "ops.platform@gov-platform.kr",
+            password = "ops-pass-1234",
+        )
+
+        // 2. ops_admin은 모든 org의 리소스 조회 가능
+        val opsResponse = mockMvc.get("/admin/crawl-sources") {
+            header("X-Admin-Session-Id", opsSessionId)
+        }.andExpect {
+            status { isOk() }
+        }.andReturn()
+
+        val opsTotal = opsResponse.response.contentAsString.contentAsJson().path("total").asInt()
+        assert(opsTotal >= 2) { "ops_admin should see at least 2 sources, but saw: $opsTotal" }
+
+        // 3. client_admin (org_busan_220) 로그인
+        val clientSessionId = loginAndReturnSessionId(
+            email = "client.admin@busan.go.kr",
+            password = "client-pass-1234",
+        )
+
+        // 4. client_admin은 자기 org만 조회
+        val clientSources = mockMvc.get("/admin/crawl-sources") {
+            header("X-Admin-Session-Id", clientSessionId)
+        }.andExpect {
+            status { isOk() }
+        }.andReturn()
+
+        val items = clientSources.response.contentAsString.contentAsJson().path("items")
+        val orgIds = items.map { it.path("organizationId").asText() }.toSet()
+
+        // 모든 source가 org_busan_220만 포함
+        assert(orgIds == setOf("org_busan_220")) {
+            "client_admin should only see org_busan_220 sources, but saw: $orgIds"
+        }
+    }
+
     private fun loginAndReturnSessionId(email: String, password: String): String {
         val response = mockMvc.post("/admin/auth/login") {
             contentType = MediaType.APPLICATION_JSON
