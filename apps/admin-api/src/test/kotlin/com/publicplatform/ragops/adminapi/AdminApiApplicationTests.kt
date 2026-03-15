@@ -793,6 +793,19 @@ class AdminApiApplicationTests {
     }
 
     @Test
+    fun `daily metrics can be listed with date range`() {
+        val response = mockMvc.get("/admin/metrics/daily")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.items") { isArray() }
+            }
+            .andReturn()
+
+        val total = response.response.contentAsString.contentAsJson().path("total").asInt()
+        assert(total >= 2) { "Expected at least 2 metrics, but got: $total" }
+    }
+
+    @Test
     fun `e2e multi-tenant data isolation between organizations`() {
         // 1. ops_admin (전체 접근) 로그인
         val opsSessionId = loginAndReturnSessionId(

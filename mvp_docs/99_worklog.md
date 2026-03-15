@@ -175,3 +175,13 @@
 - 테스트 2개 추가 (document 조회, version 조회)
 - 테스트 개수: 36개 → 38개
 - ./gradlew test 통과 (38 tests)
+- `add-metrics-reporting-module` change로 Metrics Reporting 모듈 구현 및 전체 MVP 완성
+- Flyway migration V015__create_daily_metrics_org.sql (seed 2개)
+- metrics-reporting 도메인 모델 정의 (DailyMetricsSummary, MetricsScope)
+- JPA 엔티티 (DailyMetricsEntity) + Repository (findByMetricDateBetween)
+- MetricsReaderAdapter (scope 필터링, date range)
+- MetricsController (GET /admin/metrics/daily?fromDate=&toDate=)
+- 테스트 1개 추가 (daily metrics 조회)
+- 테스트 개수: 38개 → 39개
+- ./gradlew test 통과 (39 tests)
+- 전체 6개 모듈 완성 (identity, org, ingestion, qa-review, chat-runtime, document-registry, metrics-reporting)

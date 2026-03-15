@@ -6,6 +6,7 @@ import com.publicplatform.ragops.ingestionops.*
 import com.publicplatform.ragops.qareview.*
 import com.publicplatform.ragops.chatruntime.*
 import com.publicplatform.ragops.documentregistry.*
+import com.publicplatform.ragops.metricsreporting.*
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -141,5 +142,12 @@ class RepositoryConfiguration {
         jpaRepository: JpaDocumentVersionRepository,
     ): DocumentVersionReader {
         return DocumentVersionReaderAdapter(jpaRepository)
+    }
+
+    @Bean
+    fun metricsReader(
+        jpaRepository: JpaDailyMetricsRepository,
+    ): MetricsReader {
+        return MetricsReaderAdapter(jpaRepository)
     }
 }
