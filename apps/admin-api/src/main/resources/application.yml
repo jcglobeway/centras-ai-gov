@@ -2,6 +2,26 @@ spring:
   application:
     name: admin-api
 
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/ragops_dev}
+    username: ${DATABASE_USERNAME:ragops_user}
+    password: ${DATABASE_PASSWORD:ragops_pass}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: public
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
 management:
   endpoints:
     web:

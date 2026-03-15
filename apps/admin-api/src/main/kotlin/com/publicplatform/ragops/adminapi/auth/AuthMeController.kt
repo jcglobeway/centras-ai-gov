@@ -54,7 +54,7 @@ data class AuthUser(
     val email: String,
     val displayName: String,
     val status: String,
-    val lastLoginAt: Instant,
+    val lastLoginAt: Instant?,
 )
 
 data class AuthRole(

@@ -14,7 +14,7 @@ data class AdminUser(
     val email: String,
     val displayName: String,
     val status: AdminUserStatus,
-    val lastLoginAt: Instant,
+    val lastLoginAt: Instant?,
 )
 
 data class AdminRoleAssignment(

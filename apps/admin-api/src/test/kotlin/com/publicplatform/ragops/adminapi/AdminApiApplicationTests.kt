@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.post
 @SpringBootTest
 @AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@org.springframework.test.context.ActiveProfiles("test")
 class AdminApiApplicationTests {
     @Autowired
     lateinit var mockMvc: MockMvc

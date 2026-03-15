@@ -3,6 +3,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7" apply false
     kotlin("jvm") version "2.1.21" apply false
     kotlin("plugin.spring") version "2.1.21" apply false
+    kotlin("plugin.jpa") version "2.1.21" apply false
 }
 
 allprojects {

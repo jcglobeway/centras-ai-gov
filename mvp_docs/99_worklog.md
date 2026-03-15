@@ -56,6 +56,18 @@
 - `add-auth-ingestion-test-cases` change로 개별 조회 API 테스트 추가
 - AdminApiApplicationTests에 6개 테스트 추가 (crawl source/job 개별 조회, 404, 권한 범위)
 - 전체 테스트 19개 → 25개로 확장
+- `add-jpa-entities-identity-org` change로 PostgreSQL + JPA 연동 구현
+- docker-compose.yml 추가 (PostgreSQL 15-alpine)
+- Flyway migration 5개 작성 (admin_users, admin_sessions, audit_logs, organizations, services)
+- JPA 엔티티 5개 + Spring Data JPA Repository 5개 구현
+- Repository 어댑터 6개 구현 (AdminSession, AdminUser, AuditLog, Organization, Service, DirectoryReader)
+- RepositoryConfiguration으로 JPA 구현체 Bean 등록
+- admin-api 기존 InMemory 구현 제거, DevelopmentAdminCredentialAuthenticator 분리
+- kotlin-spring, kotlin-jpa plugin 추가 (modules)
+- 모든 어댑터 `open class`로 설정 (CGLIB proxy 지원)
+- 테스트 환경 H2 in-memory 설정, Flyway migration 자동 적용
+- AdminUser.lastLoginAt nullable로 수정
+- ./gradlew test 통과 (25 tests, H2 기반)
 
 ### Current Decision
 
