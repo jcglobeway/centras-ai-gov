@@ -99,8 +99,8 @@ gantt
 
     section Foundation
     Auth session store              :done, foundation1, 2026-03-15, 2d
-    Action auth policy              :active, foundation2, after foundation1, 2d
-    Organization scope repository   :foundation3, after foundation2, 2d
+    Action auth policy              :done, foundation2, after foundation1, 2d
+    Organization scope repository   :active, foundation3, after foundation2, 2d
     Audit log baseline              :foundation4, after foundation3, 2d
 
     section Ingestion Ops
@@ -136,10 +136,10 @@ gantt
   - ingestion 조회/쓰기 API
   - ingestion 상태 전이 규칙
 - 진행 중:
-  - 세션 저장소와 액션 권한 검증의 실제 포트 분리
+  - 조직/권한 저장소화
 - 다음 착수:
   - worker callback 계약
-  - 조직/권한 저장소화
+  - 세션 저장소 만료/폐기 처리
   - ingestion 회귀 테스트 확장
 
 ## 7. Change Tracking Rule

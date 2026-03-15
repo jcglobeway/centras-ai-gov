@@ -9,6 +9,8 @@ import com.publicplatform.ragops.identityaccess.AdminUserStatus
 import com.publicplatform.ragops.identityaccess.SessionLookup
 import com.publicplatform.ragops.organizationdirectory.OrganizationDirectoryReader
 import com.publicplatform.ragops.organizationdirectory.OrganizationSummary
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Service
 import java.time.Instant
 
@@ -198,4 +200,10 @@ class InMemoryAdminSessionRepository : AdminSessionRepository {
 
     override fun findBySessionId(sessionId: String): AdminSessionSnapshot? =
         sessions[sessionId]
+}
+
+@Configuration
+class IdentityAccessDevelopmentConfig {
+    @Bean
+    fun adminAuthorizationPolicy() = com.publicplatform.ragops.identityaccess.AdminAuthorizationPolicy()
 }

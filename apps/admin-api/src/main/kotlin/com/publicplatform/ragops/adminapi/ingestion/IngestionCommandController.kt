@@ -1,7 +1,11 @@
 package com.publicplatform.ragops.adminapi.ingestion
 
 import com.publicplatform.ragops.adminapi.auth.AdminRequestSessionResolver
+import com.publicplatform.ragops.identityaccess.AdminAuthorizationException
+import com.publicplatform.ragops.identityaccess.AdminAuthorizationPolicy
 import com.publicplatform.ragops.identityaccess.AdminSessionSnapshot
+import com.publicplatform.ragops.identityaccess.AuthorizationCheck
+import com.publicplatform.ragops.identityaccess.AuthorizationFailureReason
 import com.publicplatform.ragops.ingestionops.CrawlCollectionMode
 import com.publicplatform.ragops.ingestionops.CrawlRenderMode
 import com.publicplatform.ragops.ingestionops.CrawlSourceReader
@@ -33,6 +37,7 @@ import org.springframework.web.server.ResponseStatusException
 @RequestMapping("/admin")
 class IngestionCommandController(
     private val adminRequestSessionResolver: AdminRequestSessionResolver,
+    private val adminAuthorizationPolicy: AdminAuthorizationPolicy,
     private val crawlSourceReader: CrawlSourceReader,
     private val crawlSourceWriter: CrawlSourceWriter,
     private val ingestionJobReader: IngestionJobReader,
@@ -45,7 +50,11 @@ class IngestionCommandController(
         servletRequest: HttpServletRequest,
     ): CrawlSourceCreateResponse {
         val session = adminRequestSessionResolver.resolve(servletRequest)
-        ensureOrganizationScope(session.toScope(), request.organizationId)
+        requireAuthorized(
+            session = session,
+            actionCode = "crawl_source.write",
+            organizationId = request.organizationId,
+        )
 
         val createdSource =
             crawlSourceWriter.createSource(
@@ -76,6 +85,7 @@ class IngestionCommandController(
     ): IngestionJobCreateResponse {
         val session = adminRequestSessionResolver.resolve(servletRequest)
         val scope = session.toScope()
+        requireAuthorized(session = session, actionCode = "crawl_source.write")
         ensureReadableSource(scope, id)
 
         val createdJob =
@@ -102,6 +112,7 @@ class IngestionCommandController(
     ): IngestionJobTransitionResponse {
         val session = adminRequestSessionResolver.resolve(servletRequest)
         val scope = session.toScope()
+        requireAuthorized(session = session, actionCode = "crawl_source.write")
         ensureReadableJob(scope, id)
 
         val updatedJob =
@@ -126,13 +137,23 @@ class IngestionCommandController(
         )
     }
 
-    private fun ensureOrganizationScope(
-        scope: IngestionScope,
-        requestedOrganizationId: String,
+    private fun requireAuthorized(
+        session: AdminSessionSnapshot,
+        actionCode: String,
+        organizationId: String? = null,
     ) {
-        // 권한 미들웨어 전까지는 조직 범위를 명시적으로 막아 두어야 스텁 환경이 퍼지지 않는다.
-        if (!scope.globalAccess && requestedOrganizationId !in scope.organizationIds) {
-            throw ResponseStatusException(HttpStatus.FORBIDDEN, "해당 기관 범위에 접근할 수 없습니다.")
+        try {
+            adminAuthorizationPolicy.requireAuthorized(
+                session = session,
+                check = AuthorizationCheck(actionCode = actionCode, organizationId = organizationId),
+            )
+        } catch (exception: AdminAuthorizationException) {
+            val status =
+                when (exception.reason) {
+                    AuthorizationFailureReason.ACTION_FORBIDDEN -> HttpStatus.FORBIDDEN
+                    AuthorizationFailureReason.SCOPE_FORBIDDEN -> HttpStatus.FORBIDDEN
+                }
+            throw ResponseStatusException(status, exception.message, exception)
         }
     }
 

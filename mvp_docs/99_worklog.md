@@ -38,6 +38,8 @@
 - OpenSpec 기반 변경 추적 구조와 템플릿을 추가하고, 이후 중요한 변경은 change 단위로 관리하기로 결정
 - `add-ingestion-write-contracts` change로 ingestion 쓰기 계약, 상태 전이 규칙, 개발용 쓰기 API와 테스트를 추가
 - 전체 개발 진행 추적용 `17_development_wbs_milestones.md`를 추가하고 Milestone/WBS/Mermaid 일정 기준을 고정
+- ingestion API 권한 검증을 `role` 분기 대신 `identity-access`의 액션 기반 정책으로 올리는 change를 시작
+- `identity-access`에 `AdminAuthorizationPolicy`를 추가하고 ingestion API가 액션 기반 권한 검증을 사용하도록 전환
 
 ### Current Decision
 
@@ -73,10 +75,12 @@
 - ingestion 쓰기 흐름은 `source 생성 -> 수동 job 생성 -> 상태 전이` 3단계로 먼저 고정한다.
 - ingestion job 상태 전이 검증은 `modules/ingestion-ops`의 단일 상태 머신을 기준으로 본다.
 - 전체 진행 추적은 `17_development_wbs_milestones.md`의 마일스톤과 Gantt 상태를 기준으로 갱신한다.
+- ingestion API 권한 검증은 `grantedActions + organization scope` 조합으로 판정한다.
+- ingestion 조회/쓰기 엔드포인트는 이제 역할명이 아니라 액션 코드로 권한을 확인한다.
 
 ### Next Actions
 
-1. `identity-access`에 액션 기반 권한 검증 포트와 세션 저장소 경계를 추가
+1. `identity-access`에 세션 만료/폐기 처리와 로그인/로그아웃 저장소 경계를 추가
 2. `python/ingestion-worker`에 crawl source 실행 흐름과 job callback 스텁 추가
 3. `tests/api`, `tests/e2e`에 ingestion 범위 회귀 케이스를 추가
 4. ingestion job 상세 조회와 재실행 API를 추가

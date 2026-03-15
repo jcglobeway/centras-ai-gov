@@ -120,10 +120,8 @@ class AdminApiApplicationTests {
     }
 
     @Test
-    fun `client admin can create crawl source in own scope`() {
+    fun `ops admin can create crawl source`() {
         mockMvc.post("/admin/crawl-sources") {
-            header("X-Debug-Role", "client_admin")
-            header("X-Debug-Organization-Id", "org_busan_220")
             contentType = MediaType.APPLICATION_JSON
             content =
                 """
@@ -159,6 +157,39 @@ class AdminApiApplicationTests {
                   "name": "Forbidden Source",
                   "sourceType": "website",
                   "sourceUri": "https://seoul.example.go.kr/forbidden",
+                  "renderMode": "browser_playwright",
+                  "collectionMode": "incremental",
+                  "scheduleExpr": "0 */4 * * *"
+                }
+                """.trimIndent()
+        }.andExpect {
+            status { isForbidden() }
+        }
+    }
+
+    @Test
+    fun `client admin cannot run crawl source without write action`() {
+        mockMvc.post("/admin/crawl-sources/crawl_src_002/run") {
+            header("X-Admin-Session-Id", "sess_client_busan_001")
+        }.andExpect {
+            status { isForbidden() }
+        }
+    }
+
+    @Test
+    fun `qa admin cannot create crawl source without write action`() {
+        mockMvc.post("/admin/crawl-sources") {
+            header("X-Debug-Role", "qa_admin")
+            header("X-Debug-Organization-Id", "org_seoul_120")
+            contentType = MediaType.APPLICATION_JSON
+            content =
+                """
+                {
+                  "organizationId": "org_seoul_120",
+                  "serviceId": "svc_welfare",
+                  "name": "QA Forbidden Source",
+                  "sourceType": "website",
+                  "sourceUri": "https://seoul.example.go.kr/qa-forbidden",
                   "renderMode": "browser_playwright",
                   "collectionMode": "incremental",
                   "scheduleExpr": "0 */4 * * *"

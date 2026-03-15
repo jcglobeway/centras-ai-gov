@@ -1,6 +1,7 @@
 package com.publicplatform.ragops.adminapi.ingestion
 
 import com.publicplatform.ragops.adminapi.auth.AdminRequestSessionResolver
+import com.publicplatform.ragops.identityaccess.AdminAuthorizationPolicy
 import com.publicplatform.ragops.ingestionops.CrawlSourceReader
 import com.publicplatform.ragops.ingestionops.CrawlCollectionMode
 import com.publicplatform.ragops.ingestionops.CrawlRenderMode
@@ -23,31 +24,26 @@ import java.time.Instant
 @RequestMapping("/admin")
 class IngestionQueryController(
     private val adminRequestSessionResolver: AdminRequestSessionResolver,
+    private val adminAuthorizationPolicy: AdminAuthorizationPolicy,
     private val crawlSourceReader: CrawlSourceReader,
     private val ingestionJobReader: IngestionJobReader,
 ) {
     @GetMapping("/crawl-sources")
     fun listCrawlSources(request: HttpServletRequest): CrawlSourceListResponse {
-        val scope = request.toScope()
+        val session = adminRequestSessionResolver.resolve(request)
+        adminAuthorizationPolicy.requireAuthorized(session, actionCheck("crawl_source.read"))
+        val scope = session.toScope()
         val items = crawlSourceReader.listSources(scope).map { it.toResponse() }
         return CrawlSourceListResponse(items = items, total = items.size)
     }
 
     @GetMapping("/ingestion-jobs")
     fun listIngestionJobs(request: HttpServletRequest): IngestionJobListResponse {
-        val scope = request.toScope()
+        val session = adminRequestSessionResolver.resolve(request)
+        adminAuthorizationPolicy.requireAuthorized(session, actionCheck("ingestion_job.read"))
+        val scope = session.toScope()
         val items = ingestionJobReader.listJobs(scope).map { it.toResponse() }
         return IngestionJobListResponse(items = items, total = items.size)
-    }
-
-    private fun HttpServletRequest.toScope(): IngestionScope {
-        val session = adminRequestSessionResolver.resolve(this)
-        val organizationIds = session.roleAssignments.mapNotNull { it.organizationId }.toSet()
-        val globalAccess = session.roleAssignments.any { it.organizationId == null }
-        return IngestionScope(
-            organizationIds = organizationIds,
-            globalAccess = globalAccess,
-        )
     }
 }
 
@@ -186,3 +182,12 @@ private fun IngestionJobStatus.toApiValue(): String =
         IngestionJobStatus.FAILED -> "failed"
         IngestionJobStatus.CANCELLED -> "cancelled"
     }
+
+private fun actionCheck(actionCode: String) =
+    com.publicplatform.ragops.identityaccess.AuthorizationCheck(actionCode = actionCode)
+
+private fun com.publicplatform.ragops.identityaccess.AdminSessionSnapshot.toScope(): IngestionScope =
+    IngestionScope(
+        organizationIds = roleAssignments.mapNotNull { it.organizationId }.toSet(),
+        globalAccess = roleAssignments.any { it.organizationId == null },
+    )
