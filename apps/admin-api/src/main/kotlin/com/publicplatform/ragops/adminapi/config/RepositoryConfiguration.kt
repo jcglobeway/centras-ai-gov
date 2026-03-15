@@ -3,6 +3,7 @@ package com.publicplatform.ragops.adminapi.config
 import com.publicplatform.ragops.identityaccess.*
 import com.publicplatform.ragops.organizationdirectory.*
 import com.publicplatform.ragops.ingestionops.*
+import com.publicplatform.ragops.qareview.*
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -82,5 +83,19 @@ class RepositoryConfiguration {
         jpaCrawlSourceRepository: JpaCrawlSourceRepository,
     ): IngestionJobWriter {
         return IngestionJobWriterAdapter(jpaIngestionJobRepository, jpaCrawlSourceRepository)
+    }
+
+    @Bean
+    fun qaReviewReader(
+        jpaRepository: JpaQAReviewRepository,
+    ): QAReviewReader {
+        return QAReviewReaderAdapter(jpaRepository)
+    }
+
+    @Bean
+    fun qaReviewWriter(
+        jpaRepository: JpaQAReviewRepository,
+    ): QAReviewWriter {
+        return QAReviewWriterAdapter(jpaRepository)
     }
 }

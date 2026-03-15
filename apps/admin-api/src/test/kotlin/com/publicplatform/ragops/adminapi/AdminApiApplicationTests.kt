@@ -572,6 +572,134 @@ class AdminApiApplicationTests {
     }
 
     @Test
+    fun `qa review can be created with confirmed_issue status`() {
+        mockMvc.post("/admin/qa-reviews") {
+            contentType = MediaType.APPLICATION_JSON
+            content =
+                """
+                {
+                  "questionId": "question_test_001",
+                  "reviewStatus": "confirmed_issue",
+                  "rootCauseCode": "missing_document",
+                  "actionType": "document_fix_request",
+                  "reviewComment": "Seoul welfare document is missing"
+                }
+                """.trimIndent()
+        }.andExpect {
+            status { isCreated() }
+            jsonPath("$.qaReviewId") { exists() }
+            jsonPath("$.questionId") { value("question_test_001") }
+            jsonPath("$.reviewStatus") { value("confirmed_issue") }
+        }
+    }
+
+    @Test
+    fun `qa review rejects confirmed_issue without root_cause`() {
+        mockMvc.post("/admin/qa-reviews") {
+            contentType = MediaType.APPLICATION_JSON
+            content =
+                """
+                {
+                  "questionId": "question_test_002",
+                  "reviewStatus": "confirmed_issue",
+                  "actionType": "ops_issue"
+                }
+                """.trimIndent()
+        }.andExpect {
+            status { isBadRequest() }
+        }
+    }
+
+    @Test
+    fun `qa review enforces false_alarm action_type constraint`() {
+        mockMvc.post("/admin/qa-reviews") {
+            contentType = MediaType.APPLICATION_JSON
+            content =
+                """
+                {
+                  "questionId": "question_test_003",
+                  "reviewStatus": "false_alarm",
+                  "actionType": "document_fix_request"
+                }
+                """.trimIndent()
+        }.andExpect {
+            status { isBadRequest() }
+        }
+    }
+
+    @Test
+    fun `qa review list can be filtered by question_id`() {
+        // 1. QA review 생성
+        mockMvc.post("/admin/qa-reviews") {
+            contentType = MediaType.APPLICATION_JSON
+            content =
+                """
+                {
+                  "questionId": "question_filter_001",
+                  "reviewStatus": "pending",
+                  "reviewComment": "Need more review"
+                }
+                """.trimIndent()
+        }.andExpect {
+            status { isCreated() }
+        }
+
+        // 2. questionId로 필터링 조회
+        mockMvc.get("/admin/qa-reviews?questionId=question_filter_001")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.total") { value(1) }
+                jsonPath("$.items[0].questionId") { value("question_filter_001") }
+                jsonPath("$.items[0].reviewStatus") { value("pending") }
+            }
+    }
+
+    @Test
+    fun `qa admin can create reviews but client admin cannot`() {
+        // 1. qa_admin으로 로그인
+        val qaSessionId = loginAndReturnSessionId(
+            email = "qa.manager@gov-platform.kr",
+            password = "qa-pass-1234",
+        )
+
+        // 2. QA review 생성 성공
+        mockMvc.post("/admin/qa-reviews") {
+            header("X-Admin-Session-Id", qaSessionId)
+            contentType = MediaType.APPLICATION_JSON
+            content =
+                """
+                {
+                  "questionId": "question_auth_001",
+                  "reviewStatus": "pending"
+                }
+                """.trimIndent()
+        }.andExpect {
+            status { isCreated() }
+        }
+
+        // 3. client_admin으로 로그인
+        val clientSessionId = loginAndReturnSessionId(
+            email = "client.admin@busan.go.kr",
+            password = "client-pass-1234",
+        )
+
+        // 4. QA review 생성 시도 → 403 (권한 없음)
+        mockMvc.post("/admin/qa-reviews") {
+            header("X-Admin-Session-Id", clientSessionId)
+            contentType = MediaType.APPLICATION_JSON
+            content =
+                """
+                {
+                  "questionId": "question_auth_002",
+                  "reviewStatus": "pending"
+                }
+                """.trimIndent()
+        }.andExpect {
+            status { isForbidden() }
+        }
+    }
+
+    @Test
     fun `e2e multi-tenant data isolation between organizations`() {
         // 1. ops_admin (전체 접근) 로그인
         val opsSessionId = loginAndReturnSessionId(

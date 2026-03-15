@@ -86,6 +86,21 @@
   • 멀티테넌트 격리 (ops vs client, org별 데이터 분리)
 - 테스트 개수: 25개 → 29개 (E2E 4개 추가)
 - ./gradlew test 통과 (29 tests)
+- `add-qa-review-module` change로 QA Review 모듈 핵심 기능 구현
+- qa-review 모듈 도메인 모델 정의 (QAReviewStatus, RootCauseCode, ActionType enum)
+- QAReviewStateMachine 구현 (validateReview, validateTransition)
+  • confirmed_issue: root_cause + action 필수
+  • false_alarm: action_type = no_action 강제
+  • resolved: review_comment 필수
+  • 금지 전이: false_alarm ↔ resolved
+- Flyway V008__create_qa_reviews.sql (FK는 questions 구현 후 추가)
+- JPA 엔티티 + Repository (findByQuestionIdOrderByReviewedAtDesc)
+- QAReviewReaderAdapter, QAReviewWriterAdapter (상태 머신 통합)
+- QAReviewController (POST /admin/qa-reviews, GET /admin/qa-reviews?questionId=)
+- 권한 검증 (qa.review.read, qa.review.write)
+- AdminApiApplicationTests에 5개 QA review 테스트 추가
+- 테스트 개수: 29개 → 34개 (QA review 5개 추가)
+- ./gradlew test 통과 (34 tests)
 
 ### Current Decision
 

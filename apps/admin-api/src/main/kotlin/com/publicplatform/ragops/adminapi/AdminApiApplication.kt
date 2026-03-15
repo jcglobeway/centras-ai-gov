@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
         "com.publicplatform.ragops.identityaccess",
         "com.publicplatform.ragops.organizationdirectory",
         "com.publicplatform.ragops.ingestionops",
+        "com.publicplatform.ragops.qareview",
     ],
 )
 @EntityScan(
@@ -18,6 +19,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
         "com.publicplatform.ragops.identityaccess",
         "com.publicplatform.ragops.organizationdirectory",
         "com.publicplatform.ragops.ingestionops",
+        "com.publicplatform.ragops.qareview",
     ],
 )
 class AdminApiApplication
