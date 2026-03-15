@@ -12,44 +12,47 @@ import java.time.Instant
 
 /**
  * 개발 환경용 하드코딩된 자격 증명 인증기.
- * bcrypt로 비밀번호를 해싱하여 저장.
+ * bcrypt로 비밀번호를 해싱하여 저장 (lazy 초기화로 성능 개선).
  */
 @Service
 class DevelopmentAdminCredentialAuthenticator(
     private val passwordEncoder: PasswordEncoder,
 ) : AdminCredentialAuthenticator {
-    private val accounts = mapOf(
-        "ops.platform@gov-platform.kr" to DevelopmentAdminAccount(
-            passwordHash = passwordEncoder.encode("ops-pass-1234"),
-            snapshot = snapshotFor(
-                userId = "usr_ops_global_001",
-                email = "ops.platform@gov-platform.kr",
-                displayName = "Platform Operator",
-                roleCode = "ops_admin",
-                organizationId = null,
+    // lazy 초기화로 Bean 생성 시 즉시 해싱하지 않음 (성능 개선)
+    private val accounts by lazy {
+        mapOf(
+            "ops.platform@gov-platform.kr" to DevelopmentAdminAccount(
+                passwordHash = passwordEncoder.encode("ops-pass-1234"),
+                snapshot = snapshotFor(
+                    userId = "usr_ops_global_001",
+                    email = "ops.platform@gov-platform.kr",
+                    displayName = "Platform Operator",
+                    roleCode = "ops_admin",
+                    organizationId = null,
+                ),
             ),
-        ),
-        "client.admin@busan.go.kr" to DevelopmentAdminAccount(
-            passwordHash = passwordEncoder.encode("client-pass-1234"),
-            snapshot = snapshotFor(
-                userId = "usr_client_busan_001",
-                email = "client.admin@busan.go.kr",
-                displayName = "Busan Client Admin",
-                roleCode = "client_admin",
-                organizationId = "org_busan_220",
+            "client.admin@busan.go.kr" to DevelopmentAdminAccount(
+                passwordHash = passwordEncoder.encode("client-pass-1234"),
+                snapshot = snapshotFor(
+                    userId = "usr_client_busan_001",
+                    email = "client.admin@busan.go.kr",
+                    displayName = "Busan Client Admin",
+                    roleCode = "client_admin",
+                    organizationId = "org_busan_220",
+                ),
             ),
-        ),
-        "qa.manager@gov-platform.kr" to DevelopmentAdminAccount(
-            passwordHash = passwordEncoder.encode("qa-pass-1234"),
-            snapshot = snapshotFor(
-                userId = "usr_qa_001",
-                email = "qa.manager@gov-platform.kr",
-                displayName = "QA Manager",
-                roleCode = "qa_admin",
-                organizationId = "org_seoul_120",
+            "qa.manager@gov-platform.kr" to DevelopmentAdminAccount(
+                passwordHash = passwordEncoder.encode("qa-pass-1234"),
+                snapshot = snapshotFor(
+                    userId = "usr_qa_001",
+                    email = "qa.manager@gov-platform.kr",
+                    displayName = "QA Manager",
+                    roleCode = "qa_admin",
+                    organizationId = "org_seoul_120",
+                ),
             ),
-        ),
-    )
+        )
+    }
 
     override fun authenticate(email: String, password: String): AuthenticatedAdminPrincipal? =
         accounts[email]
