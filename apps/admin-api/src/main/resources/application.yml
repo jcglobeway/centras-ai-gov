@@ -30,4 +30,10 @@ management:
 
 server:
   shutdown: graceful
+  port: 8081
+
+rag:
+  orchestrator:
+    enabled: true
+    url: http://localhost:8090
 
