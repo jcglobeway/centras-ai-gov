@@ -209,3 +209,12 @@
 - RAG orchestrator 호출 실패 시 graceful degradation (null 반환)
 - ./gradlew test 통과 (39 tests)
 - 전체 MVP 플로우 자동화 완성
+- `add-security-enhancements` change로 보안 강화 구현
+- Spring Security 의존성 추가
+- SecurityConfiguration: bcrypt PasswordEncoder, CORS, CSRF 비활성화
+- DevelopmentAdminCredentialAuthenticator: bcrypt 비밀번호 해싱 적용
+  • 개발 계정 비밀번호를 bcrypt로 해싱하여 저장
+  • authenticate 시 passwordEncoder.matches로 검증
+- CORS 설정: localhost:3000, localhost:8080 허용
+- 모든 endpoint permitAll (기존 세션 기반 인증 유지)
+- ./gradlew test 통과 (39 tests)

@@ -6,18 +6,21 @@ import com.publicplatform.ragops.identityaccess.AdminSessionSnapshot
 import com.publicplatform.ragops.identityaccess.AdminUser
 import com.publicplatform.ragops.identityaccess.AdminUserStatus
 import com.publicplatform.ragops.identityaccess.AuthenticatedAdminPrincipal
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.time.Instant
 
 /**
  * 개발 환경용 하드코딩된 자격 증명 인증기.
- * 프로덕션에서는 실제 bcrypt 해시 검증 또는 외부 IdP로 교체.
+ * bcrypt로 비밀번호를 해싱하여 저장.
  */
 @Service
-class DevelopmentAdminCredentialAuthenticator : AdminCredentialAuthenticator {
+class DevelopmentAdminCredentialAuthenticator(
+    private val passwordEncoder: PasswordEncoder,
+) : AdminCredentialAuthenticator {
     private val accounts = mapOf(
         "ops.platform@gov-platform.kr" to DevelopmentAdminAccount(
-            password = "ops-pass-1234",
+            passwordHash = passwordEncoder.encode("ops-pass-1234"),
             snapshot = snapshotFor(
                 userId = "usr_ops_global_001",
                 email = "ops.platform@gov-platform.kr",
@@ -27,7 +30,7 @@ class DevelopmentAdminCredentialAuthenticator : AdminCredentialAuthenticator {
             ),
         ),
         "client.admin@busan.go.kr" to DevelopmentAdminAccount(
-            password = "client-pass-1234",
+            passwordHash = passwordEncoder.encode("client-pass-1234"),
             snapshot = snapshotFor(
                 userId = "usr_client_busan_001",
                 email = "client.admin@busan.go.kr",
@@ -37,7 +40,7 @@ class DevelopmentAdminCredentialAuthenticator : AdminCredentialAuthenticator {
             ),
         ),
         "qa.manager@gov-platform.kr" to DevelopmentAdminAccount(
-            password = "qa-pass-1234",
+            passwordHash = passwordEncoder.encode("qa-pass-1234"),
             snapshot = snapshotFor(
                 userId = "usr_qa_001",
                 email = "qa.manager@gov-platform.kr",
@@ -50,7 +53,7 @@ class DevelopmentAdminCredentialAuthenticator : AdminCredentialAuthenticator {
 
     override fun authenticate(email: String, password: String): AuthenticatedAdminPrincipal? =
         accounts[email]
-            ?.takeIf { it.password == password }
+            ?.takeIf { passwordEncoder.matches(password, it.passwordHash) }
             ?.let { AuthenticatedAdminPrincipal(snapshot = it.snapshot) }
 
     private fun snapshotFor(
@@ -79,6 +82,6 @@ class DevelopmentAdminCredentialAuthenticator : AdminCredentialAuthenticator {
 }
 
 private data class DevelopmentAdminAccount(
-    val password: String,
+    val passwordHash: String,
     val snapshot: AdminSessionSnapshot,
 )
