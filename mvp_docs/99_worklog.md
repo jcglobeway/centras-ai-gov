@@ -202,3 +202,10 @@
 - temperature=0.3, max_tokens=500
 - 환경 변수: OPENAI_API_KEY
 - ./gradlew test 통과 (39 tests)
+- `integrate-rag-with-admin-api` change로 admin-api와 rag-orchestrator 연동 완성
+- RagOrchestratorClient 구현 (RestTemplate 기반)
+- QuestionController 수정: 질문 생성 → rag-orchestrator 호출 → 답변 자동 저장
+- 환경 변수: rag.orchestrator.url, rag.orchestrator.enabled (기본 false)
+- RAG orchestrator 호출 실패 시 graceful degradation (null 반환)
+- ./gradlew test 통과 (39 tests)
+- 전체 MVP 플로우 자동화 완성

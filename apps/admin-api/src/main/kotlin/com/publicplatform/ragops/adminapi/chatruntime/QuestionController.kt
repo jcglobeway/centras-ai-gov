@@ -18,6 +18,7 @@ class QuestionController(
     private val questionWriter: QuestionWriter,
     private val answerReader: AnswerReader,
     private val answerWriter: AnswerWriter,
+    private val ragOrchestratorClient: RagOrchestratorClient,
 ) {
 
     @PostMapping("/questions")
@@ -28,6 +29,7 @@ class QuestionController(
     ): QuestionCreateResponse {
         adminRequestSessionResolver.resolve(servletRequest)
 
+        // 1. 질문 생성
         val createdQuestion = questionWriter.createQuestion(
             CreateQuestionCommand(
                 organizationId = request.organizationId,
@@ -38,6 +40,28 @@ class QuestionController(
                 channel = request.channel,
             ),
         )
+
+        // 2. RAG orchestrator 호출하여 답변 생성 (optional)
+        val ragResult = ragOrchestratorClient.generateAnswer(
+            questionId = createdQuestion.id,
+            questionText = createdQuestion.questionText,
+            organizationId = createdQuestion.organizationId,
+            serviceId = createdQuestion.serviceId,
+        )
+
+        // 3. 답변 저장
+        if (ragResult != null) {
+            answerWriter.createAnswer(
+                CreateAnswerCommand(
+                    questionId = createdQuestion.id,
+                    answerText = ragResult.answer_text,
+                    answerStatus = ragResult.answer_status.toAnswerStatus(),
+                    responseTimeMs = ragResult.response_time_ms,
+                    citationCount = ragResult.citation_count,
+                    fallbackReasonCode = ragResult.fallback_reason_code,
+                ),
+            )
+        }
 
         return QuestionCreateResponse(
             questionId = createdQuestion.id,
