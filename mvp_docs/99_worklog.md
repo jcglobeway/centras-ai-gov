@@ -243,3 +243,10 @@
 - Ollama 없으면 fallback 응답
 - ./gradlew test 통과 (39 tests)
 - 비용 절감 및 로컬 실행 가능
+- `activate-rag-orchestrator` change로 RAG orchestrator 활성화 및 포트 설정
+- application.yml에 rag.orchestrator.enabled: true 설정
+- application.yml에 server.port: 8081 설정 (포트 충돌 회피)
+- rag-orchestrator 기본 모델을 qwen2.5:7b로 설정 (한국어 특화)
+- GitHub 리포지토리 생성: jcglobeway/centras-ai-gov
+- 27개 커밋 푸시 완료
+- 전체 시스템 실행 중 (PostgreSQL, admin-api:8081, rag-orchestrator:8090, Ollama:11434)

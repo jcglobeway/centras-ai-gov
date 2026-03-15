@@ -104,7 +104,7 @@ def generate_answer_with_ollama(question: str, ollama_url: str) -> str:
 위 문서를 참고하여 질문에 답변해주세요."""
 
     # Ollama API 호출 (chat completion)
-    model = os.getenv("OLLAMA_MODEL", "llama3.2")
+    model = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
 
     try:
         response = httpx.post(
