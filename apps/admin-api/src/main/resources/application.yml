@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: admin-api
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+server:
+  shutdown: graceful
+

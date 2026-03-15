@@ -1,0 +1,13 @@
+.gradle/
+.kotlin/
+build/
+out/
+.idea/
+.vscode/
+*.iml
+**/build/
+**/.pytest_cache/
+**/__pycache__/
+**/.venv/
+*.log
+.DS_Store

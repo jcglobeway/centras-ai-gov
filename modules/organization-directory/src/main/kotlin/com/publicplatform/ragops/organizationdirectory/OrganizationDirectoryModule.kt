@@ -1,0 +1,4 @@
+package com.publicplatform.ragops.organizationdirectory
+
+class OrganizationDirectoryModule
+
