@@ -41,6 +41,11 @@
 - ingestion API 권한 검증을 `role` 분기 대신 `identity-access`의 액션 기반 정책으로 올리는 change를 시작
 - `identity-access`에 `AdminAuthorizationPolicy`를 추가하고 ingestion API가 액션 기반 권한 검증을 사용하도록 전환
 - `add-auth-session-lifecycle` change로 로그인/로그아웃, 세션 만료/폐기, 명시적 세션 ID 오류 응답, 개발용 자격 증명 검증을 추가
+- `separate-repository-ports-identity-org` change로 저장소 포트 인터페이스를 명확히 분리하고 인메모리 구현체 추가
+- `identity-access`에 `AdminUserRepository`, `AuditLogRepository` 포트 추가 (AdminSessionRepository는 이미 존재)
+- `organization-directory`에 `OrganizationRepository`, `ServiceRepository` 포트 추가
+- modules에 ConcurrentHashMap 기반 인메모리 어댑터 구현 (향후 JPA 전환 준비)
+- admin-api는 기존 개발용 구현 유지 (Bean 충돌 회피, 점진적 전환 전략)
 
 ### Current Decision
 

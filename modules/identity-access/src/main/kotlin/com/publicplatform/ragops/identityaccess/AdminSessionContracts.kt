@@ -97,6 +97,30 @@ interface AdminCredentialAuthenticator {
     fun authenticate(email: String, password: String): AuthenticatedAdminPrincipal?
 }
 
+interface AdminUserRepository {
+    fun findByEmail(email: String): AdminUser?
+    fun findById(userId: String): AdminUser?
+    fun save(user: AdminUser): AdminUser
+}
+
+data class AuditLogEntry(
+    val id: String,
+    val actorUserId: String?,
+    val actorRoleCode: String?,
+    val organizationId: String?,
+    val actionCode: String,
+    val resourceType: String?,
+    val resourceId: String?,
+    val requestId: String?,
+    val traceId: String?,
+    val resultCode: String,
+    val createdAt: Instant,
+)
+
+interface AuditLogRepository {
+    fun save(entry: AuditLogEntry): AuditLogEntry
+}
+
 fun AdminSessionRecord.isUsableAt(at: Instant): Boolean =
     revokedAt == null && expiresAt.isAfter(at)
 
