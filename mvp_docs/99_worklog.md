@@ -194,3 +194,11 @@
 - DEV_MODE stub 응답 (LLM API 없을 때)
 - health check endpoint
 - ./gradlew test 통과 (39 tests)
+- `add-llm-answer-generation` change로 실제 LLM 기반 답변 생성 구현
+- rag-orchestrator에 OpenAI API 실제 호출 구현
+- generate_answer_with_llm: gpt-4o-mini 모델 사용
+- Mock retrieval context (하드코딩 문서 스니펫)
+- System prompt: 공공기관 민원 안내 챗봇
+- temperature=0.3, max_tokens=500
+- 환경 변수: OPENAI_API_KEY
+- ./gradlew test 통과 (39 tests)
