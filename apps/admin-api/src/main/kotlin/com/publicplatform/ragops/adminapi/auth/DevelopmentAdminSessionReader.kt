@@ -1,34 +1,34 @@
 package com.publicplatform.ragops.adminapi.auth
 
-import com.publicplatform.ragops.identityaccess.AdminAuthErrorCode
-import com.publicplatform.ragops.identityaccess.AdminAuthenticationException
-import com.publicplatform.ragops.identityaccess.AdminCredentialAuthenticator
-import com.publicplatform.ragops.identityaccess.AdminLoginCommand
-import com.publicplatform.ragops.identityaccess.AdminLoginResult
-import com.publicplatform.ragops.identityaccess.AdminRoleAssignment
-import com.publicplatform.ragops.identityaccess.AdminSessionIssueCommand
-import com.publicplatform.ragops.identityaccess.AdminSessionReader
-import com.publicplatform.ragops.identityaccess.AdminSessionRecord
-import com.publicplatform.ragops.identityaccess.AdminSessionRepository
-import com.publicplatform.ragops.identityaccess.AdminSessionSnapshot
-import com.publicplatform.ragops.identityaccess.AdminUser
-import com.publicplatform.ragops.identityaccess.AdminUserStatus
-import com.publicplatform.ragops.identityaccess.AuthenticatedAdminPrincipal
-import com.publicplatform.ragops.identityaccess.SessionLookup
-import com.publicplatform.ragops.identityaccess.defaultAdminSessionDuration
-import com.publicplatform.ragops.identityaccess.isUsableAt
-import com.publicplatform.ragops.organizationdirectory.OrganizationDirectoryReader
-import com.publicplatform.ragops.organizationdirectory.OrganizationSummary
+import com.publicplatform.ragops.identityaccess.domain.AdminAuthErrorCode
+import com.publicplatform.ragops.identityaccess.domain.AdminAuthenticationException
+import com.publicplatform.ragops.identityaccess.domain.AdminLoginCommand
+import com.publicplatform.ragops.identityaccess.domain.AdminLoginResult
+import com.publicplatform.ragops.identityaccess.domain.AdminRoleAssignment
+import com.publicplatform.ragops.identityaccess.domain.AdminSessionIssueCommand
+import com.publicplatform.ragops.identityaccess.domain.AdminSessionRecord
+import com.publicplatform.ragops.identityaccess.domain.AdminSessionSnapshot
+import com.publicplatform.ragops.identityaccess.domain.AdminUser
+import com.publicplatform.ragops.identityaccess.domain.AdminUserStatus
+import com.publicplatform.ragops.identityaccess.domain.AuthenticatedAdminPrincipal
+import com.publicplatform.ragops.identityaccess.domain.SessionLookup
+import com.publicplatform.ragops.identityaccess.domain.defaultAdminSessionDuration
+import com.publicplatform.ragops.identityaccess.domain.isUsableAt
+import com.publicplatform.ragops.identityaccess.application.port.out.AdminCredentialAuthenticator
+import com.publicplatform.ragops.identityaccess.application.port.out.RestoreSessionPort
+import com.publicplatform.ragops.identityaccess.application.port.out.ManageAdminSessionPort
+import com.publicplatform.ragops.organizationdirectory.domain.OrganizationSummary
+import com.publicplatform.ragops.organizationdirectory.application.port.out.LoadOrganizationPort
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Service
 import java.time.Instant
 
 @Service
-class DevelopmentAdminSessionReader(
-    private val adminSessionRepository: AdminSessionRepository,
-    private val organizationDirectoryReader: OrganizationDirectoryReader,
-) : AdminSessionReader {
+class DevelopmentRestoreSessionPort(
+    private val adminSessionRepository: ManageAdminSessionPort,
+    private val organizationDirectoryReader: LoadOrganizationPort,
+) : RestoreSessionPort {
     override fun restoreSession(lookup: SessionLookup): AdminSessionSnapshot {
         lookup.sessionId?.let { sessionId ->
             return restoreStoredSession(sessionId)
@@ -111,8 +111,8 @@ class DevelopmentAdminSessionReader(
 @Service
 class DevelopmentAdminSessionService(
     private val adminCredentialAuthenticator: AdminCredentialAuthenticator,
-    private val adminSessionRepository: AdminSessionRepository,
-    private val developmentAdminSessionReader: DevelopmentAdminSessionReader,
+    private val adminSessionRepository: ManageAdminSessionPort,
+    private val developmentRestoreSessionPort: DevelopmentRestoreSessionPort,
 ) {
     fun login(command: AdminLoginCommand): AdminLoginResult {
         val principal = adminCredentialAuthenticator.authenticate(command.email, command.password)
@@ -121,7 +121,7 @@ class DevelopmentAdminSessionService(
                 message = "Admin email or password is invalid.",
             )
 
-        val normalizedSnapshot = developmentAdminSessionReader.normalizeSessionScope(principal.snapshot)
+        val normalizedSnapshot = developmentRestoreSessionPort.normalizeSessionScope(principal.snapshot)
         val issuedAt = Instant.now()
         val session = adminSessionRepository.issue(
             AdminSessionIssueCommand(
@@ -168,7 +168,7 @@ class DevelopmentAdminSessionService(
 @Configuration
 class IdentityAccessDevelopmentConfig {
     @Bean
-    fun adminAuthorizationPolicy() = com.publicplatform.ragops.identityaccess.AdminAuthorizationPolicy()
+    fun adminAuthorizationPolicy() = com.publicplatform.ragops.identityaccess.domain.AdminAuthorizationPolicy()
 }
 
 internal fun developmentActionsFor(roleCode: String): List<String> =

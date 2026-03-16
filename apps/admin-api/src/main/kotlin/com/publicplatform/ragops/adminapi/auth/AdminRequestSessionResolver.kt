@@ -1,14 +1,14 @@
 package com.publicplatform.ragops.adminapi.auth
 
-import com.publicplatform.ragops.identityaccess.AdminSessionReader
-import com.publicplatform.ragops.identityaccess.AdminSessionSnapshot
-import com.publicplatform.ragops.identityaccess.SessionLookup
+import com.publicplatform.ragops.identityaccess.domain.AdminSessionSnapshot
+import com.publicplatform.ragops.identityaccess.domain.SessionLookup
+import com.publicplatform.ragops.identityaccess.application.port.out.RestoreSessionPort
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.stereotype.Component
 
 @Component
 class AdminRequestSessionResolver(
-    private val adminSessionReader: AdminSessionReader,
+    private val adminSessionReader: RestoreSessionPort,
 ) {
     fun resolve(request: HttpServletRequest): AdminSessionSnapshot =
         adminSessionReader.restoreSession(

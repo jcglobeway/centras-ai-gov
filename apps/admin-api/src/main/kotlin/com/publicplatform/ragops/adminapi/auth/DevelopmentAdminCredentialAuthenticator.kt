@@ -1,11 +1,11 @@
 package com.publicplatform.ragops.adminapi.auth
 
-import com.publicplatform.ragops.identityaccess.AdminCredentialAuthenticator
-import com.publicplatform.ragops.identityaccess.AdminRoleAssignment
-import com.publicplatform.ragops.identityaccess.AdminSessionSnapshot
-import com.publicplatform.ragops.identityaccess.AdminUser
-import com.publicplatform.ragops.identityaccess.AdminUserStatus
-import com.publicplatform.ragops.identityaccess.AuthenticatedAdminPrincipal
+import com.publicplatform.ragops.identityaccess.domain.AdminRoleAssignment
+import com.publicplatform.ragops.identityaccess.domain.AdminSessionSnapshot
+import com.publicplatform.ragops.identityaccess.domain.AdminUser
+import com.publicplatform.ragops.identityaccess.domain.AdminUserStatus
+import com.publicplatform.ragops.identityaccess.domain.AuthenticatedAdminPrincipal
+import com.publicplatform.ragops.identityaccess.application.port.out.AdminCredentialAuthenticator
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.time.Instant

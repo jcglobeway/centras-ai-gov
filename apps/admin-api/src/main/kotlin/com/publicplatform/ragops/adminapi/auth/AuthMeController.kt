@@ -1,7 +1,7 @@
 package com.publicplatform.ragops.adminapi.auth
 
-import com.publicplatform.ragops.identityaccess.AdminSessionSnapshot
-import com.publicplatform.ragops.identityaccess.AdminUserStatus
+import com.publicplatform.ragops.identityaccess.domain.AdminSessionSnapshot
+import com.publicplatform.ragops.identityaccess.domain.AdminUserStatus
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping

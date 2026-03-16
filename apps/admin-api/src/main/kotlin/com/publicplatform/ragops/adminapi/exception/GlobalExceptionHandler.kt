@@ -1,9 +1,10 @@
 package com.publicplatform.ragops.adminapi.exception
 
-import com.publicplatform.ragops.identityaccess.AdminAuthenticationException
-import com.publicplatform.ragops.identityaccess.AdminAuthorizationException
-import com.publicplatform.ragops.ingestionops.InvalidIngestionJobTransitionException
-import com.publicplatform.ragops.qareview.InvalidQAReviewException
+import com.publicplatform.ragops.identityaccess.domain.AdminAuthErrorCode
+import com.publicplatform.ragops.identityaccess.domain.AdminAuthenticationException
+import com.publicplatform.ragops.identityaccess.domain.AdminAuthorizationException
+import com.publicplatform.ragops.ingestionops.domain.InvalidIngestionJobTransitionException
+import com.publicplatform.ragops.qareview.domain.InvalidQAReviewException
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.springframework.http.HttpStatus
@@ -25,9 +26,9 @@ class GlobalExceptionHandler {
     @ExceptionHandler(AdminAuthenticationException::class)
     fun handleAuthenticationException(ex: AdminAuthenticationException): ResponseEntity<ErrorResponse> {
         val status = when (ex.code) {
-            com.publicplatform.ragops.identityaccess.AdminAuthErrorCode.AUTH_INVALID_CREDENTIALS -> HttpStatus.UNAUTHORIZED
-            com.publicplatform.ragops.identityaccess.AdminAuthErrorCode.AUTH_SESSION_EXPIRED -> HttpStatus.UNAUTHORIZED
-            com.publicplatform.ragops.identityaccess.AdminAuthErrorCode.AUTH_SESSION_REVOKED -> HttpStatus.UNAUTHORIZED
+            AdminAuthErrorCode.AUTH_INVALID_CREDENTIALS -> HttpStatus.UNAUTHORIZED
+            AdminAuthErrorCode.AUTH_SESSION_EXPIRED -> HttpStatus.UNAUTHORIZED
+            AdminAuthErrorCode.AUTH_SESSION_REVOKED -> HttpStatus.UNAUTHORIZED
             else -> HttpStatus.UNAUTHORIZED
         }
 

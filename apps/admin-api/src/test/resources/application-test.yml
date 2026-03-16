@@ -16,6 +16,7 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
-    locations: classpath:db/migration
-    # V018은 PostgreSQL 전용(pgvector)이므로 H2 테스트에서 skip
-    target: "17"
+    locations:
+      - classpath:db/migration
+      - classpath:com/publicplatform/ragops/adminapi/migration
+    target: "19"

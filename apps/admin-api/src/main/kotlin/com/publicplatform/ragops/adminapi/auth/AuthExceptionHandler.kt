@@ -1,7 +1,7 @@
 package com.publicplatform.ragops.adminapi.auth
 
-import com.publicplatform.ragops.identityaccess.AdminAuthErrorCode
-import com.publicplatform.ragops.identityaccess.AdminAuthenticationException
+import com.publicplatform.ragops.identityaccess.domain.AdminAuthErrorCode
+import com.publicplatform.ragops.identityaccess.domain.AdminAuthenticationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler

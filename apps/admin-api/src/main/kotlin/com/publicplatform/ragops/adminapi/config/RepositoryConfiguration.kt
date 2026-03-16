@@ -1,12 +1,19 @@
 package com.publicplatform.ragops.adminapi.config
 
-import com.publicplatform.ragops.identityaccess.*
-import com.publicplatform.ragops.organizationdirectory.*
-import com.publicplatform.ragops.ingestionops.*
-import com.publicplatform.ragops.qareview.*
-import com.publicplatform.ragops.chatruntime.*
-import com.publicplatform.ragops.documentregistry.*
-import com.publicplatform.ragops.metricsreporting.*
+import com.publicplatform.ragops.identityaccess.adapter.outbound.persistence.*
+import com.publicplatform.ragops.identityaccess.application.port.out.*
+import com.publicplatform.ragops.organizationdirectory.adapter.outbound.persistence.*
+import com.publicplatform.ragops.organizationdirectory.application.port.out.*
+import com.publicplatform.ragops.ingestionops.adapter.outbound.persistence.*
+import com.publicplatform.ragops.ingestionops.application.port.out.*
+import com.publicplatform.ragops.qareview.adapter.outbound.persistence.*
+import com.publicplatform.ragops.qareview.application.port.out.*
+import com.publicplatform.ragops.chatruntime.adapter.outbound.persistence.*
+import com.publicplatform.ragops.chatruntime.application.port.out.*
+import com.publicplatform.ragops.documentregistry.adapter.outbound.persistence.*
+import com.publicplatform.ragops.documentregistry.application.port.out.*
+import com.publicplatform.ragops.metricsreporting.adapter.outbound.persistence.*
+import com.publicplatform.ragops.metricsreporting.application.port.out.*
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -18,151 +25,102 @@ import org.springframework.context.annotation.Configuration
 class RepositoryConfiguration {
 
     @Bean
-    fun adminSessionRepository(
-        jpaRepository: JpaAdminSessionRepository,
-    ): AdminSessionRepository {
-        return AdminSessionRepositoryAdapter(jpaRepository)
-    }
+    fun adminSessionRepository(jpaRepository: JpaManageAdminSessionPort): ManageAdminSessionPort =
+        ManageAdminSessionPortAdapter(jpaRepository)
 
     @Bean
-    fun adminUserRepository(
-        jpaRepository: JpaAdminUserRepository,
-    ): AdminUserRepository {
-        return AdminUserRepositoryAdapter(jpaRepository)
-    }
+    fun adminUserRepository(jpaRepository: JpaManageAdminUserPort): ManageAdminUserPort =
+        ManageAdminUserPortAdapter(jpaRepository)
 
     @Bean
-    fun auditLogRepository(
-        jpaRepository: JpaAuditLogRepository,
-    ): AuditLogRepository {
-        return AuditLogRepositoryAdapter(jpaRepository)
-    }
+    fun auditLogRepository(jpaRepository: JpaRecordAuditLogPort): RecordAuditLogPort =
+        RecordAuditLogPortAdapter(jpaRepository)
 
     @Bean
-    fun organizationRepository(
-        jpaRepository: JpaOrganizationRepository,
-    ): OrganizationRepository {
-        return OrganizationRepositoryAdapter(jpaRepository)
-    }
+    fun organizationRepository(jpaRepository: JpaOrganizationRepository): OrganizationRepository =
+        OrganizationRepositoryAdapter(jpaRepository)
 
     @Bean
-    fun serviceRepository(
-        jpaRepository: JpaServiceRepository,
-    ): ServiceRepository {
-        return ServiceRepositoryAdapter(jpaRepository)
-    }
+    fun serviceRepository(jpaRepository: JpaServiceRepository): ServiceRepository =
+        ServiceRepositoryAdapter(jpaRepository)
 
     @Bean
-    fun organizationDirectoryReader(
-        jpaRepository: JpaOrganizationRepository,
-    ): OrganizationDirectoryReader {
-        return OrganizationDirectoryReaderAdapter(jpaRepository)
-    }
+    fun organizationDirectoryReader(jpaRepository: JpaOrganizationRepository): LoadOrganizationPort =
+        LoadOrganizationPortAdapter(jpaRepository)
 
     @Bean
-    fun crawlSourceReader(
-        jpaRepository: JpaCrawlSourceRepository,
-    ): CrawlSourceReader {
-        return CrawlSourceReaderAdapter(jpaRepository)
-    }
+    fun crawlSourceReader(jpaRepository: JpaCrawlSourceRepository): LoadCrawlSourcePort =
+        LoadCrawlSourcePortAdapter(jpaRepository)
 
     @Bean
-    fun crawlSourceWriter(
-        jpaRepository: JpaCrawlSourceRepository,
-    ): CrawlSourceWriter {
-        return CrawlSourceWriterAdapter(jpaRepository)
-    }
+    fun crawlSourceWriter(jpaRepository: JpaCrawlSourceRepository): SaveCrawlSourcePort =
+        SaveCrawlSourcePortAdapter(jpaRepository)
 
     @Bean
-    fun ingestionJobReader(
-        jpaRepository: JpaIngestionJobRepository,
-    ): IngestionJobReader {
-        return IngestionJobReaderAdapter(jpaRepository)
-    }
+    fun ingestionJobReader(jpaRepository: JpaIngestionJobRepository): LoadIngestionJobPort =
+        LoadIngestionJobPortAdapter(jpaRepository)
 
     @Bean
     fun ingestionJobWriter(
         jpaIngestionJobRepository: JpaIngestionJobRepository,
         jpaCrawlSourceRepository: JpaCrawlSourceRepository,
-    ): IngestionJobWriter {
-        return IngestionJobWriterAdapter(jpaIngestionJobRepository, jpaCrawlSourceRepository)
-    }
+    ): PersistIngestionJobPort = PersistIngestionJobPortAdapter(jpaIngestionJobRepository, jpaCrawlSourceRepository)
 
     @Bean
-    fun qaReviewReader(
-        jpaRepository: JpaQAReviewRepository,
-    ): QAReviewReader {
-        return QAReviewReaderAdapter(jpaRepository)
-    }
+    fun qaReviewReader(jpaRepository: JpaQAReviewRepository): LoadQAReviewPort =
+        LoadQAReviewPortAdapter(jpaRepository)
 
     @Bean
-    fun qaReviewWriter(
-        jpaRepository: JpaQAReviewRepository,
-    ): QAReviewWriter {
-        return QAReviewWriterAdapter(jpaRepository)
-    }
+    fun qaReviewWriter(jpaRepository: JpaQAReviewRepository): RecordQAReviewPort =
+        RecordQAReviewPortAdapter(jpaRepository)
 
     @Bean
-    fun questionReader(
-        jpaRepository: JpaQuestionRepository,
-    ): QuestionReader {
-        return QuestionReaderAdapter(jpaRepository)
-    }
+    fun questionReader(jpaRepository: JpaQuestionRepository): LoadQuestionPort =
+        LoadQuestionPortAdapter(jpaRepository)
 
     @Bean
-    fun questionWriter(
-        jpaRepository: JpaQuestionRepository,
-    ): QuestionWriter {
-        return QuestionWriterAdapter(jpaRepository)
-    }
+    fun questionWriter(jpaRepository: JpaQuestionRepository): RecordQuestionPort =
+        RecordQuestionPortAdapter(jpaRepository)
 
     @Bean
-    fun answerReader(
-        jpaRepository: JpaAnswerRepository,
-    ): AnswerReader {
-        return AnswerReaderAdapter(jpaRepository)
-    }
+    fun answerReader(jpaRepository: JpaAnswerRepository): LoadAnswerPort =
+        LoadAnswerPortAdapter(jpaRepository)
 
     @Bean
-    fun answerWriter(
-        jpaRepository: JpaAnswerRepository,
-    ): AnswerWriter {
-        return AnswerWriterAdapter(jpaRepository)
-    }
+    fun answerWriter(jpaRepository: JpaAnswerRepository): RecordAnswerPort =
+        RecordAnswerPortAdapter(jpaRepository)
 
     @Bean
-    fun documentReader(
-        jpaRepository: JpaDocumentRepository,
-    ): DocumentReader {
-        return DocumentReaderAdapter(jpaRepository)
-    }
+    fun documentReader(jpaRepository: JpaDocumentRepository): LoadDocumentPort =
+        LoadDocumentPortAdapter(jpaRepository)
 
     @Bean
-    fun documentVersionReader(
-        jpaRepository: JpaDocumentVersionRepository,
-    ): DocumentVersionReader {
-        return DocumentVersionReaderAdapter(jpaRepository)
-    }
+    fun documentVersionReader(jpaRepository: JpaDocumentVersionRepository): LoadDocumentVersionPort =
+        LoadDocumentVersionPortAdapter(jpaRepository)
 
     @Bean
-    fun metricsReader(
-        jpaRepository: JpaDailyMetricsRepository,
-    ): MetricsReader {
-        return MetricsReaderAdapter(jpaRepository)
-    }
+    fun metricsReader(jpaRepository: JpaDailyMetricsRepository): LoadMetricsPort =
+        LoadMetricsPortAdapter(jpaRepository)
 
     @Bean
-    fun documentWriter(
-        jpaChunkRepository: JpaDocumentChunkRepository,
-    ): DocumentWriter {
-        return DocumentWriterAdapter(jpaChunkRepository)
-    }
+    fun documentWriter(jpaChunkRepository: JpaDocumentChunkRepository): SaveDocumentPort =
+        SaveDocumentPortAdapter(jpaChunkRepository)
 
     @Bean
     fun ragSearchLogWriter(
         jpaSearchLogRepository: JpaRagSearchLogRepository,
         jpaRetrievedDocumentRepository: JpaRagRetrievedDocumentRepository,
-    ): RagSearchLogWriter {
-        return RagSearchLogWriterAdapter(jpaSearchLogRepository, jpaRetrievedDocumentRepository)
-    }
+    ): SaveRagSearchLogPort = SaveRagSearchLogPortAdapter(jpaSearchLogRepository, jpaRetrievedDocumentRepository)
+
+    @Bean
+    fun feedbackWriter(jpaRepository: JpaFeedbackRepository): RecordFeedbackPort =
+        RecordFeedbackPortAdapter(jpaRepository)
+
+    @Bean
+    fun feedbackReader(jpaRepository: JpaFeedbackRepository): LoadFeedbackPort =
+        LoadFeedbackPortAdapter(jpaRepository)
+
+    @Bean
+    fun metricsWriter(jpaRepository: JpaDailyMetricsRepository): SaveMetricsPort =
+        SaveMetricsPortAdapter(jpaRepository)
 }

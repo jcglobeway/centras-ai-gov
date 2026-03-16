@@ -1,6 +1,6 @@
 package com.publicplatform.ragops.adminapi.auth
 
-import com.publicplatform.ragops.identityaccess.AdminLoginCommand
+import com.publicplatform.ragops.identityaccess.domain.AdminLoginCommand
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
