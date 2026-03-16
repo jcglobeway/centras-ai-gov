@@ -5,6 +5,8 @@ import os
 from typing import Optional
 
 import httpx
+import psycopg2
+import psycopg2.extras
 
 
 def get_embedding(text: str, ollama_url: str = "http://localhost:11434") -> Optional[list[float]]:
@@ -38,34 +40,51 @@ def vector_search(
     db_connection_string: Optional[str] = None,
 ) -> list[dict[str, str]]:
     """
-    Query를 embedding하고 vector similarity search를 수행한다.
+    Query를 embedding하고 pgvector cosine similarity search를 수행한다.
 
-    현재는 stub 구현 (PostgreSQL 연결 필요).
+    DB_URL 환경변수 또는 db_connection_string으로 PostgreSQL에 연결.
+    Ollama가 없거나 DB 연결 실패 시 빈 리스트 반환.
     """
     # 1. Query embedding 생성
     query_embedding = get_embedding(query_text, ollama_url)
 
     if query_embedding is None:
-        # Embedding 생성 실패 시 빈 결과
         return []
 
-    # 2. Vector similarity search (PostgreSQL)
-    # 실제 구현 시: psycopg2로 PostgreSQL 연결
-    # SELECT chunk_text, embedding_vector <=> %s AS distance
-    # FROM document_chunks
-    # ORDER BY distance ASC
-    # LIMIT %s;
+    # 2. PostgreSQL 연결
+    conn_str = db_connection_string or os.getenv("DATABASE_URL")
+    if not conn_str:
+        return []
 
-    # 현재는 stub: 하드코딩된 chunk 반환
-    return [
-        {
-            "chunk_id": "chunk_001",
-            "chunk_text": "서울시 복지 혜택 신청 안내: 온라인 또는 주민센터를 방문하여 신청할 수 있습니다. 필요 서류는 신분증과 소득 증빙 서류입니다.",
-            "distance": "0.15",
-        },
-        {
-            "chunk_id": "chunk_002",
-            "chunk_text": "처리 기간은 신청 후 약 7-14일 정도 소요됩니다. 승인 시 담당자가 연락을 드립니다.",
-            "distance": "0.22",
-        },
-    ]
+    try:
+        conn = psycopg2.connect(conn_str)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        # pgvector cosine distance 연산자 (<=>)로 유사 청크 검색
+        embedding_literal = "[" + ",".join(str(v) for v in query_embedding) + "]"
+        cur.execute(
+            """
+            SELECT id, chunk_text, embedding_vector <=> %s::vector AS distance
+            FROM document_chunks
+            WHERE embedding_vector IS NOT NULL
+            ORDER BY distance ASC
+            LIMIT %s
+            """,
+            (embedding_literal, top_k),
+        )
+
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        return [
+            {
+                "chunk_id": str(row["id"]),
+                "chunk_text": str(row["chunk_text"]),
+                "distance": str(row["distance"]),
+            }
+            for row in rows
+        ]
+
+    except Exception:
+        return []

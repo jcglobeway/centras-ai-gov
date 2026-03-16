@@ -150,4 +150,19 @@ class RepositoryConfiguration {
     ): MetricsReader {
         return MetricsReaderAdapter(jpaRepository)
     }
+
+    @Bean
+    fun documentWriter(
+        jpaChunkRepository: JpaDocumentChunkRepository,
+    ): DocumentWriter {
+        return DocumentWriterAdapter(jpaChunkRepository)
+    }
+
+    @Bean
+    fun ragSearchLogWriter(
+        jpaSearchLogRepository: JpaRagSearchLogRepository,
+        jpaRetrievedDocumentRepository: JpaRagRetrievedDocumentRepository,
+    ): RagSearchLogWriter {
+        return RagSearchLogWriterAdapter(jpaSearchLogRepository, jpaRetrievedDocumentRepository)
+    }
 }

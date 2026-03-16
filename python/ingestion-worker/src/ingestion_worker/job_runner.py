@@ -13,7 +13,12 @@ class IngestionJobRunner:
         self.crawl_executor = CrawlExecutor()
 
     def run_job(self, job_id: str) -> None:
-        """Job을 실행하고 lifecycle을 관리한다."""
+        """
+        Job을 실행하고 lifecycle을 관리한다.
+
+        단계: FETCH → EXTRACT → CHUNK → EMBED → INDEX → COMPLETE
+        각 단계 실패 시 FAILED로 전이.
+        """
         print(f"[JobRunner] Starting job: {job_id}")
 
         try:
@@ -25,23 +30,20 @@ class IngestionJobRunner:
             source = self.admin_api.get_crawl_source(job.crawl_source_id)
             print(f"[JobRunner] Crawl source loaded: {source.name}, uri={source.source_uri}")
 
-            # 3. Job status → RUNNING
-            print("[JobRunner] Transitioning to RUNNING...")
+            # 3. FETCH 단계: URL 크롤링
+            print("[JobRunner] Transitioning to RUNNING / FETCH...")
             self.admin_api.transition_job_status(
                 job_id=job_id,
                 job_status=JobStatus.RUNNING,
                 job_stage=JobStage.FETCH,
             )
 
-            # 4. Crawl 실행 (FETCH stage)
-            print("[JobRunner] Executing crawl...")
             crawl_result = self.crawl_executor.execute_crawl_sync(
                 source_uri=source.source_uri,
                 crawl_source_id=source.id,
             )
 
             if crawl_result["status"] == "error":
-                # 실패 처리
                 print(f"[JobRunner] Crawl failed: {crawl_result['error']}")
                 self.admin_api.transition_job_status(
                     job_id=job_id,
@@ -51,16 +53,86 @@ class IngestionJobRunner:
                 )
                 return
 
-            # 5. EXTRACT stage (스텁 - 실제 파싱은 이후)
-            print("[JobRunner] Transitioning to EXTRACT stage...")
+            # 4. EXTRACT 단계: HTML → 텍스트 추출
+            print("[JobRunner] Transitioning to EXTRACT...")
             self.admin_api.transition_job_status(
                 job_id=job_id,
                 job_status=JobStatus.RUNNING,
                 job_stage=JobStage.EXTRACT,
             )
-            print("[JobRunner] EXTRACT stage completed (stub)")
 
-            # 6. COMPLETE stage
+            raw_text = self.crawl_executor.extract_text(crawl_result["html_content"])
+            print(f"[JobRunner] Extracted text length: {len(raw_text)}")
+
+            if not raw_text.strip():
+                print("[JobRunner] No text extracted, marking as failed")
+                self.admin_api.transition_job_status(
+                    job_id=job_id,
+                    job_status=JobStatus.FAILED,
+                    job_stage=JobStage.EXTRACT,
+                    error_code="EMPTY_CONTENT",
+                )
+                return
+
+            # 5. CHUNK 단계: 텍스트 분할
+            print("[JobRunner] Transitioning to CHUNK...")
+            self.admin_api.transition_job_status(
+                job_id=job_id,
+                job_status=JobStatus.RUNNING,
+                job_stage=JobStage.CHUNK,
+            )
+
+            chunks = self.crawl_executor.chunk_text(raw_text)
+            print(f"[JobRunner] Created {len(chunks)} chunks")
+
+            # 6. EMBED 단계: 임베딩 생성
+            print("[JobRunner] Transitioning to EMBED...")
+            self.admin_api.transition_job_status(
+                job_id=job_id,
+                job_status=JobStatus.RUNNING,
+                job_stage=JobStage.EMBED,
+            )
+
+            chunk_embeddings: list[tuple[str, list[float] | None]] = []
+            for i, chunk_text in enumerate(chunks):
+                embedding = self.crawl_executor.embed_text(chunk_text)
+                chunk_embeddings.append((chunk_text, embedding))
+                if (i + 1) % 10 == 0:
+                    print(f"[JobRunner] Embedded {i + 1}/{len(chunks)} chunks")
+
+            embedded_count = sum(1 for _, emb in chunk_embeddings if emb is not None)
+            print(f"[JobRunner] Successfully embedded {embedded_count}/{len(chunks)} chunks")
+
+            # 7. INDEX 단계: Admin API를 통해 청크 저장
+            print("[JobRunner] Transitioning to INDEX...")
+            self.admin_api.transition_job_status(
+                job_id=job_id,
+                job_status=JobStatus.RUNNING,
+                job_stage=JobStage.INDEX,
+            )
+
+            # document_id는 crawl_source_id 기반으로 생성 (실제로는 Admin API에서 할당)
+            document_id = f"doc_{source.id}"
+            saved_count = 0
+
+            for i, (chunk_text, embedding) in enumerate(chunk_embeddings):
+                try:
+                    token_count = len(chunk_text.split())
+                    self.admin_api.save_document_chunk(
+                        document_id=document_id,
+                        chunk_key=f"chunk_{i}",
+                        chunk_text=chunk_text,
+                        chunk_order=i,
+                        token_count=token_count,
+                        embedding_vector=embedding,
+                    )
+                    saved_count += 1
+                except Exception as e:
+                    print(f"[JobRunner] Failed to save chunk {i}: {e}")
+
+            print(f"[JobRunner] Saved {saved_count}/{len(chunks)} chunks to index")
+
+            # 8. COMPLETE
             print("[JobRunner] Transitioning to COMPLETE...")
             self.admin_api.transition_job_status(
                 job_id=job_id,
@@ -72,7 +144,6 @@ class IngestionJobRunner:
 
         except Exception as e:
             print(f"[JobRunner] Unexpected error: {e}")
-            # 최선의 노력으로 FAILED 상태로 전이 시도
             try:
                 self.admin_api.transition_job_status(
                     job_id=job_id,

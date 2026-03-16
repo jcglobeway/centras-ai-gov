@@ -1,6 +1,7 @@
 package com.publicplatform.ragops.adminapi.chatruntime
 
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -13,8 +14,9 @@ class RagOrchestratorClient(
     private val ragOrchestratorUrl: String,
     @Value("\${rag.orchestrator.enabled:false}")
     private val ragOrchestratorEnabled: Boolean,
+    restTemplateBuilder: RestTemplateBuilder,
 ) {
-    private val restTemplate = RestTemplate()
+    private val restTemplate: RestTemplate = restTemplateBuilder.build()
 
     fun generateAnswer(
         questionId: String,

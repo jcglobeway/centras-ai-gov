@@ -57,3 +57,30 @@ interface DocumentReader {
 interface DocumentVersionReader {
     fun listVersions(documentId: String): List<DocumentVersionSummary>
 }
+
+data class DocumentChunkSummary(
+    val id: String,
+    val documentId: String,
+    val documentVersionId: String?,
+    val chunkKey: String,
+    val chunkText: String,
+    val chunkOrder: Int,
+    val tokenCount: Int?,
+    val embeddingVector: String?,
+    val createdAt: java.time.Instant,
+)
+
+data class SaveDocumentChunkCommand(
+    val documentId: String,
+    val documentVersionId: String?,
+    val chunkKey: String,
+    val chunkText: String,
+    val chunkOrder: Int,
+    val tokenCount: Int?,
+    val embeddingVector: String?,
+)
+
+interface DocumentWriter {
+    fun saveChunk(command: SaveDocumentChunkCommand): DocumentChunkSummary
+    fun deleteChunksByDocumentId(documentId: String)
+}

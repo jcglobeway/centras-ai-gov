@@ -63,6 +63,35 @@ class AdminApiClient:
             attempt_count=1,
         )
 
+    def save_document_chunk(
+        self,
+        document_id: str,
+        chunk_key: str,
+        chunk_text: str,
+        chunk_order: int,
+        token_count: Optional[int],
+        embedding_vector: Optional[list[float]],
+        document_version_id: Optional[str] = None,
+    ) -> dict:
+        """문서 청크와 임베딩을 Admin API를 통해 저장한다."""
+        payload: dict = {
+            "documentId": document_id,
+            "chunkKey": chunk_key,
+            "chunkText": chunk_text,
+            "chunkOrder": chunk_order,
+        }
+        if document_version_id:
+            payload["documentVersionId"] = document_version_id
+        if token_count is not None:
+            payload["tokenCount"] = token_count
+        if embedding_vector is not None:
+            # vector를 JSON 직렬화 가능한 문자열로 변환
+            payload["embeddingVector"] = "[" + ",".join(str(v) for v in embedding_vector) + "]"
+
+        response = self.client.post("/admin/document-chunks", json=payload)
+        response.raise_for_status()
+        return response.json()
+
     def close(self):
         """HTTP 클라이언트를 종료한다."""
         self.client.close()
