@@ -61,12 +61,15 @@ def vector_search(
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
         # pgvector cosine distance 연산자 (<=>)로 유사 청크 검색
+        # documents.visibility_scope = 'public' 인 청크만 반환해 내부 문서 노출을 차단한다
         embedding_literal = "[" + ",".join(str(v) for v in query_embedding) + "]"
         cur.execute(
             """
-            SELECT id, chunk_text, embedding_vector <=> %s::vector AS distance
-            FROM document_chunks
-            WHERE embedding_vector IS NOT NULL
+            SELECT dc.id, dc.chunk_text, dc.embedding_vector <=> %s::vector AS distance
+            FROM document_chunks dc
+            JOIN documents d ON dc.document_id = d.id
+            WHERE dc.embedding_vector IS NOT NULL
+              AND d.visibility_scope = 'public'
             ORDER BY distance ASC
             LIMIT %s
             """,
@@ -84,6 +87,7 @@ def vector_search(
                 "distance": str(row["distance"]),
             }
             for row in rows
+            if row["chunk_text"]
         ]
 
     except Exception:
