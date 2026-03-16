@@ -146,23 +146,42 @@ All modules use Java 21 (`kotlin { jvmToolchain(21) }`).
 
 ---
 
-## Hexagonal Architecture Pattern
+## Hexagonal Architecture Guidelines
 
-All modules follow **ports and adapters**:
+### 레이어 책임
 
-```
-Domain Model (e.g., QuestionSummary)
-    ↓
-Port Interface (e.g., QuestionReader)
-    ↓
-JPA Adapter (e.g., QuestionReaderAdapter)
-    ↓
-Spring Data JPA Repository (e.g., JpaQuestionRepository)
-    ↓
-JPA Entity (e.g., QuestionEntity)
-```
+| 레이어 | 패키지/파일 위치 | 역할 |
+|---|---|---|
+| **domain** | `*Contracts.kt` 내 data class | 순수 비즈니스 모델. 프레임워크 의존성 금지 |
+| **application.port.inbound** | `*Contracts.kt` 내 UseCase 인터페이스 (현재 미구현) | 인바운드 포트; Controller가 이를 호출 |
+| **application.port.outbound** | `*Contracts.kt` 내 Reader/Writer 인터페이스 | 아웃바운드 포트; Adapter가 이를 구현 |
+| **adapter.inbound.web** | `apps/admin-api/…/*Controller.kt`, Web DTO | HTTP 요청 수신, 도메인 모델로 변환 |
+| **adapter.outbound.persistence** | `*Entity.kt`, `Jpa*Repository.kt`, `*Adapter.kt` | DB 영속성 구현 |
 
-**Key conventions**:
+### 의존성 규칙
+
+1. **안쪽 방향**: `adapter` → `application.port` → `domain`. 역방향 불가.
+2. **domain 순수성**: domain 모델(data class)은 `@Entity`, `@Column` 등 JPA/Spring 어노테이션 금지.
+3. **adapter 격리**: Controller는 JPA Entity를 직접 참조하지 않는다. 반드시 port 인터페이스를 통해 domain 모델만 수신.
+4. **엔티티-도메인 분리**: `*Entity` ↔ domain model 간 변환은 반드시 매퍼(`toSummary()`, `toEntity()`)를 사용한다.
+
+### 코드 생성 규칙 (신규 도메인 추가 시)
+
+- `domain`, `application`, `adapter` 세 레이어를 **동시에** 생성할 것.
+- 도메인 모델은 Kotlin `data class`를 우선 사용할 것.
+- Reader/Writer 포트 인터페이스를 먼저 정의하고, 이후 Adapter에서 구현할 것.
+- 새 Bean은 `@Component` 대신 `RepositoryConfiguration`에 `@Bean`으로 명시적 등록.
+
+### 현재 구조와의 매핑 (flat → canonical)
+
+현재 flat 패키지(`com.publicplatform.ragops.chatruntime.*`)는 명명 규칙으로 레이어를 구분한다:
+- `*Contracts.kt` → domain + port
+- `*Entity.kt`, `Jpa*Repository.kt` → adapter.outbound.persistence
+- `*Adapter.kt` → adapter.outbound.persistence 구현체
+- `apps/admin-api/…/*Controller.kt` → adapter.inbound.web
+
+### 레거시 규약 (flat 패키지 기준)
+
 - Port interfaces in modules (e.g., `modules/chat-runtime/QuestionReader`)
 - JPA adapters in modules (e.g., `QuestionReaderAdapter`)
 - Spring Data JPA repositories in modules (e.g., `JpaQuestionRepository`)
@@ -174,6 +193,7 @@ JPA Entity (e.g., QuestionEntity)
 - Tests use H2 in-memory with `@ActiveProfiles("test")`
 - `@DirtiesContext` for test isolation
 - All adapters work with both H2 (test) and PostgreSQL (production)
+- ArchUnit tests (`ArchitectureTest`) enforce dependency rules automatically
 
 ---
 
