@@ -9,7 +9,7 @@ package com.publicplatform.ragops.organizationdirectory
  * ## 주요 포트 계약
  * - [OrganizationRepository]: 기관 CRUD
  * - [ServiceRepository]: 서비스 CRUD
- * - [OrganizationDirectoryReader]: 기관 목록 조회 (세션 스코프 검증용)
+ * - [LoadOrganizationPort]: 기관 목록 조회 (세션 스코프 검증용)
  *
  * ## 주요 DB 테이블
  * - `organizations`, `services`

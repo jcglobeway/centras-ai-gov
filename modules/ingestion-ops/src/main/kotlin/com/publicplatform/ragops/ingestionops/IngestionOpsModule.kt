@@ -7,10 +7,10 @@ package com.publicplatform.ragops.ingestionops
  * Python ingestion-worker가 작업 상태를 Admin API를 통해 콜백으로 갱신한다.
  *
  * ## 주요 포트 계약
- * - [CrawlSourceReader]: 크롤 소스 조회 (목록, 단건)
- * - [CrawlSourceWriter]: 크롤 소스 생성
- * - [IngestionJobReader]: 수집 작업 조회
- * - [IngestionJobWriter]: 작업 생성, 상태 전이
+ * - [LoadCrawlSourcePort]: 크롤 소스 조회 (목록, 단건)
+ * - [SaveCrawlSourcePort]: 크롤 소스 생성
+ * - [LoadIngestionJobPort]: 수집 작업 조회
+ * - [PersistIngestionJobPort]: 작업 생성, 상태 전이
  *
  * ## 수집 작업 상태 머신
  * ```

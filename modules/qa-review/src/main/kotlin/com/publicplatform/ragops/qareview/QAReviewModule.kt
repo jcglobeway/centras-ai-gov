@@ -7,8 +7,8 @@ package com.publicplatform.ragops.qareview
  * `qa_admin` 역할만 리뷰를 생성할 수 있으며, 루트 원인 코드와 조치 유형이 필요하다.
  *
  * ## 주요 포트 계약
- * - [QAReviewReader]: 리뷰 목록 조회 (question_id 필터 포함)
- * - [QAReviewWriter]: 리뷰 생성
+ * - [LoadQAReviewPort]: 리뷰 목록 조회 (question_id 필터 포함)
+ * - [RecordQAReviewPort]: 리뷰 생성
  *
  * ## QA 리뷰 상태 머신
  * ```

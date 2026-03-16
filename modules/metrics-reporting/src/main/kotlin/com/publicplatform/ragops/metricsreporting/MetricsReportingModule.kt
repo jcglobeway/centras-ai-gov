@@ -7,7 +7,7 @@ package com.publicplatform.ragops.metricsreporting
  * 배치 작업이 매일 원본 로그에서 집계하여 이 모듈의 테이블에 저장한다.
  *
  * ## 주요 포트 계약
- * - [MetricsReader]: 일간 지표 목록 조회 (날짜 범위, 기관 필터)
+ * - [LoadMetricsPort]: 일간 지표 목록 조회 (날짜 범위, 기관 필터)
  *
  * ## KPI 지표 항목
  * - `total_questions`: 총 질문 수

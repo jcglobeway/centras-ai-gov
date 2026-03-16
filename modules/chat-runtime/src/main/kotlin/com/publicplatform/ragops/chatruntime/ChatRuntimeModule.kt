@@ -7,11 +7,11 @@ package com.publicplatform.ragops.chatruntime
  * 미해결 질문 큐를 제공하여 QA 검토 워크플로우의 진입점 역할을 한다.
  *
  * ## 주요 포트 계약
- * - [QuestionReader]: 질문 목록 조회, 미해결 큐 조회
- * - [QuestionWriter]: 질문 생성
- * - [AnswerReader]: 질문별 답변 조회
- * - [AnswerWriter]: 답변 생성
- * - [RagSearchLogWriter]: RAG 검색 로그 저장
+ * - [LoadQuestionPort]: 질문 목록 조회, 미해결 큐 조회
+ * - [RecordQuestionPort]: 질문 생성
+ * - [LoadAnswerPort]: 질문별 답변 조회
+ * - [RecordAnswerPort]: 답변 생성
+ * - [SaveRagSearchLogPort]: RAG 검색 로그 저장
  *
  * ## 미해결 큐 가시성 규칙
  * 다음 조건 중 하나를 만족하면 미해결 큐에 노출:
