@@ -275,3 +275,12 @@
 - app.py: generate_answer_with_ollama에 vector search 연동
 - Mock context → vector search results 사용
 - ./gradlew test 통과 (39 tests)
+- `add-rag-search-logs` change로 누락된 검색 로그 테이블 추가
+- mvp_docs/04_data_api.md 검토 결과 rag_search_logs, rag_retrieved_documents 누락 발견
+- Flyway V017__create_rag_search_logs.sql 생성
+  • rag_search_logs: question_id FK, query_text, zero_result, latency_ms, retrieval_status
+  • rag_retrieved_documents: rag_search_log_id FK, chunk_id FK, rank, score, used_in_citation
+- PostgreSQL에 즉시 적용 (docker exec)
+- Sprint 1 범위 검토: 모든 필수 기능 구현 확인
+- ./gradlew test 통과 (39 tests)
+- 총 18개 테이블 (V001-V017)
