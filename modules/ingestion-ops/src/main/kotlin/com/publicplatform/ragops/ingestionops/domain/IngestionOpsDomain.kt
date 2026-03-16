@@ -1,3 +1,9 @@
+/**
+ * ingestion-ops 바운디드 컨텍스트의 도메인 모델.
+ *
+ * 크롤 소스와 인제스션 잡의 생명주기를 관리한다.
+ * IngestionJobStateMachine은 허용된 상태 전이 규칙을 캡슐화한다.
+ */
 package com.publicplatform.ragops.ingestionops.domain
 
 import java.time.Instant

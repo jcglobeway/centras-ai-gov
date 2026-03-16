@@ -1,3 +1,8 @@
+/**
+ * 현재 세션 정보 조회 HTTP 인바운드 어댑터.
+ *
+ * 유효한 세션 토큰으로 호출하면 로그인한 사용자의 프로필과 역할을 반환한다.
+ */
 package com.publicplatform.ragops.adminapi.auth
 
 import com.publicplatform.ragops.identityaccess.domain.AdminSessionSnapshot

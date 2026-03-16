@@ -1,3 +1,8 @@
+/**
+ * 서비스 헬스체크 엔드포인트.
+ *
+ * 로드밸런서와 CI 파이프라인이 서비스 가용성을 확인할 때 사용한다.
+ */
 package com.publicplatform.ragops.adminapi.health
 
 import org.springframework.web.bind.annotation.GetMapping

@@ -1,3 +1,9 @@
+/**
+ * document-registry 바운디드 컨텍스트의 도메인 모델.
+ *
+ * 문서 메타데이터, 버전 이력, 청크·임베딩 데이터를 표현한다.
+ * 인제스션 상태(ingestion_status)와 인덱스 상태(index_status)를 독립적으로 추적한다.
+ */
 package com.publicplatform.ragops.documentregistry.domain
 
 import java.time.Instant

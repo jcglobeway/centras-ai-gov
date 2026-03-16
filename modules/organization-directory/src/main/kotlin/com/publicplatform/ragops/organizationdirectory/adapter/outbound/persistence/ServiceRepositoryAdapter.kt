@@ -1,3 +1,8 @@
+/**
+ * ManageServicePort의 JPA 구현체.
+ *
+ * 기관 ID로 서비스 목록을 조회하고 저장한다.
+ */
 package com.publicplatform.ragops.organizationdirectory.adapter.outbound.persistence
 
 import com.publicplatform.ragops.organizationdirectory.domain.Service

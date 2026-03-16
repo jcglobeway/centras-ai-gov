@@ -1,3 +1,9 @@
+/**
+ * SaveMetricsPort의 JPA 구현체.
+ *
+ * 동일 날짜·기관·서비스 조합의 지표를 upsert 방식으로 저장한다.
+ * MetricsAggregationScheduler가 매일 00:05에 호출한다.
+ */
 package com.publicplatform.ragops.metricsreporting.adapter.outbound.persistence
 
 import com.publicplatform.ragops.metricsreporting.domain.DailyMetricsSummary

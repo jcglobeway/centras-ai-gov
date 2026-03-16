@@ -1,3 +1,8 @@
+/**
+ * ManageOrganizationPort의 JPA 구현체.
+ *
+ * 기관 단건 조회 및 저장을 제공한다.
+ */
 package com.publicplatform.ragops.organizationdirectory.adapter.outbound.persistence
 
 import com.publicplatform.ragops.organizationdirectory.domain.Organization

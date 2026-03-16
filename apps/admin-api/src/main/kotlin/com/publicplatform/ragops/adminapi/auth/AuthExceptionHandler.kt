@@ -1,3 +1,8 @@
+/**
+ * 인증·권한 예외를 HTTP 응답으로 변환하는 핸들러.
+ *
+ * AdminAuthenticationException을 401로, AdminAuthorizationException을 403으로 매핑한다.
+ */
 package com.publicplatform.ragops.adminapi.auth
 
 import com.publicplatform.ragops.identityaccess.domain.AdminAuthErrorCode

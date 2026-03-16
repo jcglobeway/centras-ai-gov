@@ -1,3 +1,8 @@
+/**
+ * RecordAnswerPort의 JPA 구현체.
+ *
+ * 질문에 대한 RAG 또는 수동 답변을 answers 테이블에 저장한다.
+ */
 package com.publicplatform.ragops.chatruntime.adapter.outbound.persistence
 
 import com.publicplatform.ragops.chatruntime.domain.AnswerSummary

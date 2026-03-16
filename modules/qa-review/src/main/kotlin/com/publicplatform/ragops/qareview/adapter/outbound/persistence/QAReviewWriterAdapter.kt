@@ -1,3 +1,9 @@
+/**
+ * RecordQAReviewPort의 JPA 구현체.
+ *
+ * 리뷰 생성 전 QAReviewStateMachine으로 유효성을 검사한다.
+ * 리뷰는 append-only이므로 UPDATE 없이 INSERT만 수행한다.
+ */
 package com.publicplatform.ragops.qareview.adapter.outbound.persistence
 
 import com.publicplatform.ragops.qareview.domain.CreateQAReviewCommand

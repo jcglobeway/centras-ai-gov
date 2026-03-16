@@ -1,3 +1,8 @@
+/**
+ * RecordQuestionPort의 JPA 구현체.
+ *
+ * UUID 기반 ID를 생성하고 질문을 questions 테이블에 저장한다.
+ */
 package com.publicplatform.ragops.chatruntime.adapter.outbound.persistence
 
 import com.publicplatform.ragops.chatruntime.domain.CreateQuestionCommand

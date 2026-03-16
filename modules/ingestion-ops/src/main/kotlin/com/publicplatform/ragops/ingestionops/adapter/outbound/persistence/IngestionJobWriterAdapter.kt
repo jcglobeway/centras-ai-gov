@@ -1,3 +1,9 @@
+/**
+ * PersistIngestionJobPort의 JPA 구현체.
+ *
+ * 잡 생성 시 IngestionJobStateMachine을 통해 초기 상태(QUEUED/FETCH)를 설정한다.
+ * 상태 전이 시에도 StateMachine 유효성 검사를 거친 후 저장한다.
+ */
 package com.publicplatform.ragops.ingestionops.adapter.outbound.persistence
 
 import com.publicplatform.ragops.ingestionops.domain.CrawlSourceStatus

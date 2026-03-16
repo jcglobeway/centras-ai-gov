@@ -1,3 +1,9 @@
+/**
+ * qa-review 바운디드 컨텍스트의 도메인 모델.
+ *
+ * QA 담당자가 미해결 질문을 검토하는 워크플로우를 표현한다.
+ * QAReviewStateMachine은 false_alarm → resolved 전이 금지 등 도메인 규칙을 캡슐화한다.
+ */
 package com.publicplatform.ragops.qareview.domain
 
 import java.time.Instant

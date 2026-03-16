@@ -1,3 +1,9 @@
+/**
+ * admin-api Spring Boot 애플리케이션 진입점.
+ *
+ * @EnableJpaRepositories와 @EntityScan으로 각 모듈의 adapter.outbound.persistence 패키지를 명시적으로 스캔한다.
+ * 자동 스캔을 사용하지 않는 이유: 어댑터 등록을 RepositoryConfiguration에서 명시적으로 관리하기 때문이다.
+ */
 package com.publicplatform.ragops.adminapi
 
 import org.springframework.boot.autoconfigure.SpringBootApplication

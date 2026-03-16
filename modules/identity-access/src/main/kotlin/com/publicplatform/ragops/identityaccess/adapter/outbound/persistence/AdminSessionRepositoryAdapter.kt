@@ -1,3 +1,9 @@
+/**
+ * ManageAdminSessionPort의 JPA 구현체.
+ *
+ * 세션 발급, 조회, 만료 처리를 담당한다.
+ * 세션 스냅샷은 JSON으로 직렬화하여 단일 컬럼에 저장한다.
+ */
 package com.publicplatform.ragops.identityaccess.adapter.outbound.persistence
 
 import com.publicplatform.ragops.identityaccess.domain.AdminSessionIssueCommand

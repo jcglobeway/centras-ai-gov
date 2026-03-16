@@ -1,3 +1,8 @@
+/**
+ * SaveRagSearchLogPort의 JPA 구현체.
+ *
+ * RAG 오케스트레이터가 콜백으로 전달한 검색 로그와 검색된 문서 목록을 저장한다.
+ */
 package com.publicplatform.ragops.chatruntime.adapter.outbound.persistence
 
 import com.publicplatform.ragops.chatruntime.domain.CreateRagRetrievedDocumentCommand

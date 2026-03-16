@@ -1,3 +1,8 @@
+/**
+ * SaveCrawlSourcePort의 JPA 구현체.
+ *
+ * 크롤 소스를 crawl_sources 테이블에 저장한다.
+ */
 package com.publicplatform.ragops.ingestionops.adapter.outbound.persistence
 
 import com.publicplatform.ragops.ingestionops.domain.CrawlSourceStatus

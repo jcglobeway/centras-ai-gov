@@ -1,3 +1,9 @@
+/**
+ * 개발 환경용 RestoreSessionPort 구현체.
+ *
+ * H2 인메모리 DB + JPA 어댑터를 사용하여 세션을 복원한다.
+ * 운영 환경에서는 Redis 기반 구현체로 교체할 수 있다.
+ */
 package com.publicplatform.ragops.adminapi.auth
 
 import com.publicplatform.ragops.identityaccess.domain.AdminAuthErrorCode

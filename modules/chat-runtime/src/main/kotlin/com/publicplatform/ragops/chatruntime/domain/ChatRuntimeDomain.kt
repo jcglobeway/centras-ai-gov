@@ -1,3 +1,9 @@
+/**
+ * chat-runtime 바운디드 컨텍스트의 도메인 모델.
+ *
+ * 시민 채팅 세션, 질문, 답변, RAG 검색 로그, 피드백에 관한 순수 비즈니스 개념을 정의한다.
+ * JPA, Spring 등 프레임워크 의존성을 포함하지 않는다.
+ */
 package com.publicplatform.ragops.chatruntime.domain
 
 import java.time.Instant

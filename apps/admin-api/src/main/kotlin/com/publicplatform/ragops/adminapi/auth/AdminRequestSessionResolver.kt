@@ -1,3 +1,9 @@
+/**
+ * HTTP 요청에서 세션을 복원하는 인바운드 헬퍼.
+ *
+ * X-Admin-Session-Id 헤더를 읽어 RestoreSessionPort를 통해 세션 스냅샷을 반환한다.
+ * 세션이 없거나 만료된 경우 401을 던진다.
+ */
 package com.publicplatform.ragops.adminapi.auth
 
 import com.publicplatform.ragops.identityaccess.domain.AdminSessionSnapshot

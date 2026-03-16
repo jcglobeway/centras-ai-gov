@@ -1,3 +1,8 @@
+/**
+ * RecordFeedbackPort의 JPA 구현체.
+ *
+ * 시민 피드백(별점, 코멘트)을 feedbacks 테이블에 저장한다.
+ */
 package com.publicplatform.ragops.chatruntime.adapter.outbound.persistence
 
 import com.publicplatform.ragops.chatruntime.domain.CreateFeedbackCommand

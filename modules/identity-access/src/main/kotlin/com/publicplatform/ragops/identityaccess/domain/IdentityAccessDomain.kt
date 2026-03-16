@@ -1,3 +1,9 @@
+/**
+ * identity-access 바운디드 컨텍스트의 도메인 모델.
+ *
+ * 관리자 사용자, 세션, 권한 정책, 감사 로그에 관한 순수 비즈니스 개념을 정의한다.
+ * AdminAuthorizationPolicy는 역할 기반 권한 체크 로직을 캡슐화하며 외부 의존성이 없다.
+ */
 package com.publicplatform.ragops.identityaccess.domain
 
 import java.time.Duration

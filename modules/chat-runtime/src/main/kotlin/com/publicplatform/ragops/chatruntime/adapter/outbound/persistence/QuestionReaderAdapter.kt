@@ -1,3 +1,9 @@
+/**
+ * LoadQuestionPort의 JPA 구현체.
+ *
+ * 미해결 질문 큐 조회는 qa_reviews 테이블과 Native SQL을 사용한다.
+ * 순환 의존성을 피하기 위해 qa-review 모듈을 import하지 않고 네이티브 쿼리로 처리한다.
+ */
 package com.publicplatform.ragops.chatruntime.adapter.outbound.persistence
 
 import com.publicplatform.ragops.chatruntime.domain.ChatScope

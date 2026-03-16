@@ -1,3 +1,8 @@
+/**
+ * Spring Security 기본 설정.
+ *
+ * 세션 인증 대신 커스텀 헤더(X-Admin-Session-Id)를 사용하므로 CSRF와 기본 로그인을 비활성화한다.
+ */
 package com.publicplatform.ragops.adminapi.config
 
 import org.springframework.context.annotation.Bean
