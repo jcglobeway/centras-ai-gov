@@ -20,6 +20,9 @@ open class RecordFeedbackPortAdapter(
             organizationId = command.organizationId, serviceId = command.serviceId,
             questionId = command.questionId, sessionId = command.sessionId,
             rating = command.rating, comment = command.comment, channel = command.channel,
+            feedbackType = command.feedbackType, clickedLink = command.clickedLink,
+            clickedDocument = command.clickedDocument, targetActionType = command.targetActionType,
+            targetActionCompleted = command.targetActionCompleted, dwellTimeMs = command.dwellTimeMs,
         )
         return jpaRepository.save(entity).toSummary()
     }

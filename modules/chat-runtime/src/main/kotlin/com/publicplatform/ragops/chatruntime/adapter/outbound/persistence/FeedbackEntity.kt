@@ -24,6 +24,12 @@ class FeedbackEntity(
     @Column(name = "rating", nullable = false) val rating: Int,
     @Column(name = "comment", columnDefinition = "TEXT") val comment: String?,
     @Column(name = "channel") val channel: String?,
+    @Column(name = "feedback_type") val feedbackType: String?,
+    @Column(name = "clicked_link", nullable = false) val clickedLink: Boolean = false,
+    @Column(name = "clicked_document", nullable = false) val clickedDocument: Boolean = false,
+    @Column(name = "target_action_type") val targetActionType: String?,
+    @Column(name = "target_action_completed", nullable = false) val targetActionCompleted: Boolean = false,
+    @Column(name = "dwell_time_ms") val dwellTimeMs: Long?,
     @Column(name = "submitted_at", nullable = false) val submittedAt: Instant = Instant.now(),
 )
 
@@ -31,5 +37,8 @@ fun FeedbackEntity.toSummary(): FeedbackSummary =
     FeedbackSummary(
         id = id, organizationId = organizationId, serviceId = serviceId,
         questionId = questionId, sessionId = sessionId, rating = rating,
-        comment = comment, channel = channel, submittedAt = submittedAt,
+        comment = comment, channel = channel, feedbackType = feedbackType,
+        clickedLink = clickedLink, clickedDocument = clickedDocument,
+        targetActionType = targetActionType, targetActionCompleted = targetActionCompleted,
+        dwellTimeMs = dwellTimeMs, submittedAt = submittedAt,
     )

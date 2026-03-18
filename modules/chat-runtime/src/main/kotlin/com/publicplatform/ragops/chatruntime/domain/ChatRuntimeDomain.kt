@@ -113,6 +113,12 @@ data class FeedbackSummary(
     val rating: Int,
     val comment: String?,
     val channel: String?,
+    val feedbackType: String?,
+    val clickedLink: Boolean,
+    val clickedDocument: Boolean,
+    val targetActionType: String?,
+    val targetActionCompleted: Boolean,
+    val dwellTimeMs: Long?,
     val submittedAt: Instant,
 )
 
@@ -124,6 +130,12 @@ data class CreateFeedbackCommand(
     val rating: Int,
     val comment: String?,
     val channel: String?,
+    val feedbackType: String? = null,
+    val clickedLink: Boolean = false,
+    val clickedDocument: Boolean = false,
+    val targetActionType: String? = null,
+    val targetActionCompleted: Boolean = false,
+    val dwellTimeMs: Long? = null,
 )
 
 data class FeedbackScope(
