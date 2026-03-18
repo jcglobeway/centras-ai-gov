@@ -22,5 +22,7 @@ class ChatSessionEntity(
     @Column(name = "user_key_hash") val userKeyHash: String?,
     @Column(name = "started_at", nullable = false) val startedAt: Instant = Instant.now(),
     @Column(name = "ended_at") val endedAt: Instant?,
+    @Column(name = "session_end_type") val sessionEndType: String?,
+    @Column(name = "total_question_count", nullable = false) val totalQuestionCount: Int = 0,
     @Column(name = "created_at", nullable = false) val createdAt: Instant = Instant.now(),
 )

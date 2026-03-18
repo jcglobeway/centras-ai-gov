@@ -6,6 +6,7 @@
  */
 package com.publicplatform.ragops.chatruntime.domain
 
+import java.math.BigDecimal
 import java.time.Instant
 
 enum class AnswerStatus { ANSWERED, FALLBACK, NO_ANSWER, ERROR }
@@ -18,6 +19,8 @@ data class ChatSessionSummary(
     val userKeyHash: String?,
     val startedAt: Instant,
     val endedAt: Instant?,
+    val sessionEndType: String?,
+    val totalQuestionCount: Int,
 )
 
 data class QuestionSummary(
@@ -28,6 +31,10 @@ data class QuestionSummary(
     val questionText: String,
     val questionIntentLabel: String?,
     val channel: String,
+    val questionCategory: String?,
+    val answerConfidence: BigDecimal?,
+    val failureReasonCode: String?,
+    val isEscalated: Boolean,
     val createdAt: Instant,
 )
 

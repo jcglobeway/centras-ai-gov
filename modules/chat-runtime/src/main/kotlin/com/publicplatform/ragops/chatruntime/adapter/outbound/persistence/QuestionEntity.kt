@@ -23,6 +23,10 @@ class QuestionEntity(
     @Column(name = "question_text", nullable = false, columnDefinition = "TEXT") val questionText: String,
     @Column(name = "question_intent_label") val questionIntentLabel: String?,
     @Column(name = "channel", nullable = false) val channel: String,
+    @Column(name = "question_category") val questionCategory: String?,
+    @Column(name = "answer_confidence", precision = 5, scale = 4) val answerConfidence: java.math.BigDecimal?,
+    @Column(name = "failure_reason_code") val failureReasonCode: String?,
+    @Column(name = "is_escalated", nullable = false) val isEscalated: Boolean = false,
     @Column(name = "created_at", nullable = false) val createdAt: Instant = Instant.now(),
 )
 
@@ -30,5 +34,7 @@ fun QuestionEntity.toSummary(): QuestionSummary =
     QuestionSummary(
         id = id, organizationId = organizationId, serviceId = serviceId,
         chatSessionId = chatSessionId, questionText = questionText,
-        questionIntentLabel = questionIntentLabel, channel = channel, createdAt = createdAt,
+        questionIntentLabel = questionIntentLabel, channel = channel,
+        questionCategory = questionCategory, answerConfidence = answerConfidence,
+        failureReasonCode = failureReasonCode, isEscalated = isEscalated, createdAt = createdAt,
     )

@@ -23,6 +23,8 @@ open class RecordQuestionPortAdapter(
             id = id, organizationId = command.organizationId, serviceId = command.serviceId,
             chatSessionId = command.chatSessionId, questionText = command.questionText,
             questionIntentLabel = command.questionIntentLabel, channel = command.channel,
+            questionCategory = null, answerConfidence = null,
+            failureReasonCode = null, isEscalated = false,
             createdAt = Instant.now(),
         )
         val saved = jpaRepository.save(entity)
