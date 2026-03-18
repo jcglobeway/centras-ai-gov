@@ -21,6 +21,16 @@ data class DailyMetricsSummary(
     val fallbackRate: BigDecimal?,
     val zeroResultRate: BigDecimal?,
     val avgResponseTimeMs: Int?,
+    val autoResolutionRate: BigDecimal?,
+    val escalationRate: BigDecimal?,
+    val explicitResolutionRate: BigDecimal?,
+    val estimatedResolutionRate: BigDecimal?,
+    val revisitRate: BigDecimal?,
+    val afterHoursRate: BigDecimal?,
+    val avgSessionTurnCount: BigDecimal?,
+    val knowledgeGapCount: Int,
+    val unansweredCount: Int,
+    val lowSatisfactionCount: Int,
     val createdAt: Instant,
 )
 

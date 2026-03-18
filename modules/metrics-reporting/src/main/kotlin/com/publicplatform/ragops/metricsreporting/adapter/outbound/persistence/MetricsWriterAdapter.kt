@@ -28,6 +28,9 @@ open class SaveMetricsPortAdapter(
                 totalSessions = command.totalSessions, totalQuestions = command.totalQuestions,
                 resolvedRate = null, fallbackRate = command.fallbackRate,
                 zeroResultRate = command.zeroResultRate, avgResponseTimeMs = command.avgResponseTimeMs,
+                autoResolutionRate = null, escalationRate = null, explicitResolutionRate = null,
+                estimatedResolutionRate = null, revisitRate = null, afterHoursRate = null,
+                avgSessionTurnCount = null, knowledgeGapCount = 0, unansweredCount = 0, lowSatisfactionCount = 0,
                 createdAt = existing.createdAt,
             )
         } else {
@@ -37,7 +40,11 @@ open class SaveMetricsPortAdapter(
                 serviceId = command.serviceId, totalSessions = command.totalSessions,
                 totalQuestions = command.totalQuestions, resolvedRate = null,
                 fallbackRate = command.fallbackRate, zeroResultRate = command.zeroResultRate,
-                avgResponseTimeMs = command.avgResponseTimeMs, createdAt = Instant.now(),
+                avgResponseTimeMs = command.avgResponseTimeMs,
+                autoResolutionRate = null, escalationRate = null, explicitResolutionRate = null,
+                estimatedResolutionRate = null, revisitRate = null, afterHoursRate = null,
+                avgSessionTurnCount = null, knowledgeGapCount = 0, unansweredCount = 0, lowSatisfactionCount = 0,
+                createdAt = Instant.now(),
             )
         }
 
