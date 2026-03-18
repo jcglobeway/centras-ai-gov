@@ -109,7 +109,7 @@ class DevelopmentRestoreSessionPort(
 
     private fun defaultOrganizationFor(roleCode: String): String? =
         when (roleCode) {
-            "ops_admin" -> null
+            "ops_admin", "super_admin" -> null
             else -> "org_seoul_120"
         }
 }
@@ -208,7 +208,7 @@ internal fun developmentActionsFor(roleCode: String): List<String> =
             "metrics.read",
         )
 
-        "client_admin" -> listOf(
+        "client_admin", "client_org_admin" -> listOf(
             "dashboard.read",
             "crawl_source.read",
             "ingestion_job.read",
@@ -216,6 +216,36 @@ internal fun developmentActionsFor(roleCode: String): List<String> =
             "document.reingest.request",
             "document.reindex.request",
             "metrics.read",
+        )
+
+        "super_admin" -> listOf(
+            "dashboard.read",
+            "organization.read",
+            "organization.update",
+            "crawl_source.read",
+            "crawl_source.write",
+            "ingestion_job.read",
+            "document.read",
+            "document.reingest.request",
+            "document.reindex.request",
+            "document.reindex.execute",
+            "qa.review.read",
+            "qa.review.write",
+            "metrics.read",
+            "auth.user.read",
+            "auth.role.assign",
+        )
+
+        "client_viewer" -> listOf(
+            "dashboard.read",
+            "metrics.read",
+        )
+
+        "knowledge_editor" -> listOf(
+            "dashboard.read",
+            "document.read",
+            "document.reingest.request",
+            "document.reindex.request",
         )
 
         else -> listOf("dashboard.read")

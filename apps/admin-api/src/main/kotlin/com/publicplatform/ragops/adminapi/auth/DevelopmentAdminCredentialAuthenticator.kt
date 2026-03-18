@@ -51,6 +51,36 @@ class DevelopmentAdminCredentialAuthenticator(
                     organizationId = "org_seoul_120",
                 ),
             ),
+            "super.admin@gov-platform.kr" to DevelopmentAdminAccount(
+                passwordHash = passwordEncoder.encode("super-pass-1234"),
+                snapshot = snapshotFor(
+                    userId = "usr_super_001",
+                    email = "super.admin@gov-platform.kr",
+                    displayName = "Super Admin",
+                    roleCode = "super_admin",
+                    organizationId = null,
+                ),
+            ),
+            "client.viewer@busan.go.kr" to DevelopmentAdminAccount(
+                passwordHash = passwordEncoder.encode("viewer-pass-1234"),
+                snapshot = snapshotFor(
+                    userId = "usr_client_viewer_001",
+                    email = "client.viewer@busan.go.kr",
+                    displayName = "Busan Client Viewer",
+                    roleCode = "client_viewer",
+                    organizationId = "org_busan_220",
+                ),
+            ),
+            "knowledge.editor@gov-platform.kr" to DevelopmentAdminAccount(
+                passwordHash = passwordEncoder.encode("editor-pass-1234"),
+                snapshot = snapshotFor(
+                    userId = "usr_knowledge_editor_001",
+                    email = "knowledge.editor@gov-platform.kr",
+                    displayName = "Knowledge Editor",
+                    roleCode = "knowledge_editor",
+                    organizationId = "org_seoul_120",
+                ),
+            ),
         )
     }
 
