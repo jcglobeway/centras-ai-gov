@@ -1,4 +1,4 @@
-package com.publicplatform.ragops.adminapi.chatruntime
+package com.publicplatform.ragops.adminapi.chatruntime.adapter.outbound.http
 
 import com.publicplatform.ragops.chatruntime.application.port.out.RagOrchestrationPort
 import com.publicplatform.ragops.chatruntime.domain.RagAnswerResult

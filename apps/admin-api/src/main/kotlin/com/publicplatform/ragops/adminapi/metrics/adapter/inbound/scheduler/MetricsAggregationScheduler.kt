@@ -5,7 +5,7 @@
  * 크로스 모듈 집계를 위해 NamedParameterJdbcTemplate을 사용하며,
  * 모듈 간 순환 의존을 피하고자 JPA 대신 Native SQL로 처리한다.
  */
-package com.publicplatform.ragops.adminapi.metrics
+package com.publicplatform.ragops.adminapi.metrics.adapter.inbound.scheduler
 
 import com.publicplatform.ragops.metricsreporting.domain.SaveDailyMetricsCommand
 import com.publicplatform.ragops.metricsreporting.application.port.out.SaveMetricsPort

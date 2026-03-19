@@ -3,8 +3,9 @@
  *
  * 유효한 세션 토큰으로 호출하면 로그인한 사용자의 프로필과 역할을 반환한다.
  */
-package com.publicplatform.ragops.adminapi.auth
+package com.publicplatform.ragops.adminapi.auth.adapter.inbound.web
 
+import com.publicplatform.ragops.adminapi.auth.AdminRequestSessionResolver
 import com.publicplatform.ragops.identityaccess.domain.AdminSessionSnapshot
 import com.publicplatform.ragops.identityaccess.domain.AdminUserStatus
 import jakarta.servlet.http.HttpServletRequest

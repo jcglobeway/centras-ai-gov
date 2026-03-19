@@ -3,7 +3,7 @@
  *
  * 로드밸런서와 CI 파이프라인이 서비스 가용성을 확인할 때 사용한다.
  */
-package com.publicplatform.ragops.adminapi.health
+package com.publicplatform.ragops.adminapi.health.adapter.inbound.web
 
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping

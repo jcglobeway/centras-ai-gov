@@ -3,8 +3,9 @@
  *
  * 이메일/비밀번호로 인증 후 세션을 발급하고, 로그아웃 시 세션을 무효화한다.
  */
-package com.publicplatform.ragops.adminapi.auth
+package com.publicplatform.ragops.adminapi.auth.adapter.inbound.web
 
+import com.publicplatform.ragops.adminapi.auth.AdminRequestSessionResolver
 import com.publicplatform.ragops.identityaccess.application.port.`in`.AdminAuthUseCase
 import com.publicplatform.ragops.identityaccess.domain.AdminLoginCommand
 import jakarta.servlet.http.HttpServletRequest

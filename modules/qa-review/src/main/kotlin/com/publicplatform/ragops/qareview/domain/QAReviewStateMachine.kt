@@ -1,38 +1,4 @@
-/**
- * qa-review 바운디드 컨텍스트의 도메인 모델.
- *
- * QA 담당자가 미해결 질문을 검토하는 워크플로우를 표현한다.
- * QAReviewStateMachine은 false_alarm → resolved 전이 금지 등 도메인 규칙을 캡슐화한다.
- */
 package com.publicplatform.ragops.qareview.domain
-
-import java.time.Instant
-
-enum class QAReviewStatus { PENDING, CONFIRMED_ISSUE, FALSE_ALARM, RESOLVED }
-enum class RootCauseCode { MISSING_DOCUMENT, STALE_DOCUMENT, BAD_CHUNKING, RETRIEVAL_FAILURE, GENERATION_ERROR, POLICY_BLOCK, UNCLEAR_QUESTION }
-enum class ActionType { FAQ_CREATE, DOCUMENT_FIX_REQUEST, REINDEX_REQUEST, OPS_ISSUE, NO_ACTION }
-
-data class QAReviewSummary(
-    val id: String,
-    val questionId: String,
-    val reviewStatus: QAReviewStatus,
-    val rootCauseCode: RootCauseCode?,
-    val actionType: ActionType?,
-    val actionTargetId: String?,
-    val reviewComment: String?,
-    val reviewerId: String,
-    val reviewedAt: Instant,
-)
-
-data class CreateQAReviewCommand(
-    val questionId: String,
-    val reviewStatus: QAReviewStatus,
-    val rootCauseCode: RootCauseCode?,
-    val actionType: ActionType?,
-    val actionTargetId: String?,
-    val reviewComment: String?,
-    val reviewerId: String,
-)
 
 class InvalidQAReviewException(message: String) : RuntimeException(message)
 

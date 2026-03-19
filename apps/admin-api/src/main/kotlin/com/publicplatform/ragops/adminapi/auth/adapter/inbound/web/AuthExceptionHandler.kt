@@ -3,8 +3,9 @@
  *
  * AdminAuthenticationException을 401로, AdminAuthorizationException을 403으로 매핑한다.
  */
-package com.publicplatform.ragops.adminapi.auth
+package com.publicplatform.ragops.adminapi.auth.adapter.inbound.web
 
+import com.publicplatform.ragops.adminapi.auth.UnauthorizedException
 import com.publicplatform.ragops.identityaccess.domain.AdminAuthErrorCode
 import com.publicplatform.ragops.identityaccess.domain.AdminAuthenticationException
 import org.springframework.http.HttpStatus
@@ -57,8 +58,3 @@ data class ErrorPayload(
     val code: String,
     val message: String,
 )
-
-class UnauthorizedException(
-    val code: String,
-    override val message: String,
-) : RuntimeException(message)
