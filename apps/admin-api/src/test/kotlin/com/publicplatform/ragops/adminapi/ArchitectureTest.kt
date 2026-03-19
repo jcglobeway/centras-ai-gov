@@ -52,16 +52,18 @@ class ArchitectureTest {
             .resideInAPackage("..adapter.outbound.persistence..")
             .because("Controller는 UseCase 인터페이스를 통해서만 데이터에 접근해야 합니다")
 
-    // Rule 5: Jpa*Repository는 adapter.outbound.persistence 패키지 또는 RepositoryConfiguration에서만 접근
+    // Rule 5: Jpa*Repository는 adapter.outbound.persistence 패키지 또는 설정 클래스에서만 접근
     @ArchTest
     val jpa_repos_only_accessed_by_adapters: ArchRule =
         classes()
             .that().haveSimpleNameStartingWith("Jpa")
             .and().haveSimpleNameEndingWith("Repository")
             .should().onlyBeAccessed().byClassesThat(
-                object : DescribedPredicate<JavaClass>("residing in adapter.outbound.persistence or named RepositoryConfiguration") {
+                object : DescribedPredicate<JavaClass>("residing in adapter.outbound.persistence or named RepositoryConfiguration/ServiceConfiguration") {
                     override fun test(t: JavaClass) =
-                        t.packageName.contains("adapter.outbound.persistence") || t.simpleName == "RepositoryConfiguration"
+                        t.packageName.contains("adapter.outbound.persistence")
+                            || t.simpleName == "RepositoryConfiguration"
+                            || t.simpleName == "ServiceConfiguration"
                 }
             )
             .because("JPA Repository는 Adapter를 통해서만 접근해야 합니다")
@@ -72,4 +74,22 @@ class ArchitectureTest {
         slices()
             .matching("com.publicplatform.ragops.(*)..")
             .should().beFreeOfCycles()
+
+    // Rule 7: application.service는 adapter.outbound.persistence 직접 접근 금지
+    @ArchTest
+    val services_must_not_access_persistence: ArchRule =
+        noClasses()
+            .that().resideInAPackage("..application.service..")
+            .should().accessClassesThat()
+            .resideInAPackage("..adapter.outbound.persistence..")
+            .because("Service는 Port 인터페이스를 통해서만 데이터에 접근해야 합니다")
+
+    // Rule 8: domain은 application 레이어에 의존 금지
+    @ArchTest
+    val domain_must_not_depend_on_application: ArchRule =
+        noClasses()
+            .that().resideInAPackage("..domain..")
+            .should().accessClassesThat()
+            .resideInAPackage("..application..")
+            .because("domain 레이어는 application 레이어에 의존하면 안 됩니다")
 }
