@@ -5,6 +5,7 @@
  */
 package com.publicplatform.ragops.adminapi.auth
 
+import com.publicplatform.ragops.identityaccess.application.port.`in`.AdminAuthUseCase
 import com.publicplatform.ragops.identityaccess.domain.AdminLoginCommand
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.web.bind.annotation.PostMapping
@@ -16,7 +17,7 @@ import java.time.Instant
 @RestController
 @RequestMapping("/admin/auth")
 class AuthCommandController(
-    private val developmentAdminSessionService: DevelopmentAdminSessionService,
+    private val adminAuthUseCase: AdminAuthUseCase,
     private val adminRequestSessionResolver: AdminRequestSessionResolver,
 ) {
     @PostMapping("/login")
@@ -24,7 +25,7 @@ class AuthCommandController(
         @RequestBody request: LoginRequest,
         httpRequest: HttpServletRequest,
     ): LoginResponse {
-        val result = developmentAdminSessionService.login(
+        val result = adminAuthUseCase.login(
             AdminLoginCommand(
                 email = request.email,
                 password = request.password,
@@ -55,7 +56,7 @@ class AuthCommandController(
     @PostMapping("/logout")
     fun logout(httpRequest: HttpServletRequest): LogoutResponse {
         val sessionId = adminRequestSessionResolver.requireSessionId(httpRequest)
-        developmentAdminSessionService.logout(sessionId)
+        adminAuthUseCase.logout(sessionId)
         return LogoutResponse(revoked = true, revokedAt = Instant.now())
     }
 }

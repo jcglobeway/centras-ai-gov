@@ -20,6 +20,7 @@ import com.publicplatform.ragops.identityaccess.domain.AuthenticatedAdminPrincip
 import com.publicplatform.ragops.identityaccess.domain.SessionLookup
 import com.publicplatform.ragops.identityaccess.domain.defaultAdminSessionDuration
 import com.publicplatform.ragops.identityaccess.domain.isUsableAt
+import com.publicplatform.ragops.identityaccess.application.port.`in`.AdminAuthUseCase
 import com.publicplatform.ragops.identityaccess.application.port.out.AdminCredentialAuthenticator
 import com.publicplatform.ragops.identityaccess.application.port.out.RestoreSessionPort
 import com.publicplatform.ragops.identityaccess.application.port.out.ManageAdminSessionPort
@@ -114,13 +115,12 @@ class DevelopmentRestoreSessionPort(
         }
 }
 
-@Service
 class DevelopmentAdminSessionService(
     private val adminCredentialAuthenticator: AdminCredentialAuthenticator,
     private val adminSessionRepository: ManageAdminSessionPort,
     private val developmentRestoreSessionPort: DevelopmentRestoreSessionPort,
-) {
-    fun login(command: AdminLoginCommand): AdminLoginResult {
+) : AdminAuthUseCase {
+    override fun login(command: AdminLoginCommand): AdminLoginResult {
         val principal = adminCredentialAuthenticator.authenticate(command.email, command.password)
             ?: throw AdminAuthenticationException(
                 code = AdminAuthErrorCode.AUTH_INVALID_CREDENTIALS,
@@ -146,7 +146,7 @@ class DevelopmentAdminSessionService(
         )
     }
 
-    fun logout(sessionId: String) {
+    override fun logout(sessionId: String) {
         val session = adminSessionRepository.findBySessionId(sessionId)
             ?: throw AdminAuthenticationException(
                 code = AdminAuthErrorCode.AUTH_UNAUTHORIZED,

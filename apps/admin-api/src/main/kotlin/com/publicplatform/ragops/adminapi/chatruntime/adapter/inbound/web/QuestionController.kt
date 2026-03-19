@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.time.Instant
@@ -61,16 +62,26 @@ class QuestionController(
     }
 
     @GetMapping("/questions")
-    fun listQuestions(servletRequest: HttpServletRequest): QuestionListResponse {
+    fun listQuestions(
+        @RequestParam("organization_id", required = false) organizationId: String?,
+        @RequestParam("from_date", required = false) from: String?,
+        @RequestParam("to_date", required = false) to: String?,
+        servletRequest: HttpServletRequest,
+    ): QuestionListResponse {
         val session = adminRequestSessionResolver.resolve(servletRequest)
-        val questions = listQuestionsUseCase.listAll(session.toScope())
+        val questions = listQuestionsUseCase.listAll(session.toScope(organizationId), from, to)
         return QuestionListResponse(items = questions.map { it.toResponse() }, total = questions.size)
     }
 
     @GetMapping("/questions/unresolved")
-    fun listUnresolvedQuestions(servletRequest: HttpServletRequest): QuestionListResponse {
+    fun listUnresolvedQuestions(
+        @RequestParam("organization_id", required = false) organizationId: String?,
+        @RequestParam("from_date", required = false) from: String?,
+        @RequestParam("to_date", required = false) to: String?,
+        servletRequest: HttpServletRequest,
+    ): QuestionListResponse {
         val session = adminRequestSessionResolver.resolve(servletRequest)
-        val questions = listQuestionsUseCase.listUnresolved(session.toScope())
+        val questions = listQuestionsUseCase.listUnresolved(session.toScope(organizationId), from, to)
         return QuestionListResponse(items = questions.map { it.toResponse() }, total = questions.size)
     }
 
@@ -115,7 +126,7 @@ data class QuestionCreateResponse(val questionId: String, val created: Boolean)
 data class QuestionListResponse(val items: List<QuestionResponse>, val total: Int)
 
 data class QuestionResponse(
-    val id: String,
+    val questionId: String,
     val organizationId: String,
     val serviceId: String,
     val chatSessionId: String,
@@ -137,15 +148,21 @@ data class CreateAnswerRequest(
 data class AnswerCreateResponse(val answerId: String, val questionId: String, val answerStatus: String)
 
 private fun QuestionSummary.toResponse() = QuestionResponse(
-    id = id, organizationId = organizationId, serviceId = serviceId,
+    questionId = id, organizationId = organizationId, serviceId = serviceId,
     chatSessionId = chatSessionId, questionText = questionText,
     questionIntentLabel = questionIntentLabel, channel = channel, createdAt = createdAt,
 )
 
-private fun AdminSessionSnapshot.toScope() = ChatScope(
-    organizationIds = roleAssignments.mapNotNull { it.organizationId }.toSet(),
-    globalAccess = roleAssignments.any { it.organizationId == null },
-)
+private fun AdminSessionSnapshot.toScope(filterOrgId: String? = null): ChatScope {
+    val globalAccess = roleAssignments.any { it.organizationId == null }
+    val sessionOrgIds = roleAssignments.mapNotNull { it.organizationId }.toSet()
+    return if (filterOrgId != null) {
+        val allowed = globalAccess || filterOrgId in sessionOrgIds
+        ChatScope(organizationIds = if (allowed) setOf(filterOrgId) else sessionOrgIds, globalAccess = false)
+    } else {
+        ChatScope(organizationIds = sessionOrgIds, globalAccess = globalAccess)
+    }
+}
 
 private fun String.toAnswerStatus(): AnswerStatus =
     when (this) {

@@ -25,6 +25,11 @@ data class Organization(
     val createdAt: Instant,
 )
 
+data class OrganizationScope(
+    val organizationIds: Set<String>,
+    val globalAccess: Boolean,
+)
+
 data class Service(
     val id: String,
     val organizationId: String,

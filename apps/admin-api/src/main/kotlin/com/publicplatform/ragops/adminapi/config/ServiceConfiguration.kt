@@ -30,6 +30,11 @@ import com.publicplatform.ragops.metricsreporting.application.port.out.LoadMetri
 import com.publicplatform.ragops.metricsreporting.application.port.out.SaveMetricsPort
 import com.publicplatform.ragops.metricsreporting.application.service.ListMetricsService
 import com.publicplatform.ragops.metricsreporting.application.service.UpsertDailyMetricsService
+import com.publicplatform.ragops.identityaccess.application.port.`in`.AdminAuthUseCase
+import com.publicplatform.ragops.identityaccess.application.port.out.AdminCredentialAuthenticator
+import com.publicplatform.ragops.identityaccess.application.port.out.ManageAdminSessionPort
+import com.publicplatform.ragops.adminapi.auth.DevelopmentAdminSessionService
+import com.publicplatform.ragops.adminapi.auth.DevelopmentRestoreSessionPort
 import com.publicplatform.ragops.organizationdirectory.application.port.out.LoadOrganizationPort
 import com.publicplatform.ragops.organizationdirectory.application.service.GetOrganizationsService
 import com.publicplatform.ragops.qareview.application.port.out.LoadQAReviewPort
@@ -47,6 +52,15 @@ import org.springframework.context.annotation.Configuration
  */
 @Configuration
 class ServiceConfiguration {
+
+    @Bean
+    fun adminAuthUseCase(
+        adminCredentialAuthenticator: AdminCredentialAuthenticator,
+        adminSessionRepository: ManageAdminSessionPort,
+        developmentRestoreSessionPort: DevelopmentRestoreSessionPort,
+    ): AdminAuthUseCase = DevelopmentAdminSessionService(
+        adminCredentialAuthenticator, adminSessionRepository, developmentRestoreSessionPort,
+    )
 
     @Bean
     fun createQuestionService(

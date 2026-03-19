@@ -2,17 +2,18 @@ package com.publicplatform.ragops.organizationdirectory.application.service
 
 import com.publicplatform.ragops.organizationdirectory.application.port.`in`.GetOrganizationsUseCase
 import com.publicplatform.ragops.organizationdirectory.application.port.out.LoadOrganizationPort
-import com.publicplatform.ragops.organizationdirectory.domain.OrganizationSummary
+import com.publicplatform.ragops.organizationdirectory.domain.Organization
+import com.publicplatform.ragops.organizationdirectory.domain.OrganizationScope
 
 /**
  * 기관 목록 조회 유스케이스 구현체.
  *
- * LoadOrganizationPort에 위임하여 세션 범위 내 기관 목록을 반환한다.
+ * OrganizationScope를 LoadOrganizationPort에 전달하여 스코프 판정을 서비스 레이어에서 처리한다.
  */
 open class GetOrganizationsService(
     private val organizationDirectoryReader: LoadOrganizationPort,
 ) : GetOrganizationsUseCase {
 
-    override fun getByIds(ids: Set<String>): List<OrganizationSummary> =
-        organizationDirectoryReader.getOrganizations(ids)
+    override fun listOrganizations(scope: OrganizationScope): List<Organization> =
+        organizationDirectoryReader.loadByScope(scope)
 }

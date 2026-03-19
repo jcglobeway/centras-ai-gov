@@ -37,14 +37,6 @@ class RepositoryConfiguration {
         RecordAuditLogPortAdapter(jpaRepository)
 
     @Bean
-    fun organizationRepository(jpaRepository: JpaOrganizationRepository): OrganizationRepository =
-        OrganizationRepositoryAdapter(jpaRepository)
-
-    @Bean
-    fun serviceRepository(jpaRepository: JpaServiceRepository): ServiceRepository =
-        ServiceRepositoryAdapter(jpaRepository)
-
-    @Bean
     fun organizationDirectoryReader(jpaRepository: JpaOrganizationRepository): LoadOrganizationPort =
         LoadOrganizationPortAdapter(jpaRepository)
 

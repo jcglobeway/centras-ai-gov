@@ -10,6 +10,6 @@ import com.publicplatform.ragops.chatruntime.domain.QuestionSummary
  * 미해결 큐는 fallback/no_answer/confirmed_issue 상태의 질문을 포함한다.
  */
 interface ListQuestionsUseCase {
-    fun listAll(scope: ChatScope): List<QuestionSummary>
-    fun listUnresolved(scope: ChatScope): List<QuestionSummary>
+    fun listAll(scope: ChatScope, from: String? = null, to: String? = null): List<QuestionSummary>
+    fun listUnresolved(scope: ChatScope, from: String? = null, to: String? = null): List<QuestionSummary>
 }
