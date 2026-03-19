@@ -89,15 +89,15 @@ python/
   common/             # Shared Python utilities
 ```
 
-All modules use Java 21 (`kotlin { jvmToolchain(21) }`).
+All modules use Java 25 (`kotlin { jvmToolchain(25) }`).
 
 ### Implementation Status
 
 **✅ All 7 modules fully implemented with JPA + PostgreSQL**:
 - identity-access, organization-directory, ingestion-ops, qa-review, chat-runtime, document-registry, metrics-reporting
-- 15 Flyway migrations (V001-V015)
-- 39 integration tests (100% passing)
-- Hexagonal architecture (ports + JPA adapters)
+- 19 Flyway migrations (V001-V019; V018 = Kotlin migration for pgvector, no-op on H2)
+- 44 integration tests (100% passing) + 8 ArchUnit rules
+- Hexagonal architecture (canonical package structure)
 
 ### Bounded Context Responsibilities
 
@@ -148,52 +148,84 @@ All modules use Java 21 (`kotlin { jvmToolchain(21) }`).
 
 ## Hexagonal Architecture Guidelines
 
+### 패키지 구조 (Canonical)
+
+모든 모듈은 아래 canonical 헥사고날 패키지 구조를 따른다:
+
+```
+{module}/src/main/kotlin/com/publicplatform/ragops/{context}/
+  domain/                        # 순수 비즈니스 모델 (data class, 프레임워크 의존 금지)
+  application/
+    port/
+      in/                        # UseCase 인터페이스 (driving port)
+      out/                       # Load*/Record*/Save*/Persist*Port 인터페이스 (driven port)
+    service/                     # UseCase 구현체
+  adapter/
+    outbound/
+      persistence/               # *Entity.kt, Jpa*Repository.kt, *PortAdapter.kt
+
+apps/admin-api/.../
+  adapter/inbound/web/           # *Controller.kt (UseCase 인터페이스에만 의존)
+  config/
+    RepositoryConfiguration.kt   # 어댑터 @Bean 명시 등록
+    ServiceConfiguration.kt      # 서비스 @Bean 명시 등록
+```
+
 ### 레이어 책임
 
-| 레이어 | 패키지/파일 위치 | 역할 |
-|---|---|---|
-| **domain** | `*Contracts.kt` 내 data class | 순수 비즈니스 모델. 프레임워크 의존성 금지 |
-| **application.port.inbound** | `*Contracts.kt` 내 UseCase 인터페이스 (현재 미구현) | 인바운드 포트; Controller가 이를 호출 |
-| **application.port.outbound** | `*Contracts.kt` 내 Reader/Writer 인터페이스 | 아웃바운드 포트; Adapter가 이를 구현 |
-| **adapter.inbound.web** | `apps/admin-api/…/*Controller.kt`, Web DTO | HTTP 요청 수신, 도메인 모델로 변환 |
-| **adapter.outbound.persistence** | `*Entity.kt`, `Jpa*Repository.kt`, `*Adapter.kt` | DB 영속성 구현 |
+| 레이어 | 역할 |
+|---|---|
+| **domain** | 순수 비즈니스 모델. `@Entity` 등 JPA/Spring 어노테이션 금지 |
+| **application.port.in** | UseCase 인터페이스. Controller가 이를 호출 |
+| **application.port.out** | 아웃바운드 포트 인터페이스. Adapter가 구현 |
+| **application.service** | UseCase 구현체. Port 인터페이스를 통해서만 인프라 접근 |
+| **adapter.outbound.persistence** | JPA Entity + Spring Data Repository + PortAdapter 구현체 |
+| **adapter.inbound.web** | HTTP Controller. UseCase 인터페이스에만 의존 |
 
 ### 의존성 규칙
 
-1. **안쪽 방향**: `adapter` → `application.port` → `domain`. 역방향 불가.
-2. **domain 순수성**: domain 모델(data class)은 `@Entity`, `@Column` 등 JPA/Spring 어노테이션 금지.
-3. **adapter 격리**: Controller는 JPA Entity를 직접 참조하지 않는다. 반드시 port 인터페이스를 통해 domain 모델만 수신.
-4. **엔티티-도메인 분리**: `*Entity` ↔ domain model 간 변환은 반드시 매퍼(`toSummary()`, `toEntity()`)를 사용한다.
+1. **안쪽 방향만**: `adapter` → `application.port` → `domain`. 역방향 불가.
+2. **domain 순수성**: domain 레이어는 `application.*`, `jakarta.persistence.*`, `org.springframework.*` 의존 금지.
+3. **service 격리**: `application.service`는 `adapter.outbound.persistence`를 직접 참조 금지. 반드시 port 인터페이스 경유.
+4. **controller 격리**: Controller는 JPA Entity·Adapter를 직접 참조 금지. UseCase 인터페이스만 호출.
+5. **엔티티-도메인 분리**: `*Entity` ↔ domain model 변환은 반드시 `toSummary()` / `toEntity()` 매퍼 사용.
+
+### 명명 규칙
+
+- **Port 인터페이스**: 행위 중심 — `LoadQuestionPort`, `RecordQuestionPort`, `PersistIngestionJobPort`
+- **Port Adapter**: Port 이름 + `Adapter` suffix — `LoadQuestionPortAdapter`, `RecordQuestionPortAdapter`
+- **파일명 = 클래스명**: Kotlin 파일명은 반드시 최상위 클래스명과 일치해야 한다.
+- **JPA Repository**: `Jpa{Aggregate}Repository` (예: `JpaQuestionRepository`)
+- **UseCase 인터페이스**: `{동사}{대상}UseCase` (예: `CreateQuestionUseCase`, `ListQuestionsUseCase`)
+- **Service 구현체**: `{동사}{대상}Service` (예: `CreateQuestionService`)
 
 ### 코드 생성 규칙 (신규 도메인 추가 시)
 
 - `domain`, `application`, `adapter` 세 레이어를 **동시에** 생성할 것.
 - 도메인 모델은 Kotlin `data class`를 우선 사용할 것.
-- Reader/Writer 포트 인터페이스를 먼저 정의하고, 이후 Adapter에서 구현할 것.
-- 새 Bean은 `@Component` 대신 `RepositoryConfiguration`에 `@Bean`으로 명시적 등록.
+- Port 인터페이스를 먼저 정의하고, 이후 Adapter에서 구현할 것.
+- 새 Bean은 `@Component` 대신 `RepositoryConfiguration` / `ServiceConfiguration`에 `@Bean`으로 명시 등록.
+- Adapter 클래스는 반드시 `open class` (Spring CGLIB 프록시 요건).
+- 모든 Kotlin 파일 최상단에 파일 레벨 KDoc 작성 필수.
 
-### 현재 구조와의 매핑 (flat → canonical)
+### ArchUnit 보호 규칙 (`ArchitectureTest.kt`, 8개)
 
-현재 flat 패키지(`com.publicplatform.ragops.chatruntime.*`)는 명명 규칙으로 레이어를 구분한다:
-- `*Contracts.kt` → domain + port
-- `*Entity.kt`, `Jpa*Repository.kt` → adapter.outbound.persistence
-- `*Adapter.kt` → adapter.outbound.persistence 구현체
-- `apps/admin-api/…/*Controller.kt` → adapter.inbound.web
-
-### 레거시 규약 (flat 패키지 기준)
-
-- Port interfaces in modules (e.g., `modules/chat-runtime/QuestionReader`)
-- JPA adapters in modules (e.g., `QuestionReaderAdapter`)
-- Spring Data JPA repositories in modules (e.g., `JpaQuestionRepository`)
-- Adapters must be `open class` for Spring CGLIB proxy
-- Bean registration in `apps/admin-api/config/RepositoryConfiguration`
-- All modules include `kotlin("plugin.spring")` and `kotlin("plugin.jpa")`
+| Rule | 내용 |
+|---|---|
+| 1 | `domain` → JPA/Spring Data 의존 금지 |
+| 2 | `application.port.out` → `adapter.outbound.persistence` 역방향 금지 |
+| 3 | `application.port.in` → `adapter.outbound.persistence` 역방향 금지 |
+| 4 | `*Controller` → `adapter.outbound.persistence` 직접 접근 금지 |
+| 5 | `Jpa*Repository` → `adapter.outbound.persistence` 또는 `RepositoryConfiguration`/`ServiceConfiguration`에서만 접근 |
+| 6 | 모듈 간 순환 의존성 금지 |
+| 7 | `application.service` → `adapter.outbound.persistence` 직접 접근 금지 |
+| 8 | `domain` → `application` 역방향 의존 금지 |
 
 **Testing**:
 - Tests use H2 in-memory with `@ActiveProfiles("test")`
 - `@DirtiesContext` for test isolation
 - All adapters work with both H2 (test) and PostgreSQL (production)
-- ArchUnit tests (`ArchitectureTest`) enforce dependency rules automatically
+- All modules include `kotlin("plugin.spring")` and `kotlin("plugin.jpa")`
 
 ---
 
@@ -255,17 +287,15 @@ ADMIN_API_SESSION_TOKEN=<session_token>
 
 ## Testing Strategy
 
-**Current coverage: 39 tests (100% passing)**
+**Current coverage: 44 API/integration tests + 8 ArchUnit rules (100% passing)**
 
 Test distribution:
-- Auth/session: 8 tests (login, logout, session restore, expiry)
-- Ingestion: 11 tests (source CRUD, job transition, scope validation)
+- Auth/session: 9 tests (login, logout, session restore, expiry)
+- Ingestion: 16 tests (source CRUD, job transition, scope validation)
 - QA Review: 5 tests (state machine, validation, permissions)
-- Chat Runtime: 2 tests (question creation, unresolved queue)
-- Documents: 2 tests (document list, versions)
-- Metrics: 1 test (daily metrics)
+- Chat Runtime: 5 tests (question creation, unresolved queue, documents, metrics)
 - E2E scenarios: 4 tests (full auth flow, full ingestion flow, multi-tenant isolation)
-- Individual resource endpoints: 6 tests (crawl source by id, job by id, scope checks)
+- ArchUnit: 8 rules (dependency direction, layer isolation, cycle detection)
 
 **Test pattern**:
 - `@SpringBootTest` + `@AutoConfigureMockMvc` + `@ActiveProfiles("test")`
