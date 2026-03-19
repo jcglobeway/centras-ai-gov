@@ -464,6 +464,41 @@ Design decisions, API contracts, and data schemas are maintained in `mvp_docs/`:
 - Health check enhancements
 - CI/CD pipeline
 
+---
+
+## R&D 기반 V2 변경 계획 (crawler-poc PRD 기반)
+
+**R&D 실험 완료 전에는 파싱 파이프라인·벡터 검색 관련 코드를 추가하지 않는다.**
+실험은 `web2rag-poc/experiments/` 에서 진행.
+
+### 현재 진행 중인 openspec changes (완료 우선)
+1. `extend-roles-6`
+2. `extend-question-model`
+3. `extend-feedback-model`
+4. `extend-daily-metrics`
+5. `standardize-failure-codes`
+
+### 바로 구현 가능 (R&D 불필요)
+| Change | 우선순위 | 내용 |
+|---|---|---|
+| `enhance-security` | HIGH | bcrypt 해싱, rate limiting, CORS |
+| `add-docker-build` | HIGH | 멀티스테이지 Dockerfile × 3 서비스 |
+| `add-production-logging` | MEDIUM | JSON 로그, request_id/trace_id |
+| `unify-error-handling` | MEDIUM | GlobalExceptionHandler, 에러 코드 체계 |
+
+### R&D 완료 후 proposal (의존 실험 완료 시)
+| Change | 의존 실험 | 주요 대상 파일 |
+|---|---|---|
+| `add-document-parsing-pipeline` | Exp-1, 3, 4 | `python/ingestion-worker/src/ingestion_worker/` |
+| `add-vector-search-retrieval` | Exp-4, 5 | `python/rag-orchestrator/src/rag_orchestrator/retrieval.py` |
+
+### V1 호환성 유지 사항
+- `UnifiedDocument` ↔ V1 MetadataModel 필드 매핑
+- 청킹 전략 이름: government / legal / sections / form / faq / casebook / semantic / recursive
+- `chunk_size=600`, `chunk_overlap=100` 기본값
+
+---
+
 ### Completed Today (10 OpenSpec Changes)
 
 1. `separate-repository-ports-identity-org`: Repository ports and in-memory adapters

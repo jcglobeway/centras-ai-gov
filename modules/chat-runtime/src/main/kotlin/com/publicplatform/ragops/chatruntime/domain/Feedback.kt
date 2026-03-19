@@ -1,3 +1,9 @@
+/**
+ * 시민 피드백 도메인 모델 — 행동 신호 포함.
+ *
+ * rating(1~5) 외에 clickedLink, clickedDocument, dwellTimeMs 등 묵시적 행동 신호를 추적한다.
+ * FeedbackScope는 기관별 필터링에 사용되며 ChatScope와 동일한 패턴을 따른다.
+ */
 package com.publicplatform.ragops.chatruntime.domain
 
 import java.time.Instant

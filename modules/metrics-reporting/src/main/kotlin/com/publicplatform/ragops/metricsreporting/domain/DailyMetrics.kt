@@ -1,3 +1,10 @@
+/**
+ * 기관·서비스별 일별 KPI 지표 스냅샷 도메인 모델.
+ *
+ * 지표는 항상 사전 집계된 값이며 온디맨드 집계를 수행하지 않는다.
+ * MetricsAggregationScheduler가 매일 00:05에 전날 데이터를 upsert한다.
+ * SaveDailyMetricsCommand는 집계 결과를 저장할 때 사용하는 입력 커맨드이다.
+ */
 package com.publicplatform.ragops.metricsreporting.domain
 
 import java.math.BigDecimal

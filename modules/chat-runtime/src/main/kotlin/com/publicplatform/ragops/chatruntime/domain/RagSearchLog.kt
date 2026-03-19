@@ -1,3 +1,9 @@
+/**
+ * RAG 파이프라인 검색 이력 및 검색 결과 도메인 모델.
+ *
+ * 질문별로 어떤 쿼리가 실행됐고 어떤 청크가 검색됐는지를 기록하여
+ * 검색 품질 분석과 KPI(zeroResultRate, avgLatencyMs) 산출에 활용한다.
+ */
 package com.publicplatform.ragops.chatruntime.domain
 
 import java.time.Instant

@@ -1,3 +1,9 @@
+/**
+ * 크롤 소스 도메인 모델 — 지식 수집 대상 정의.
+ *
+ * WEBSITE/SITEMAP/FILE_DROP 유형별로 렌더 방식(정적/Playwright)과 수집 모드(전체/증분)를 설정한다.
+ * 소스 상태가 ERROR이면 다음 스케줄 실행 전에 운영자가 원인을 확인해야 한다.
+ */
 package com.publicplatform.ragops.ingestionops.domain
 
 import java.time.Instant

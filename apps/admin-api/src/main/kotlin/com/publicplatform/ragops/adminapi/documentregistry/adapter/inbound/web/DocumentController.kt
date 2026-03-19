@@ -13,8 +13,11 @@ import jakarta.servlet.http.HttpServletRequest
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 /**
  * 문서 레지스트리 HTTP 인바운드 어댑터.
@@ -30,9 +33,19 @@ class DocumentController(
 ) {
 
     @GetMapping("/documents")
-    fun listDocuments(servletRequest: HttpServletRequest): DocumentListResponse {
+    fun listDocuments(
+        @RequestParam("organization_id", required = false) organizationId: String?,
+        @RequestParam("from_date", required = false) from: String?,
+        @RequestParam("to_date", required = false) to: String?,
+        servletRequest: HttpServletRequest,
+    ): DocumentListResponse {
         val session = adminRequestSessionResolver.resolve(servletRequest)
-        val documents = listDocumentsUseCase.execute(session.toScope())
+        val fromInst = from?.let { LocalDate.parse(it).atStartOfDay(ZoneOffset.UTC).toInstant() }
+        val toInst = to?.let { LocalDate.parse(it).plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant() }
+        val documents = listDocumentsUseCase.execute(session.toScope(organizationId))
+            .filter {
+                (fromInst == null || it.createdAt >= fromInst) && (toInst == null || it.createdAt < toInst)
+            }
         return DocumentListResponse(items = documents.map { it.toResponse() }, total = documents.size)
     }
 
@@ -53,7 +66,7 @@ data class DocumentResponse(
     val id: String, val organizationId: String, val documentType: String, val title: String,
     val sourceUri: String, val versionLabel: String?, val publishedAt: Instant?,
     val ingestionStatus: String, val indexStatus: String, val visibilityScope: String,
-    val lastIngestedAt: Instant?, val lastIndexedAt: Instant?,
+    val lastIngestedAt: Instant?, val lastIndexedAt: Instant?, val createdAt: Instant,
 )
 
 data class DocumentVersionListResponse(val items: List<DocumentVersionResponse>, val total: Int)
@@ -68,6 +81,7 @@ private fun DocumentSummary.toResponse() = DocumentResponse(
     sourceUri = sourceUri, versionLabel = versionLabel, publishedAt = publishedAt,
     ingestionStatus = ingestionStatus.toApiValue(), indexStatus = indexStatus.toApiValue(),
     visibilityScope = visibilityScope, lastIngestedAt = lastIngestedAt, lastIndexedAt = lastIndexedAt,
+    createdAt = createdAt,
 )
 
 private fun DocumentVersionSummary.toResponse() = DocumentVersionResponse(
@@ -75,10 +89,16 @@ private fun DocumentVersionSummary.toResponse() = DocumentVersionResponse(
     contentHash = contentHash, changeDetected = changeDetected, createdAt = createdAt,
 )
 
-private fun AdminSessionSnapshot.toScope() = DocumentScope(
-    organizationIds = roleAssignments.mapNotNull { it.organizationId }.toSet(),
-    globalAccess = roleAssignments.any { it.organizationId == null },
-)
+private fun AdminSessionSnapshot.toScope(filterOrgId: String? = null): DocumentScope {
+    val globalAccess = roleAssignments.any { it.organizationId == null }
+    val sessionOrgIds = roleAssignments.mapNotNull { it.organizationId }.toSet()
+    return if (filterOrgId != null) {
+        val allowed = globalAccess || filterOrgId in sessionOrgIds
+        DocumentScope(organizationIds = if (allowed) setOf(filterOrgId) else sessionOrgIds, globalAccess = false)
+    } else {
+        DocumentScope(organizationIds = sessionOrgIds, globalAccess = globalAccess)
+    }
+}
 
 private fun IngestionStatus.toApiValue() = when (this) {
     IngestionStatus.PENDING -> "pending"; IngestionStatus.IN_PROGRESS -> "in_progress"

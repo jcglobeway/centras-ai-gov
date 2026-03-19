@@ -45,6 +45,55 @@
 - 저장소 상태: `git init -b main` 완료
 - 기본 실행: `.\gradlew.bat test`
 
+## 포털 접속 정보
+
+### 프론트엔드 (Next.js)
+
+```
+cd frontend && npm install && npm run dev
+```
+
+| 포털 | URL | 대상 역할 |
+|---|---|---|
+| Ops Portal | http://localhost:3001/ops | ops_admin, super_admin |
+| Client Portal | http://localhost:3001/client | client_org_admin, client_viewer |
+| QA Portal | http://localhost:3001/qa | qa_manager, knowledge_editor |
+| 로그인 | http://localhost:3001/login | 공통 |
+
+### 백엔드 (Spring Boot)
+
+```
+JAVA_HOME=<jdk-path> ./gradlew :apps:admin-api:bootRun
+# Admin API: http://localhost:8081
+# Swagger UI: http://localhost:8081/swagger-ui/index.html
+```
+
+### 개발용 계정
+
+| 이메일 | 비밀번호 | 역할 | 접근 범위 | 권장 포털 |
+|---|---|---|---|---|
+| `ops.platform@gov-platform.kr` | `ops-pass-1234` | ops_admin | 전체 기관 | /ops |
+| `super.admin@gov-platform.kr` | `super-pass-1234` | super_admin | 전체 기관 | /ops |
+| `client.admin@busan.go.kr` | `client-pass-1234` | client_admin | 부산시 | /client |
+| `client.viewer@busan.go.kr` | `viewer-pass-1234` | client_viewer | 부산시 | /client |
+| `qa.manager@gov-platform.kr` | `qa-pass-1234` | qa_admin | 서울시 | /qa |
+| `knowledge.editor@gov-platform.kr` | `editor-pass-1234` | knowledge_editor | 서울시 | /qa |
+
+> 개발 환경 전용 계정입니다. 운영 환경에서는 사용하지 마세요.
+
+### 인프라
+
+```bash
+# PostgreSQL (Docker)
+docker-compose up -d
+
+# 접속 정보
+Host: localhost:5432
+DB:   ragops_dev
+User: ragops_user
+Pass: ragops_pass
+```
+
 ## OpenSpec
 
 - 중요한 변경은 `openspec/changes/<change-id>` 단위로 진행한다.

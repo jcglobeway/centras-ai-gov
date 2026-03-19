@@ -1,3 +1,10 @@
+/**
+ * RAG 파이프라인 실패 원인 표준 코드 taxonomy (A01~A10).
+ *
+ * A01~A05는 파이프라인 결함, A06~A07은 모델 결함, A08~A10은 외부 요인.
+ * Python worker 또는 QA 리뷰어가 questions.failure_reason_code 컬럼에 기록하며,
+ * fromCode()를 통해 코드 문자열을 enum으로 안전하게 변환한다.
+ */
 package com.publicplatform.ragops.chatruntime.domain
 
 enum class FailureReasonCode(val code: String, val description: String) {

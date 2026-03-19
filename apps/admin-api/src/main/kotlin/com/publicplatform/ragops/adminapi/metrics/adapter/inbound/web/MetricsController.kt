@@ -27,14 +27,15 @@ class MetricsController(
 
     @GetMapping("/metrics/daily")
     fun listDailyMetrics(
-        @RequestParam(required = false) fromDate: String?,
-        @RequestParam(required = false) toDate: String?,
+        @RequestParam("from_date", required = false) fromDate: String?,
+        @RequestParam("to_date", required = false) toDate: String?,
+        @RequestParam("organization_id", required = false) organizationId: String?,
         servletRequest: HttpServletRequest,
     ): DailyMetricsListResponse {
         val session = adminRequestSessionResolver.resolve(servletRequest)
 
         val metrics = listMetricsUseCase.execute(
-            scope = session.toScope(),
+            scope = session.toScope(organizationId),
             fromDate = fromDate?.let { LocalDate.parse(it) },
             toDate = toDate?.let { LocalDate.parse(it) },
         )
@@ -58,7 +59,13 @@ private fun DailyMetricsSummary.toResponse() = DailyMetricsResponse(
     avgResponseTimeMs = avgResponseTimeMs,
 )
 
-private fun AdminSessionSnapshot.toScope() = MetricsScope(
-    organizationIds = roleAssignments.mapNotNull { it.organizationId }.toSet(),
-    globalAccess = roleAssignments.any { it.organizationId == null },
-)
+private fun AdminSessionSnapshot.toScope(filterOrgId: String? = null): MetricsScope {
+    val globalAccess = roleAssignments.any { it.organizationId == null }
+    val sessionOrgIds = roleAssignments.mapNotNull { it.organizationId }.toSet()
+    return if (filterOrgId != null) {
+        val allowed = globalAccess || filterOrgId in sessionOrgIds
+        MetricsScope(organizationIds = if (allowed) setOf(filterOrgId) else sessionOrgIds, globalAccess = false)
+    } else {
+        MetricsScope(organizationIds = sessionOrgIds, globalAccess = globalAccess)
+    }
+}

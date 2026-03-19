@@ -1,3 +1,9 @@
+/**
+ * 기관 목록 조회 HTTP 인바운드 어댑터.
+ *
+ * 세션에서 기관 범위를 추출하여 GetOrganizationsUseCase에 위임하고,
+ * organization.read 권한이 없으면 403을 반환한다.
+ */
 package com.publicplatform.ragops.adminapi.organization.adapter.inbound.web
 
 import com.publicplatform.ragops.adminapi.auth.AdminRequestSessionResolver

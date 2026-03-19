@@ -1,3 +1,9 @@
+/**
+ * 인제스션 잡 상태 전이 규칙을 캡슐화하는 도메인 서비스.
+ *
+ * 허용된 status 전이와 stage 전이를 검증하며 위반 시 InvalidIngestionJobTransitionException을 던진다.
+ * 외부 의존성 없이 순수하게 도메인 규칙만 적용한다.
+ */
 package com.publicplatform.ragops.ingestionops.domain
 
 import java.time.Instant

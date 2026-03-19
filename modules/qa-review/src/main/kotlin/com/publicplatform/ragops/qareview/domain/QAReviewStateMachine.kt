@@ -1,3 +1,9 @@
+/**
+ * QA 리뷰 상태 전이 및 비즈니스 규칙 검증 도메인 서비스.
+ *
+ * validateReview()는 상태별 필수 필드(root_cause_code, action_type 등)를 검사하고,
+ * validateTransition()은 false_alarm → resolved 등 금지된 전이를 차단한다.
+ */
 package com.publicplatform.ragops.qareview.domain
 
 class InvalidQAReviewException(message: String) : RuntimeException(message)

@@ -44,6 +44,7 @@ class SecurityConfiguration {
         val configuration = CorsConfiguration()
         configuration.allowedOrigins = listOf(
             "http://localhost:3000",  // Local frontend dev
+            "http://localhost:3001",  // Local frontend dev (alt port)
             "http://localhost:8080",  // Local admin
         )
         configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")

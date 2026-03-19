@@ -1,7 +1,27 @@
 {
   "permissions": {
     "allow": [
-      "Bash(netstat:*)"
+      "Bash(netstat:*)",
+      "Bash(JAVA_HOME=/Users/parkseokje/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home ./gradlew compileKotlin 2>&1 | tail -20)",
+      "Bash(JAVA_HOME=/Users/parkseokje/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home ./gradlew test 2>&1 | tail -50)",
+      "Bash(JAVA_HOME=/Users/parkseokje/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home ./gradlew :apps:admin-api:test 2>&1 | tail -60)",
+      "Bash(JAVA_HOME=/Users/parkseokje/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home ./gradlew :apps:admin-api:test 2>&1 | grep -E \"tests|passed|failed|BUILD\")",
+      "Bash(JAVA_HOME=/Users/parkseokje/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home ./gradlew :apps:admin-api:test --rerun-tasks 2>&1 | grep -E \"tests completed|passed|failed|BUILD\")",
+      "Bash(JAVA_HOME=/Users/parkseokje/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home ./gradlew :apps:admin-api:test --rerun-tasks 2>&1 | grep -E \"tests|AuthApi|IngestionApi|QAReview|ChatRuntime|FullFlow|PASSED|FAILED\")",
+      "Bash(find:*)",
+      "Bash(JAVA_HOME=/Users/parkseokje/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home ./gradlew :apps:admin-api:test --tests \"com.publicplatform.ragops.adminapi.ArchitectureTest\" 2>&1 | tail -30)",
+      "Bash(JAVA_HOME=/Users/parkseokje/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home ./gradlew :apps:admin-api:test 2>&1 | tail -20)",
+      "Bash(cd:*)",
+      "Bash(JAVA_HOME=/Users/parkseokje/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home ./gradlew compileKotlin 2>&1 | grep -E \"error:|BUILD\" | head -10)",
+      "Bash(JAVA_HOME=/Users/parkseokje/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home ./gradlew test)",
+      "Bash(BASE=\"/Users/parkseokje/Documents/GitHub/github-jcg/centras-ai-gov/openspec\")",
+      "Bash(for change:*)",
+      "Bash(do)",
+      "Bash(mv \"$BASE/changes/$change\" \"$BASE/archive/$change\")",
+      "Bash(echo \"Archived: $change\")",
+      "Bash(git mv:*)",
+      "Bash(git add:*)",
+      "Bash(grep -rL /** modules/*/src/main/kotlin/com/publicplatform/ragops/*/application/port/in/*.kt modules/*/src/main/kotlin/com/publicplatform/ragops/*/application/service/*.kt modules/*/src/main/kotlin/com/publicplatform/ragops/*/adapter/outbound/persistence/*.kt apps/admin-api/src/main/kotlin/com/publicplatform/ragops/adminapi/*/adapter/inbound/web/*.kt apps/admin-api/src/main/kotlin/com/publicplatform/ragops/adminapi/*/adapter/outbound/http/*.kt apps/admin-api/src/main/kotlin/com/publicplatform/ragops/adminapi/*/adapter/inbound/scheduler/*.kt)"
     ]
   }
 }

@@ -1,3 +1,10 @@
+/**
+ * 문서 메타데이터 도메인 모델.
+ *
+ * ingestionStatus(수집 상태)와 indexStatus(벡터 인덱스 상태)를 독립적으로 추적하여
+ * 수집은 완료됐지만 인덱싱이 미완료된 문서를 식별할 수 있다.
+ * DocumentScope는 기관별 접근 제어에 사용된다.
+ */
 package com.publicplatform.ragops.documentregistry.domain
 
 import java.time.Instant

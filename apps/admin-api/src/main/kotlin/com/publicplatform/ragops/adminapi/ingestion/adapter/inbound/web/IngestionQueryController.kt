@@ -20,9 +20,12 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 /**
  * 인제스션 조회 HTTP 인바운드 어댑터.
@@ -37,10 +40,13 @@ class IngestionQueryController(
     private val listIngestionUseCase: ListIngestionUseCase,
 ) {
     @GetMapping("/crawl-sources")
-    fun listCrawlSources(request: HttpServletRequest): CrawlSourceListResponse {
+    fun listCrawlSources(
+        @RequestParam("organization_id", required = false) organizationId: String?,
+        request: HttpServletRequest,
+    ): CrawlSourceListResponse {
         val session = adminRequestSessionResolver.resolve(request)
         adminAuthorizationPolicy.requireAuthorized(session, actionCheck("crawl_source.read"))
-        val items = listIngestionUseCase.listSources(session.toScope()).map { it.toResponse() }
+        val items = listIngestionUseCase.listSources(session.toScope(organizationId)).map { it.toResponse() }
         return CrawlSourceListResponse(items = items, total = items.size)
     }
 
@@ -53,10 +59,21 @@ class IngestionQueryController(
     }
 
     @GetMapping("/ingestion-jobs")
-    fun listIngestionJobs(request: HttpServletRequest): IngestionJobListResponse {
+    fun listIngestionJobs(
+        @RequestParam("organization_id", required = false) organizationId: String?,
+        @RequestParam("from_date", required = false) from: String?,
+        @RequestParam("to_date", required = false) to: String?,
+        request: HttpServletRequest,
+    ): IngestionJobListResponse {
         val session = adminRequestSessionResolver.resolve(request)
         adminAuthorizationPolicy.requireAuthorized(session, actionCheck("ingestion_job.read"))
-        val items = listIngestionUseCase.listJobs(session.toScope()).map { it.toResponse() }
+        val fromInst = from?.let { LocalDate.parse(it).atStartOfDay(ZoneOffset.UTC).toInstant() }
+        val toInst = to?.let { LocalDate.parse(it).plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant() }
+        val items = listIngestionUseCase.listJobs(session.toScope(organizationId))
+            .filter {
+                (fromInst == null || it.requestedAt >= fromInst) && (toInst == null || it.requestedAt < toInst)
+            }
+            .map { it.toResponse() }
         return IngestionJobListResponse(items = items, total = items.size)
     }
 
@@ -88,10 +105,16 @@ data class IngestionJobResponse(
 
 private fun actionCheck(actionCode: String) = AuthorizationCheck(actionCode = actionCode)
 
-private fun AdminSessionSnapshot.toScope() = IngestionScope(
-    organizationIds = roleAssignments.mapNotNull { it.organizationId }.toSet(),
-    globalAccess = roleAssignments.any { it.organizationId == null },
-)
+private fun AdminSessionSnapshot.toScope(filterOrgId: String? = null): IngestionScope {
+    val globalAccess = roleAssignments.any { it.organizationId == null }
+    val sessionOrgIds = roleAssignments.mapNotNull { it.organizationId }.toSet()
+    return if (filterOrgId != null) {
+        val allowed = globalAccess || filterOrgId in sessionOrgIds
+        IngestionScope(organizationIds = if (allowed) setOf(filterOrgId) else sessionOrgIds, globalAccess = false)
+    } else {
+        IngestionScope(organizationIds = sessionOrgIds, globalAccess = globalAccess)
+    }
+}
 
 private fun CrawlSourceSummary.toResponse() = CrawlSourceResponse(
     id = id, organizationId = organizationId, serviceId = serviceId, name = name,

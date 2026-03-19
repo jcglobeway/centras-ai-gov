@@ -1,3 +1,10 @@
+/**
+ * 인제스션 잡 도메인 모델 — 문서 수집·처리 작업 단위.
+ *
+ * 잡은 QUEUED → RUNNING → SUCCEEDED|FAILED|CANCELLED 흐름으로 진행되며,
+ * 각 단계(stage)는 FETCH → EXTRACT → ... → COMPLETE 순으로 진행된다.
+ * 상태 전이 유효성은 IngestionJobStateMachine에서 검증한다.
+ */
 package com.publicplatform.ragops.ingestionops.domain
 
 import java.time.Instant
