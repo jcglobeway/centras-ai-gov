@@ -30,7 +30,15 @@ import com.publicplatform.ragops.metricsreporting.application.port.out.LoadMetri
 import com.publicplatform.ragops.metricsreporting.application.port.out.SaveMetricsPort
 import com.publicplatform.ragops.metricsreporting.application.service.ListMetricsService
 import com.publicplatform.ragops.metricsreporting.application.service.UpsertDailyMetricsService
+import com.publicplatform.ragops.adminapi.evaluation.application.port.`in`.RecordRagasEvaluationUseCase
+import com.publicplatform.ragops.adminapi.evaluation.application.port.out.SaveRagasEvaluationPort
+import com.publicplatform.ragops.adminapi.evaluation.application.service.RagasEvaluationService
+import com.publicplatform.ragops.adminapi.chatruntime.adapter.outbound.ai.SpringAiAnswerService
+import com.publicplatform.ragops.adminapi.chatruntime.adapter.inbound.web.QuestionStreamController
 import com.publicplatform.ragops.identityaccess.application.port.`in`.AdminAuthUseCase
+import org.springframework.ai.chat.model.ChatModel
+import org.springframework.ai.chat.model.StreamingChatModel
+import org.springframework.beans.factory.annotation.Value
 import com.publicplatform.ragops.identityaccess.application.port.out.AdminCredentialAuthenticator
 import com.publicplatform.ragops.identityaccess.application.port.out.ManageAdminSessionPort
 import com.publicplatform.ragops.adminapi.auth.DevelopmentAdminSessionService
@@ -136,4 +144,27 @@ class ServiceConfiguration {
     @Bean
     fun upsertDailyMetricsService(metricsWriter: SaveMetricsPort): UpsertDailyMetricsService =
         UpsertDailyMetricsService(metricsWriter)
+
+    @Bean
+    fun recordRagasEvaluationUseCase(saveRagasEvaluationPort: SaveRagasEvaluationPort): RecordRagasEvaluationUseCase =
+        RagasEvaluationService(saveRagasEvaluationPort)
+
+    @Bean
+    fun ragOrchestrationPort(
+        @org.springframework.beans.factory.annotation.Autowired(required = false) chatModel: ChatModel?,
+        @Value("\${spring-ai.answer.enabled:true}") springAiEnabled: Boolean,
+    ): RagOrchestrationPort {
+        return if (chatModel != null && springAiEnabled) {
+            SpringAiAnswerService(chatModel, true)
+        } else {
+            object : RagOrchestrationPort {
+                override fun generateAnswer(questionId: String, questionText: String, organizationId: String, serviceId: String) = null
+            }
+        }
+    }
+
+    @Bean
+    fun questionStreamController(
+        @org.springframework.beans.factory.annotation.Autowired(required = false) streamingChatModel: StreamingChatModel?,
+    ): QuestionStreamController = QuestionStreamController(streamingChatModel)
 }

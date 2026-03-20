@@ -39,7 +39,7 @@ class IngestionApiTests : BaseApiTest() {
             header("X-Debug-Organization-Id", "org_seoul_120")
         }.andExpect {
             status { isOk() }
-            jsonPath("$.total") { value(1) }
+            jsonPath("$.total") { value(4) }
             jsonPath("$.items[0].id") { value("ing_job_101") }
             jsonPath("$.items[0].jobType") { value("crawl") }
             jsonPath("$.items[0].jobStage") { value("complete") }

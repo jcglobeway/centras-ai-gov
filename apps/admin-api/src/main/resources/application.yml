@@ -24,6 +24,18 @@ spring:
       - classpath:db/migration
       - classpath:com/publicplatform/ragops/adminapi/migration
 
+  main:
+    web-application-type: servlet
+
+  ai:
+    ollama:
+      base-url: ${OLLAMA_URL:http://localhost:11434}
+      chat:
+        model: ${OLLAMA_CHAT_MODEL:qwen2.5:7b}
+        options:
+          temperature: 0.3
+          num-predict: 500
+
 management:
   endpoints:
     web:
@@ -36,6 +48,19 @@ server:
 
 rag:
   orchestrator:
-    enabled: true
+    enabled: ${RAG_ORCHESTRATOR_ENABLED:false}
     url: http://localhost:8090
 
+spring-ai:
+  answer:
+    enabled: ${SPRING_AI_ANSWER_ENABLED:true}
+
+evaluation:
+  ragas:
+    enabled: ${RAGAS_EVAL_ENABLED:true}
+    judge-provider: ${RAGAS_JUDGE_PROVIDER:ollama}
+    ollama-url: ${OLLAMA_URL:http://localhost:11434}
+    ollama-model: ${RAGAS_OLLAMA_MODEL:qwen2.5:7b}
+  llm-judge:
+    enabled: ${LLM_JUDGE_ENABLED:false}
+    provider: ${JUDGE_PROVIDER:ollama}

@@ -14,6 +14,9 @@ import com.publicplatform.ragops.documentregistry.adapter.outbound.persistence.*
 import com.publicplatform.ragops.documentregistry.application.port.out.*
 import com.publicplatform.ragops.metricsreporting.adapter.outbound.persistence.*
 import com.publicplatform.ragops.metricsreporting.application.port.out.*
+import com.publicplatform.ragops.adminapi.evaluation.adapter.outbound.persistence.JpaRagasEvaluationRepository
+import com.publicplatform.ragops.adminapi.evaluation.adapter.outbound.persistence.SaveRagasEvaluationPortAdapter
+import com.publicplatform.ragops.adminapi.evaluation.application.port.out.SaveRagasEvaluationPort
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -115,4 +118,8 @@ class RepositoryConfiguration {
     @Bean
     fun metricsWriter(jpaRepository: JpaDailyMetricsRepository): SaveMetricsPort =
         SaveMetricsPortAdapter(jpaRepository)
+
+    @Bean
+    fun saveRagasEvaluationPort(jpaRepository: JpaRagasEvaluationRepository): SaveRagasEvaluationPort =
+        SaveRagasEvaluationPortAdapter(jpaRepository)
 }

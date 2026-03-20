@@ -202,6 +202,76 @@ def _log_search_result(
         pass
 
 
+# ── RAGAS 평가 엔드포인트 ─────────────────────────────────────────────────────
+
+class EvaluationSample(BaseModel):
+    question_id: str
+    question_text: str
+    answer_text: str
+    contexts: list[str] = []
+    ground_truth: Optional[str] = None
+
+
+class EvaluationRequest(BaseModel):
+    samples: list[EvaluationSample]
+    judge_provider: str = "ollama"
+    judge_model: str = "qwen2.5:7b"
+
+
+class EvaluationMetrics(BaseModel):
+    question_id: str
+    faithfulness: Optional[float] = None
+    answer_relevancy: Optional[float] = None
+    context_precision: Optional[float] = None
+    context_recall: Optional[float] = None
+
+
+class EvaluationResponse(BaseModel):
+    results: list[EvaluationMetrics]
+    evaluated_count: int
+
+
+@app.post("/evaluate")
+def evaluate_ragas(request: EvaluationRequest) -> EvaluationResponse:
+    """
+    RAGAS 지표를 계산해 반환한다.
+
+    ragas 패키지가 없거나 judge LLM이 응답하지 않으면 None 값을 포함한 결과를 반환한다.
+    """
+    results = []
+    for sample in request.samples:
+        metrics = _compute_ragas_metrics(sample=sample)
+        results.append(metrics)
+    return EvaluationResponse(results=results, evaluated_count=len(results))
+
+
+def _compute_ragas_metrics(sample: EvaluationSample) -> EvaluationMetrics:
+    try:
+        from ragas.metrics import faithfulness, answer_relevancy
+        from ragas import evaluate
+        from datasets import Dataset
+
+        data: dict = {
+            "question": [sample.question_text],
+            "answer": [sample.answer_text],
+            "contexts": [sample.contexts if sample.contexts else [""]],
+        }
+        if sample.ground_truth:
+            data["ground_truth"] = [sample.ground_truth]
+
+        dataset = Dataset.from_dict(data)
+        result = evaluate(dataset, metrics=[faithfulness, answer_relevancy])
+        scores = result.to_pandas().iloc[0].to_dict()
+
+        return EvaluationMetrics(
+            question_id=sample.question_id,
+            faithfulness=scores.get("faithfulness"),
+            answer_relevancy=scores.get("answer_relevancy"),
+        )
+    except Exception:
+        return EvaluationMetrics(question_id=sample.question_id)
+
+
 def main() -> None:
     import uvicorn
 

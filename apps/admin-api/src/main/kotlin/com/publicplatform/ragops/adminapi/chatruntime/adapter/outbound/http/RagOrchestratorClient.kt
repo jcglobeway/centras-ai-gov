@@ -7,16 +7,14 @@ import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
-import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 
 /**
- * RAG 오케스트레이터 HTTP 클라이언트.
+ * RAG 오케스트레이터 HTTP 클라이언트 (fallback용).
  *
- * RagOrchestrationPort를 구현하며, Python FastAPI 서비스(/generate)를 호출한다.
- * rag.orchestrator.enabled=false이면 null을 반환하여 답변 생성을 건너뛴다.
+ * Spring AI가 기본 답변 생성을 담당하며, 이 클라이언트는 fallback으로만 사용된다.
+ * rag.orchestrator.enabled=false이면 null을 반환해 답변 생성을 건너뛴다.
  */
-@Service
 class RagOrchestratorClient(
     @Value("\${rag.orchestrator.url:http://localhost:8090}")
     private val ragOrchestratorUrl: String,
@@ -58,7 +56,6 @@ class RagOrchestratorClient(
 
             response.body?.toRagAnswerResult()
         } catch (e: Exception) {
-            // RAG orchestrator 호출 실패 시 null 반환 (fallback)
             null
         }
     }
