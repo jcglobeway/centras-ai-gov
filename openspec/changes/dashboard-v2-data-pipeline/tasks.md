@@ -28,13 +28,23 @@
 - [ ] `client/page.tsx` — 미해결 건수 KpiCard + 응답률 목표 진행 바
 - [ ] `qa/page.tsx` — RAGAS ScoreTable + 최근 QA 리뷰 5건 테이블
 
-## Phase D — 데이터 파이프라인
+## Phase D — 데이터 파이프라인 (실제 동작)
 
-- [ ] ZIP 파일 샘플 추출 — `TL_지방행정기관_질의응답.zip` JSON 구조 확인
-- [ ] `V027__seed_public_data_and_llm_metrics.sql` 생성:
-  - [ ] 기존 answered answers에 LLM 메트릭 UPDATE (model_name, tokens, cost, finish_reason)
-  - [ ] 공공 민원 Q&A 10~20건 INSERT (sessions → questions → answers 순서)
-  - [ ] `ragas_evaluations` seed 5건 INSERT
+- [ ] ZIP 구조 확인 — `TL_지방행정기관_질의응답.zip` JSON 샘플 파싱
+- [ ] `ingestion_prep.py` 구현 (`python/eval-runner`):
+  - [ ] ZIP 6개 전량(TL+VL × 3기관) 파싱 → documents SQL (전량) + `eval_questions.json` 100건 생성
+  - [ ] 케이스 유형별 균등 샘플링 (사실 조회 30 / 절차 안내 30 / 자격 확인 20 / 비교 10 / 복합 10)
+  - [ ] 기존 answers LLM 메트릭 UPDATE 구문 포함
+- [ ] `embedder.py` 구현 (`python/ingestion-worker`):
+  - [ ] 청킹 (chunk_size=600, overlap=100) + Ollama bge-m3 임베딩
+  - [ ] `document_chunks` INSERT + ingestion job succeeded 전이
+  - [ ] `ingestion-worker embed` 서브커맨드 등록
+- [ ] `query_runner.py` 구현 (`python/eval-runner`):
+  - [ ] `POST /admin/questions` 실제 RAG 질의
+  - [ ] `GET /admin/rag-search-logs?question_id=` 로 contexts 조회
+  - [ ] `eval_results.json` 생성 (question / answer / contexts / ground_truth)
+- [ ] `ragas_batch.py` 확장 — `ground_truth` 기반 Context Recall 활성화
+- [ ] `run_pipeline.sh` 원샷 실행 스크립트 작성
 - [ ] `application-test.yml` — `flyway.target: "27"` 업데이트
 
 ## Phase E — 검증
