@@ -96,8 +96,8 @@ class IngestionApiTests : BaseApiTest() {
     @Test
     fun `client admin cannot run crawl source without write action`() {
         val sessionId = loginAndReturnSessionId(
-            email = "client.admin@busan.go.kr",
-            password = "client-pass-1234",
+            email = "client@jcg.com",
+            password = "pass1234",
         )
 
         mockMvc.post("/admin/crawl-sources/crawl_src_002/run") {

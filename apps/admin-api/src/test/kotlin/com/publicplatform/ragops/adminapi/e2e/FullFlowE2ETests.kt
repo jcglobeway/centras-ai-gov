@@ -11,15 +11,15 @@ class FullFlowE2ETests : BaseApiTest() {
     @Test
     fun `e2e full auth lifecycle from login to logout and session expiry`() {
         val sessionId = loginAndReturnSessionId(
-            email = "ops.platform@gov-platform.kr",
-            password = "ops-pass-1234",
+            email = "ops@jcg.com",
+            password = "pass1234",
         )
 
         mockMvc.get("/admin/auth/me") {
             header("X-Admin-Session-Id", sessionId)
         }.andExpect {
             status { isOk() }
-            jsonPath("$.user.email") { value("ops.platform@gov-platform.kr") }
+            jsonPath("$.user.email") { value("ops@jcg.com") }
             jsonPath("$.roles[0].roleCode") { value("ops_admin") }
         }
 
@@ -110,8 +110,8 @@ class FullFlowE2ETests : BaseApiTest() {
     @Test
     fun `e2e client admin cannot access resources outside organization scope`() {
         val sessionId = loginAndReturnSessionId(
-            email = "client.admin@busan.go.kr",
-            password = "client-pass-1234",
+            email = "client@jcg.com",
+            password = "pass1234",
         )
 
         mockMvc.get("/admin/crawl-sources/crawl_src_002") {
@@ -156,8 +156,8 @@ class FullFlowE2ETests : BaseApiTest() {
     @Test
     fun `e2e multi-tenant data isolation between organizations`() {
         val opsSessionId = loginAndReturnSessionId(
-            email = "ops.platform@gov-platform.kr",
-            password = "ops-pass-1234",
+            email = "ops@jcg.com",
+            password = "pass1234",
         )
 
         val opsResponse = mockMvc.get("/admin/crawl-sources") {
@@ -170,8 +170,8 @@ class FullFlowE2ETests : BaseApiTest() {
         assert(opsTotal >= 2) { "ops_admin should see at least 2 sources, but saw: $opsTotal" }
 
         val clientSessionId = loginAndReturnSessionId(
-            email = "client.admin@busan.go.kr",
-            password = "client-pass-1234",
+            email = "client@jcg.com",
+            password = "pass1234",
         )
 
         val clientSources = mockMvc.get("/admin/crawl-sources") {

@@ -99,8 +99,8 @@ class QAReviewApiTests : BaseApiTest() {
         val questionId2 = createQuestionAndReturnId()
 
         val qaSessionId = loginAndReturnSessionId(
-            email = "qa.manager@gov-platform.kr",
-            password = "qa-pass-1234",
+            email = "qa@jcg.com",
+            password = "pass1234",
         )
 
         mockMvc.post("/admin/qa-reviews") {
@@ -112,8 +112,8 @@ class QAReviewApiTests : BaseApiTest() {
         }
 
         val clientSessionId = loginAndReturnSessionId(
-            email = "client.admin@busan.go.kr",
-            password = "client-pass-1234",
+            email = "client@jcg.com",
+            password = "pass1234",
         )
 
         mockMvc.post("/admin/qa-reviews") {

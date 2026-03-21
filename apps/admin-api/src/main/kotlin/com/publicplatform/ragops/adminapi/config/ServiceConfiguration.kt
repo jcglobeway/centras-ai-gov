@@ -30,14 +30,19 @@ import com.publicplatform.ragops.metricsreporting.application.port.out.LoadMetri
 import com.publicplatform.ragops.metricsreporting.application.port.out.SaveMetricsPort
 import com.publicplatform.ragops.metricsreporting.application.service.ListMetricsService
 import com.publicplatform.ragops.metricsreporting.application.service.UpsertDailyMetricsService
+import com.publicplatform.ragops.adminapi.evaluation.application.port.`in`.ListRagasEvaluationsUseCase
 import com.publicplatform.ragops.adminapi.evaluation.application.port.`in`.RecordRagasEvaluationUseCase
+import com.publicplatform.ragops.adminapi.evaluation.application.port.out.LoadRagasEvaluationsPort
 import com.publicplatform.ragops.adminapi.evaluation.application.port.out.SaveRagasEvaluationPort
+import com.publicplatform.ragops.adminapi.evaluation.application.service.ListRagasEvaluationsService
 import com.publicplatform.ragops.adminapi.evaluation.application.service.RagasEvaluationService
 import com.publicplatform.ragops.adminapi.chatruntime.adapter.outbound.ai.SpringAiAnswerService
 import com.publicplatform.ragops.adminapi.chatruntime.adapter.inbound.web.QuestionStreamController
 import com.publicplatform.ragops.identityaccess.application.port.`in`.AdminAuthUseCase
 import org.springframework.ai.chat.model.ChatModel
 import org.springframework.ai.chat.model.StreamingChatModel
+import org.springframework.ai.ollama.OllamaChatModel
+import org.springframework.ai.openai.OpenAiChatModel
 import org.springframework.beans.factory.annotation.Value
 import com.publicplatform.ragops.identityaccess.application.port.out.AdminCredentialAuthenticator
 import com.publicplatform.ragops.identityaccess.application.port.out.ManageAdminSessionPort
@@ -150,21 +155,43 @@ class ServiceConfiguration {
         RagasEvaluationService(saveRagasEvaluationPort)
 
     @Bean
+    fun listRagasEvaluationsUseCase(loadRagasEvaluationsPort: LoadRagasEvaluationsPort): ListRagasEvaluationsUseCase =
+        ListRagasEvaluationsService(loadRagasEvaluationsPort)
+
+    @Bean
     fun ragOrchestrationPort(
-        @org.springframework.beans.factory.annotation.Autowired(required = false) chatModel: ChatModel?,
+        @org.springframework.beans.factory.annotation.Autowired(required = false) openAiChatModel: OpenAiChatModel?,
+        @org.springframework.beans.factory.annotation.Autowired(required = false) ollamaChatModel: OllamaChatModel?,
         @Value("\${spring-ai.answer.enabled:true}") springAiEnabled: Boolean,
+        @Value("\${spring-ai.answer.provider:openai}") provider: String,
     ): RagOrchestrationPort {
-        return if (chatModel != null && springAiEnabled) {
-            SpringAiAnswerService(chatModel, true)
-        } else {
-            object : RagOrchestrationPort {
-                override fun generateAnswer(questionId: String, questionText: String, organizationId: String, serviceId: String) = null
-            }
+        val noOp = object : RagOrchestrationPort {
+            override fun generateAnswer(questionId: String, questionText: String, organizationId: String, serviceId: String) = null
         }
+        if (!springAiEnabled || provider == "none") return noOp
+        val chatModel = resolveModel(provider, openAiChatModel, ollamaChatModel) as? ChatModel
+        return if (chatModel != null) SpringAiAnswerService(chatModel, provider) else noOp
     }
 
     @Bean
     fun questionStreamController(
-        @org.springframework.beans.factory.annotation.Autowired(required = false) streamingChatModel: StreamingChatModel?,
-    ): QuestionStreamController = QuestionStreamController(streamingChatModel)
+        @org.springframework.beans.factory.annotation.Autowired(required = false) openAiChatModel: OpenAiChatModel?,
+        @org.springframework.beans.factory.annotation.Autowired(required = false) ollamaChatModel: OllamaChatModel?,
+        @Value("\${spring-ai.answer.enabled:true}") springAiEnabled: Boolean,
+        @Value("\${spring-ai.answer.provider:openai}") provider: String,
+    ): QuestionStreamController {
+        val streaming = if (!springAiEnabled || provider == "none") null
+            else resolveModel(provider, openAiChatModel, ollamaChatModel) as? StreamingChatModel
+        return QuestionStreamController(streaming)
+    }
+
+    private fun resolveModel(
+        provider: String,
+        openAi: OpenAiChatModel?,
+        ollama: OllamaChatModel?,
+    ): Any? = when (provider) {
+        "openai" -> openAi
+        "ollama" -> ollama
+        else -> null
+    }
 }

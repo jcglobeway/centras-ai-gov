@@ -1,18 +1,55 @@
 package com.publicplatform.ragops.adminapi.evaluation.adapter.inbound.web
 
+import com.publicplatform.ragops.adminapi.evaluation.application.port.`in`.ListRagasEvaluationsQuery
+import com.publicplatform.ragops.adminapi.evaluation.application.port.`in`.ListRagasEvaluationsUseCase
 import com.publicplatform.ragops.adminapi.evaluation.application.port.`in`.RecordRagasEvaluationCommand
 import com.publicplatform.ragops.adminapi.evaluation.application.port.`in`.RecordRagasEvaluationUseCase
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.time.Instant
 
 @RestController
 @RequestMapping("/admin/ragas-evaluations")
 class RagasEvaluationController(
     private val recordRagasEvaluationUseCase: RecordRagasEvaluationUseCase,
+    private val listRagasEvaluationsUseCase: ListRagasEvaluationsUseCase,
 ) {
+    @GetMapping
+    fun list(
+        @RequestParam(required = false) questionId: String?,
+        @RequestParam(defaultValue = "1") page: Int,
+        @RequestParam(name = "page_size", defaultValue = "10") pageSize: Int,
+    ): ResponseEntity<RagasEvaluationsPagedResponse> {
+        val result = listRagasEvaluationsUseCase.listEvaluations(
+            ListRagasEvaluationsQuery(questionId = questionId, page = page, pageSize = pageSize)
+        )
+        return ResponseEntity.ok(
+            RagasEvaluationsPagedResponse(
+                items = result.items.map {
+                    RagasEvaluationResponse(
+                        id = it.id,
+                        questionId = it.questionId,
+                        faithfulness = it.faithfulness,
+                        answerRelevancy = it.answerRelevancy,
+                        contextPrecision = it.contextPrecision,
+                        contextRecall = it.contextRecall,
+                        evaluatedAt = it.evaluatedAt.toString(),
+                        judgeProvider = it.judgeProvider,
+                        judgeModel = it.judgeModel,
+                    )
+                },
+                total = result.total,
+                page = result.page,
+                pageSize = result.pageSize,
+                generatedAt = Instant.now().toString(),
+            )
+        )
+    }
     @PostMapping
     fun create(@RequestBody request: RecordRagasEvaluationRequest): ResponseEntity<RagasEvaluationResponse> {
         val result = recordRagasEvaluationUseCase.record(
@@ -62,4 +99,12 @@ data class RagasEvaluationResponse(
     val evaluatedAt: String,
     val judgeProvider: String?,
     val judgeModel: String?,
+)
+
+data class RagasEvaluationsPagedResponse(
+    val items: List<RagasEvaluationResponse>,
+    val total: Long,
+    val page: Int,
+    val pageSize: Int,
+    val generatedAt: String,
 )

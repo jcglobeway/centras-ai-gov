@@ -50,7 +50,7 @@ class AuthApiTests : BaseApiTest() {
     fun `login returns session token and authorization summary`() {
         mockMvc.post("/admin/auth/login") {
             contentType = MediaType.APPLICATION_JSON
-            content = """{"email": "qa.manager@gov-platform.kr", "password": "qa-pass-1234"}"""
+            content = """{"email": "qa@jcg.com", "password": "pass1234"}"""
         }.andExpect {
             status { isOk() }
             jsonPath("$.user.id") { value("usr_qa_001") }
@@ -64,7 +64,7 @@ class AuthApiTests : BaseApiTest() {
     fun `login rejects invalid credentials`() {
         mockMvc.post("/admin/auth/login") {
             contentType = MediaType.APPLICATION_JSON
-            content = """{"email": "qa.manager@gov-platform.kr", "password": "wrong-password"}"""
+            content = """{"email": "qa@jcg.com", "password": "wrong-password"}"""
         }.andExpect {
             status { isUnauthorized() }
             jsonPath("$.error.code") { value("AUTH_INVALID_CREDENTIALS") }
@@ -86,8 +86,8 @@ class AuthApiTests : BaseApiTest() {
     @Test
     fun `auth me restores session from session id header`() {
         val sessionId = loginAndReturnSessionId(
-            email = "client.admin@busan.go.kr",
-            password = "client-pass-1234",
+            email = "client@jcg.com",
+            password = "pass1234",
         )
 
         mockMvc.get("/admin/auth/me") {
@@ -114,8 +114,8 @@ class AuthApiTests : BaseApiTest() {
     @Test
     fun `logout revokes issued session and blocks later restore`() {
         val sessionId = loginAndReturnSessionId(
-            email = "ops.platform@gov-platform.kr",
-            password = "ops-pass-1234",
+            email = "ops@jcg.com",
+            password = "pass1234",
         )
 
         mockMvc.post("/admin/auth/logout") {

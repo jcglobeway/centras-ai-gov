@@ -15,7 +15,9 @@ import com.publicplatform.ragops.documentregistry.application.port.out.*
 import com.publicplatform.ragops.metricsreporting.adapter.outbound.persistence.*
 import com.publicplatform.ragops.metricsreporting.application.port.out.*
 import com.publicplatform.ragops.adminapi.evaluation.adapter.outbound.persistence.JpaRagasEvaluationRepository
+import com.publicplatform.ragops.adminapi.evaluation.adapter.outbound.persistence.LoadRagasEvaluationsPortAdapter
 import com.publicplatform.ragops.adminapi.evaluation.adapter.outbound.persistence.SaveRagasEvaluationPortAdapter
+import com.publicplatform.ragops.adminapi.evaluation.application.port.out.LoadRagasEvaluationsPort
 import com.publicplatform.ragops.adminapi.evaluation.application.port.out.SaveRagasEvaluationPort
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -122,4 +124,8 @@ class RepositoryConfiguration {
     @Bean
     fun saveRagasEvaluationPort(jpaRepository: JpaRagasEvaluationRepository): SaveRagasEvaluationPort =
         SaveRagasEvaluationPortAdapter(jpaRepository)
+
+    @Bean
+    fun loadRagasEvaluationsPort(jpaRepository: JpaRagasEvaluationRepository): LoadRagasEvaluationsPort =
+        LoadRagasEvaluationsPortAdapter(jpaRepository)
 }
