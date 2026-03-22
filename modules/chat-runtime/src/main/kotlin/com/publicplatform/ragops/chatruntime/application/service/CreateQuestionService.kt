@@ -42,6 +42,13 @@ open class CreateQuestionService(
                     responseTimeMs = ragResult.responseTimeMs,
                     citationCount = ragResult.citationCount,
                     fallbackReasonCode = ragResult.fallbackReasonCode,
+                    modelName = ragResult.modelName,
+                    providerName = ragResult.providerName,
+                    inputTokens = ragResult.inputTokens,
+                    outputTokens = ragResult.outputTokens,
+                    totalTokens = ragResult.totalTokens,
+                    estimatedCostUsd = ragResult.estimatedCostUsd,
+                    finishReason = ragResult.finishReason,
                 ),
             )
         }

@@ -23,6 +23,10 @@ open class RecordAnswerPortAdapter(
             id = id, questionId = command.questionId, answerText = command.answerText,
             answerStatus = command.answerStatus.name.lowercase(), responseTimeMs = command.responseTimeMs,
             citationCount = command.citationCount, fallbackReasonCode = command.fallbackReasonCode,
+            modelName = command.modelName, providerName = command.providerName,
+            inputTokens = command.inputTokens, outputTokens = command.outputTokens,
+            totalTokens = command.totalTokens, estimatedCostUsd = command.estimatedCostUsd,
+            finishReason = command.finishReason,
             createdAt = Instant.now(),
         )
         val saved = jpaRepository.save(entity)

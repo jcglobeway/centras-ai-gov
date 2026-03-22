@@ -16,6 +16,13 @@ data class AnswerSummary(
     val responseTimeMs: Int?,
     val citationCount: Int?,
     val fallbackReasonCode: String?,
+    val modelName: String?,
+    val providerName: String?,
+    val inputTokens: Int?,
+    val outputTokens: Int?,
+    val totalTokens: Int?,
+    val estimatedCostUsd: Double?,
+    val finishReason: String?,
     val createdAt: Instant,
 )
 
@@ -26,4 +33,11 @@ data class CreateAnswerCommand(
     val responseTimeMs: Int?,
     val citationCount: Int?,
     val fallbackReasonCode: String?,
+    val modelName: String? = null,
+    val providerName: String? = null,
+    val inputTokens: Int? = null,
+    val outputTokens: Int? = null,
+    val totalTokens: Int? = null,
+    val estimatedCostUsd: Double? = null,
+    val finishReason: String? = null,
 )

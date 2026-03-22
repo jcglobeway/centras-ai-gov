@@ -19,16 +19,19 @@ spring:
     locations:
       - classpath:db/migration
       - classpath:com/publicplatform/ragops/adminapi/migration
-    target: "25"
+    target: "26"
 
   ai:
     ollama:
       chat:
         enabled: false
+    openai:
+      api-key: test-key
 
 spring-ai:
   answer:
     enabled: false
+    provider: none
 
 rag:
   orchestrator:

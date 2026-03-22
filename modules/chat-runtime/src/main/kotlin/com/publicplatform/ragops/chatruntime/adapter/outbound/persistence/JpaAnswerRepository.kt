@@ -12,4 +12,5 @@ import org.springframework.stereotype.Repository
 @Repository
 interface JpaAnswerRepository : JpaRepository<AnswerEntity, String> {
     fun findByQuestionId(questionId: String): AnswerEntity?
+    fun findByQuestionIdIn(questionIds: List<String>): List<AnswerEntity>
 }

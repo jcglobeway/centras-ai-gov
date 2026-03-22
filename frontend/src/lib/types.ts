@@ -213,6 +213,17 @@ export interface RagasEvaluation {
   judgeModel: string | null;
 }
 
+// ── LLM 메트릭 ────────────────────────────────────────────────────────────────
+
+export interface LlmMetrics {
+  answerCount: number;
+  totalCostUsd: number | null;
+  avgCostPerQuery: number | null;
+  avgInputTokens: number | null;
+  avgOutputTokens: number | null;
+  generatedAt: string;
+}
+
 // ── 메트릭 ────────────────────────────────────────────────────────────────────
 
 export interface DailyMetric {

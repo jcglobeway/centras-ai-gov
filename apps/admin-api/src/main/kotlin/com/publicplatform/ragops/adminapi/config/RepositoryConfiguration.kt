@@ -128,4 +128,11 @@ class RepositoryConfiguration {
     @Bean
     fun loadRagasEvaluationsPort(jpaRepository: JpaRagasEvaluationRepository): LoadRagasEvaluationsPort =
         LoadRagasEvaluationsPortAdapter(jpaRepository)
+
+    @Bean
+    fun loadLlmMetricsPort(
+        answerRepository: JpaAnswerRepository,
+        questionRepository: JpaQuestionRepository,
+    ): com.publicplatform.ragops.chatruntime.application.port.out.LoadLlmMetricsPort =
+        LoadLlmMetricsPortAdapter(answerRepository, questionRepository)
 }

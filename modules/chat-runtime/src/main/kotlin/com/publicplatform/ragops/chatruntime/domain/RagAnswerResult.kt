@@ -12,4 +12,11 @@ data class RagAnswerResult(
     val responseTimeMs: Int?,
     val citationCount: Int?,
     val fallbackReasonCode: String?,
+    val modelName: String? = null,
+    val providerName: String? = null,
+    val inputTokens: Int? = null,
+    val outputTokens: Int? = null,
+    val totalTokens: Int? = null,
+    val estimatedCostUsd: Double? = null,
+    val finishReason: String? = null,
 )

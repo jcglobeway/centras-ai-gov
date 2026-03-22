@@ -24,6 +24,13 @@ class AnswerEntity(
     @Column(name = "response_time_ms") val responseTimeMs: Int?,
     @Column(name = "citation_count") val citationCount: Int?,
     @Column(name = "fallback_reason_code") val fallbackReasonCode: String?,
+    @Column(name = "model_name") val modelName: String?,
+    @Column(name = "provider_name") val providerName: String?,
+    @Column(name = "input_tokens") val inputTokens: Int?,
+    @Column(name = "output_tokens") val outputTokens: Int?,
+    @Column(name = "total_tokens") val totalTokens: Int?,
+    @Column(name = "estimated_cost_usd") val estimatedCostUsd: Double?,
+    @Column(name = "finish_reason") val finishReason: String?,
     @Column(name = "created_at", nullable = false) val createdAt: Instant = Instant.now(),
 )
 
@@ -31,7 +38,11 @@ fun AnswerEntity.toSummary(): AnswerSummary =
     AnswerSummary(
         id = id, questionId = questionId, answerText = answerText,
         answerStatus = answerStatus.toAnswerStatus(), responseTimeMs = responseTimeMs,
-        citationCount = citationCount, fallbackReasonCode = fallbackReasonCode, createdAt = createdAt,
+        citationCount = citationCount, fallbackReasonCode = fallbackReasonCode,
+        modelName = modelName, providerName = providerName,
+        inputTokens = inputTokens, outputTokens = outputTokens, totalTokens = totalTokens,
+        estimatedCostUsd = estimatedCostUsd, finishReason = finishReason,
+        createdAt = createdAt,
     )
 
 private fun String.toAnswerStatus(): AnswerStatus = when (this) {
