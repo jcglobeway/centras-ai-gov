@@ -28,6 +28,13 @@ spring:
     web-application-type: servlet
 
   ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:dummy-key}
+      chat:
+        enabled: ${OPENAI_ENABLED:false}
+        options:
+          model: gpt-5-latest
+          temperature: 0.3
     ollama:
       base-url: ${OLLAMA_URL:http://localhost:11434}
       chat:
@@ -54,6 +61,7 @@ rag:
 spring-ai:
   answer:
     enabled: ${SPRING_AI_ANSWER_ENABLED:true}
+    provider: ${SPRING_AI_ANSWER_PROVIDER:openai}
 
 evaluation:
   ragas:

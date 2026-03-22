@@ -63,21 +63,25 @@ cd frontend && npm install && npm run dev
 ### 백엔드 (Spring Boot)
 
 ```
-JAVA_HOME=<jdk-path> ./gradlew :apps:admin-api:bootRun
+./gradlew :apps:admin-api:bootRun
 # Admin API: http://localhost:8081
 # Swagger UI: http://localhost:8081/swagger-ui/index.html
 ```
 
+> JAVA_HOME이 설정되지 않은 경우: `echo 'export JAVA_HOME=$(/usr/libexec/java_home -v 25)' >> ~/.zshrc && source ~/.zshrc`
+
 ### 개발용 계정
 
-| 이메일 | 비밀번호 | 역할 | 접근 범위 | 권장 포털 |
-|---|---|---|---|---|
-| `ops.platform@gov-platform.kr` | `ops-pass-1234` | ops_admin | 전체 기관 | /ops |
-| `super.admin@gov-platform.kr` | `super-pass-1234` | super_admin | 전체 기관 | /ops |
-| `client.admin@busan.go.kr` | `client-pass-1234` | client_admin | 부산시 | /client |
-| `client.viewer@busan.go.kr` | `viewer-pass-1234` | client_viewer | 부산시 | /client |
-| `qa.manager@gov-platform.kr` | `qa-pass-1234` | qa_admin | 서울시 | /qa |
-| `knowledge.editor@gov-platform.kr` | `editor-pass-1234` | knowledge_editor | 서울시 | /qa |
+비밀번호 공통: `pass1234`
+
+| 이메일 | 역할 | 접근 범위 | 권장 포털 |
+|---|---|---|---|
+| `ops@jcg.com` | ops_admin | 전체 기관 | /ops |
+| `super@jcg.com` | super_admin | 전체 기관 | /ops |
+| `client@jcg.com` | client_admin | 부산시 | /client |
+| `viewer@jcg.com` | client_viewer | 부산시 | /client |
+| `qa@jcg.com` | qa_admin | 서울시 | /qa |
+| `editor@jcg.com` | knowledge_editor | 서울시 | /qa |
 
 > 개발 환경 전용 계정입니다. 운영 환경에서는 사용하지 마세요.
 

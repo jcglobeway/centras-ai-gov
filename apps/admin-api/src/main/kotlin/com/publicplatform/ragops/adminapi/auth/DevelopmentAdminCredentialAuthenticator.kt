@@ -21,61 +21,61 @@ class DevelopmentAdminCredentialAuthenticator(
     // lazy 초기화로 Bean 생성 시 즉시 해싱하지 않음 (성능 개선)
     private val accounts by lazy {
         mapOf(
-            "ops.platform@gov-platform.kr" to DevelopmentAdminAccount(
-                passwordHash = passwordEncoder.encode("ops-pass-1234"),
+            "ops@jcg.com" to DevelopmentAdminAccount(
+                passwordHash = passwordEncoder.encode("pass1234"),
                 snapshot = snapshotFor(
                     userId = "usr_ops_global_001",
-                    email = "ops.platform@gov-platform.kr",
+                    email = "ops@jcg.com",
                     displayName = "Platform Operator",
                     roleCode = "ops_admin",
                     organizationId = null,
                 ),
             ),
-            "client.admin@busan.go.kr" to DevelopmentAdminAccount(
-                passwordHash = passwordEncoder.encode("client-pass-1234"),
-                snapshot = snapshotFor(
-                    userId = "usr_client_busan_001",
-                    email = "client.admin@busan.go.kr",
-                    displayName = "Busan Client Admin",
-                    roleCode = "client_admin",
-                    organizationId = "org_busan_220",
-                ),
-            ),
-            "qa.manager@gov-platform.kr" to DevelopmentAdminAccount(
-                passwordHash = passwordEncoder.encode("qa-pass-1234"),
-                snapshot = snapshotFor(
-                    userId = "usr_qa_001",
-                    email = "qa.manager@gov-platform.kr",
-                    displayName = "QA Manager",
-                    roleCode = "qa_admin",
-                    organizationId = "org_seoul_120",
-                ),
-            ),
-            "super.admin@gov-platform.kr" to DevelopmentAdminAccount(
-                passwordHash = passwordEncoder.encode("super-pass-1234"),
+            "super@jcg.com" to DevelopmentAdminAccount(
+                passwordHash = passwordEncoder.encode("pass1234"),
                 snapshot = snapshotFor(
                     userId = "usr_super_001",
-                    email = "super.admin@gov-platform.kr",
+                    email = "super@jcg.com",
                     displayName = "Super Admin",
                     roleCode = "super_admin",
                     organizationId = null,
                 ),
             ),
-            "client.viewer@busan.go.kr" to DevelopmentAdminAccount(
-                passwordHash = passwordEncoder.encode("viewer-pass-1234"),
+            "client@jcg.com" to DevelopmentAdminAccount(
+                passwordHash = passwordEncoder.encode("pass1234"),
+                snapshot = snapshotFor(
+                    userId = "usr_client_busan_001",
+                    email = "client@jcg.com",
+                    displayName = "Client Admin",
+                    roleCode = "client_admin",
+                    organizationId = "org_busan_220",
+                ),
+            ),
+            "viewer@jcg.com" to DevelopmentAdminAccount(
+                passwordHash = passwordEncoder.encode("pass1234"),
                 snapshot = snapshotFor(
                     userId = "usr_client_viewer_001",
-                    email = "client.viewer@busan.go.kr",
-                    displayName = "Busan Client Viewer",
+                    email = "viewer@jcg.com",
+                    displayName = "Client Viewer",
                     roleCode = "client_viewer",
                     organizationId = "org_busan_220",
                 ),
             ),
-            "knowledge.editor@gov-platform.kr" to DevelopmentAdminAccount(
-                passwordHash = passwordEncoder.encode("editor-pass-1234"),
+            "qa@jcg.com" to DevelopmentAdminAccount(
+                passwordHash = passwordEncoder.encode("pass1234"),
+                snapshot = snapshotFor(
+                    userId = "usr_qa_001",
+                    email = "qa@jcg.com",
+                    displayName = "QA Manager",
+                    roleCode = "qa_admin",
+                    organizationId = "org_seoul_120",
+                ),
+            ),
+            "editor@jcg.com" to DevelopmentAdminAccount(
+                passwordHash = passwordEncoder.encode("pass1234"),
                 snapshot = snapshotFor(
                     userId = "usr_knowledge_editor_001",
-                    email = "knowledge.editor@gov-platform.kr",
+                    email = "editor@jcg.com",
                     displayName = "Knowledge Editor",
                     roleCode = "knowledge_editor",
                     organizationId = "org_seoul_120",

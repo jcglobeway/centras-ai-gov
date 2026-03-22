@@ -21,7 +21,15 @@
       "Bash(echo \"Archived: $change\")",
       "Bash(git mv:*)",
       "Bash(git add:*)",
-      "Bash(grep -rL /** modules/*/src/main/kotlin/com/publicplatform/ragops/*/application/port/in/*.kt modules/*/src/main/kotlin/com/publicplatform/ragops/*/application/service/*.kt modules/*/src/main/kotlin/com/publicplatform/ragops/*/adapter/outbound/persistence/*.kt apps/admin-api/src/main/kotlin/com/publicplatform/ragops/adminapi/*/adapter/inbound/web/*.kt apps/admin-api/src/main/kotlin/com/publicplatform/ragops/adminapi/*/adapter/outbound/http/*.kt apps/admin-api/src/main/kotlin/com/publicplatform/ragops/adminapi/*/adapter/inbound/scheduler/*.kt)"
+      "Bash(grep -rL /** modules/*/src/main/kotlin/com/publicplatform/ragops/*/application/port/in/*.kt modules/*/src/main/kotlin/com/publicplatform/ragops/*/application/service/*.kt modules/*/src/main/kotlin/com/publicplatform/ragops/*/adapter/outbound/persistence/*.kt apps/admin-api/src/main/kotlin/com/publicplatform/ragops/adminapi/*/adapter/inbound/web/*.kt apps/admin-api/src/main/kotlin/com/publicplatform/ragops/adminapi/*/adapter/outbound/http/*.kt apps/admin-api/src/main/kotlin/com/publicplatform/ragops/adminapi/*/adapter/inbound/scheduler/*.kt)",
+      "Bash(JAVA_HOME=/Users/parkseokje/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home ./gradlew :apps:admin-api:test)",
+      "Bash(JAVA_HOME=/Users/parkseokje/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home ./gradlew :apps:admin-api:test --tests \"com.publicplatform.ragops.adminapi.auth.AuthApiTests\")",
+      "Bash(JAVA_HOME=/Users/parkseokje/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home ./gradlew :apps:admin-api:test --tests \"com.publicplatform.ragops.adminapi.ingestion.IngestionApiTests.ingestion jobs are scoped to session organization\" --info)",
+      "Bash(JAVA_HOME=/Users/parkseokje/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home ./gradlew :apps:admin-api:test --tests \"com.publicplatform.ragops.adminapi.evaluation.RagasEvaluationApiTest\")",
+      "Bash(JAVA_HOME=/Users/parkseokje/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home ./gradlew :apps:admin-api:bootRun)",
+      "Bash(docker exec:*)",
+      "Bash(JAVA_HOME=/Users/parkseokje/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home ./gradlew :apps:admin-api:test --tests \"com.publicplatform.ragops.adminapi.evaluation.*\")",
+      "Bash(JAVA_HOME=/Users/parkseokje/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home ./gradlew :apps:admin-api:test --tests \"com.publicplatform.ragops.adminapi.auth.AuthApiTests.login*\")"
     ]
   }
 }

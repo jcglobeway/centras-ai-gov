@@ -31,6 +31,7 @@ export type RoleCode =
   | "client_admin"
   | "client_org_admin"
   | "client_viewer"
+  | "qa_admin"
   | "qa_manager"
   | "knowledge_editor";
 

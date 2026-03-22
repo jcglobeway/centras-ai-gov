@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RAG Admin v3</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c0f16;--bg2:#13171f;--bg3:#1a1f2a;--bg4:#222836;--bg5:#2a3040;
+  --b1:rgba(255,255,255,0.06);--b2:rgba(255,255,255,0.10);--b3:rgba(255,255,255,0.18);
+  --t1:#dde2ec;--t2:#8b93a8;--t3:#505868;--t4:#353d4e;
+  --green:#00c47a;--gbg:rgba(0,196,122,0.10);--gbd:rgba(0,196,122,0.28);
+  --red:#ff4560;--rbg:rgba(255,69,96,0.10);--rbd:rgba(255,69,96,0.28);
+  --amber:#f5a623;--abg:rgba(245,166,35,0.10);--abd:rgba(245,166,35,0.28);
+  --blue:#4b9eff;--bbg:rgba(75,158,255,0.10);--bbd:rgba(75,158,255,0.28);
+  --purple:#a78bfa;--cyan:#22d3ee;--pink:#f472b6;
+  --impl-bg:#111827;--impl-bd:rgba(75,158,255,0.20);
+}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--t1);font-size:12px;min-height:100vh}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;height:50px;padding:0 20px;background:var(--bg2);border-bottom:1px solid var(--b1);position:sticky;top:0;z-index:300}
+.logo{display:flex;align-items:center;gap:9px}
+.logo-mark{width:26px;height:26px;border-radius:6px;background:var(--green);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:#000}
+.logo-txt{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:13px}
+.logo-txt span{color:var(--green)}
+.tabs{display:flex;gap:2px}
+.tab{padding:6px 16px;border-radius:6px;border:none;background:transparent;color:var(--t2);font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:5px}
+.tab:hover{background:var(--bg3);color:var(--t1)}
+.tab.on{background:var(--bg3);color:var(--green);border:1px solid var(--gbd)}
+.tab-icon{font-size:13px}
+.tr{display:flex;align-items:center;gap:10px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.live-lbl{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t2);display:flex;align-items:center;gap:5px}
+.sel{background:var(--bg3);border:1px solid var(--b2);color:var(--t2);padding:4px 9px;border-radius:5px;font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer;outline:none}
+.cnt{font-size:10px;font-family:'JetBrains Mono',monospace;background:var(--bg4);color:var(--t3);padding:2px 7px;border-radius:10px}
+
+/* PAGE */
+.page{padding:16px 20px 60px;display:none;flex-direction:column;gap:14px;animation:fi .2s ease;max-width:1800px}
+.page.on{display:flex}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.r5{display:grid;grid-template-columns:repeat(5,1fr);gap:11px}
+.r4{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}
+.r3{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.r21{display:grid;grid-template-columns:2fr 1fr;gap:11px}
+.r12{display:grid;grid-template-columns:1fr 2fr;gap:11px}
+.r32{display:grid;grid-template-columns:3fr 2fr;gap:11px}
+.r31{display:grid;grid-template-columns:3fr 1fr;gap:11px}
+
+/* ALERT BAR */
+.abar{display:flex;align-items:center;gap:8px;padding:9px 14px;background:var(--rbg);border:1px solid var(--rbd);border-radius:7px;font-size:11px}
+.abar.w{background:var(--abg);border-color:var(--abd)}
+.adot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--red)}
+.abar.w .adot{background:var(--amber)}
+.amsg{flex:1}.abar.w .amsg{color:var(--amber)}
+.amsg b{color:var(--red)}.abar.w .amsg b{color:var(--amber)}
+.atime{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--t3)}
+.ax{color:var(--t3);cursor:pointer;padding:0 4px;flex-shrink:0}
+
+/* KPI CARD */
+.kpi{background:var(--bg2);border:1px solid var(--b1);border-radius:10px;padding:16px;position:relative;overflow:hidden;cursor:pointer;transition:.15s}
+.kpi:hover{border-color:var(--b2);transform:translateY(-1px)}
+.kpi-stripe{position:absolute;top:0;left:0;right:0;height:2px}
+.kpi-lbl{font-size:10px;color:var(--t2);font-family:'JetBrains Mono',monospace;letter-spacing:.4px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.kpi-val{font-size:26px;font-weight:700;line-height:1;margin-bottom:6px;letter-spacing:-1px}
+.kpi-foot{display:flex;align-items:center;justify-content:space-between}
+.kpi-delta{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace}
+.up{color:var(--green)}.dn{color:var(--red)}.warn{color:var(--amber)}
+.bdg{font-size:10px;padding:2px 7px;border-radius:10px;font-family:'JetBrains Mono',monospace;white-space:nowrap}
+.bdg-g{background:var(--gbg);color:var(--green);border:1px solid var(--gbd)}
+.bdg-r{background:var(--rbg);color:var(--red);border:1px solid var(--rbd)}
+.bdg-a{background:var(--abg);color:var(--amber);border:1px solid var(--abd)}
+.bdg-b{background:var(--bbg);color:var(--blue);border:1px solid var(--bbd)}
+.bdg-gray{background:var(--bg4);color:var(--t2);border:1px solid var(--b2)}
+
+/* PANEL */
+.pnl{background:var(--bg2);border:1px solid var(--b1);border-radius:10px;overflow:hidden;transition:.15s}
+.pnl:hover{border-color:var(--b2)}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 16px 0}
+.ph-l .ph-tag{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px}
+.ph-l .ph-title{font-size:12px;font-weight:600;color:var(--t1)}
+.ph-r{display:flex;gap:5px;align-items:center;flex-shrink:0}
+.pb-inner{padding:12px 16px}
+
+/* IMPL DRAWER */
+.impl-toggle{width:100%;display:flex;align-items:center;gap:7px;padding:7px 16px;background:var(--impl-bg);border:none;border-top:1px solid var(--impl-bd);color:var(--blue);font-size:10px;font-family:'JetBrains Mono',monospace;cursor:pointer;text-align:left;transition:.15s;letter-spacing:.3px}
+.impl-toggle:hover{background:#141c2e;color:var(--cyan)}
+.impl-toggle .arrow{transition:.2s;display:inline-block;font-size:9px}
+.impl-toggle.open .arrow{transform:rotate(90deg)}
+.impl-body{display:none;background:var(--impl-bg);border-top:1px solid var(--b1);padding:12px 16px}
+.impl-body.open{display:block}
+.impl-row{display:flex;gap:10px;margin-bottom:8px;align-items:flex-start}
+.impl-row:last-child{margin-bottom:0}
+.impl-tag{flex-shrink:0;font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 7px;border-radius:3px;font-weight:600;margin-top:1px}
+.impl-tag.src{background:rgba(34,211,238,.12);color:var(--cyan)}
+.impl-tag.how{background:rgba(167,139,250,.12);color:var(--purple)}
+.impl-tag.lib{background:rgba(75,158,255,.12);color:var(--blue)}
+.impl-tag.goal{background:rgba(0,196,122,.12);color:var(--green)}
+.impl-tag.freq{background:rgba(245,166,35,.12);color:var(--amber)}
+.impl-text{font-size:11px;color:var(--t2);line-height:1.6}
+.impl-code{font-family:'JetBrains Mono',monospace;font-size:10px;background:rgba(255,255,255,0.04);border:1px solid var(--b1);border-radius:4px;padding:6px 9px;margin-top:5px;color:#a3e1ff;line-height:1.5;white-space:pre-wrap;word-break:break-all}
+
+/* PIPELINE BARS */
+.pl{display:flex;flex-direction:column;gap:8px}
+.pr{display:flex;align-items:center;gap:9px}
+.pr-lbl{width:82px;font-size:10px;color:var(--t2);flex-shrink:0;font-family:'JetBrains Mono',monospace}
+.pr-trk{flex:1;height:22px;background:var(--bg4);border-radius:4px;overflow:hidden}
+.pr-fil{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px;font-size:10px;font-weight:600;font-family:'JetBrains Mono',monospace}
+.pr-num{width:55px;text-align:right;font-size:10px;color:var(--t2);font-family:'JetBrains Mono',monospace}
+
+/* TABLE */
+.gtbl{width:100%;border-collapse:collapse}
+.gtbl th{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;padding:5px 10px;text-align:left;border-bottom:1px solid var(--b1);letter-spacing:.4px;text-transform:uppercase;white-space:nowrap}
+.gtbl td{padding:7px 10px;font-size:11px;color:var(--t2);border-bottom:1px solid rgba(255,255,255,0.03);vertical-align:middle}
+.gtbl tr:last-child td{border:none}
+.gtbl tbody tr:hover td{background:rgba(255,255,255,0.02)}
+.sev{display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 7px;border-radius:10px;font-family:'JetBrains Mono',monospace}
+.sev-c{background:var(--rbg);color:var(--red);border:1px solid var(--rbd)}
+.sev-w{background:var(--abg);color:var(--amber);border:1px solid var(--abd)}
+.sev-ok{background:var(--gbg);color:var(--green);border:1px solid var(--gbd)}
+
+/* PROGRESS BAR */
+.pb{height:5px;background:var(--bg4);border-radius:3px;overflow:hidden;margin:3px 0}
+.pbf{height:100%;border-radius:3px}
+
+/* GAUGE */
+.gauge-wrap{display:flex;flex-direction:column;align-items:center}
+.gauge-val{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;margin-top:-6px}
+.gauge-lbl{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace}
+
+/* SECTION DIVIDER */
+.sdiv{display:flex;align-items:center;gap:8px;padding:2px 0}
+.sdiv-t{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase;white-space:nowrap}
+.sdiv::after{content:'';flex:1;height:1px;background:var(--b1)}
+
+/* HEATMAP */
+.hmc{display:inline-block;padding:3px 10px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:11px;min-width:48px;text-align:center}
+
+/* METRIC GROUP HEADER */
+.mgh{display:flex;align-items:center;gap:8px;margin-bottom:2px;margin-top:4px}
+.mgh-line{flex:1;height:1px;background:var(--b1)}
+.mgh-lbl{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;letter-spacing:.8px;text-transform:uppercase}
+
+/* CITATION BARS */
+.cit{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.cit-lbl{width:130px;font-size:11px;color:var(--t2);flex-shrink:0}
+.cit-trk{flex:1;height:15px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.cit-fill{height:100%;border-radius:3px;display:flex;align-items:center;padding-left:6px;font-size:10px;font-family:'JetBrains Mono',monospace;font-weight:600}
+.cit-num{width:36px;text-align:right;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t1)}
+
+/* DRIFT BARS */
+.drift{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--b1)}
+.drift:last-child{border:none}
+.drift-nm{width:145px;font-size:11px;color:var(--t2);flex-shrink:0}
+.drift-bar{flex:1;height:7px;background:var(--bg4);border-radius:4px;overflow:hidden}
+.drift-fill{height:100%;border-radius:4px}
+.drift-val{width:62px;text-align:right;font-size:11px;font-family:'JetBrains Mono',monospace}
+
+/* SAFETY GRID */
+.sfg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sfc{background:var(--bg3);border-radius:7px;padding:11px;border:1px solid var(--b1);text-align:center}
+.sfc-lbl{font-size:10px;color:var(--t2);font-family:'JetBrains Mono',monospace;margin-bottom:5px}
+.sfc-val{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace}
+
+/* COST STAT ROW */
+.cst{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--b1);font-size:11px}
+.cst:last-child{border:none}
+.cst-lbl{color:var(--t2)}
+.cst-val{font-family:'JetBrains Mono',monospace;color:var(--t1)}
+
+/* MINI METRIC */
+.mm{background:var(--bg3);border-radius:7px;padding:11px;border:1px solid var(--b1)}
+.mm-lbl{font-size:10px;color:var(--t2);font-family:'JetBrains Mono',monospace;margin-bottom:5px}
+.mm-val{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.mm-sub{font-size:10px;color:var(--t3);margin-top:3px}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-mark">RA</div>
+    <span class="logo-txt">RAG<span>Admin</span></span>
+    <span style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-left:4px">v3.0</span>
+  </div>
+  <div class="tabs">
+    <button class="tab on" onclick="sw('ops',this)"><span class="tab-icon">⚡</span>Ops Monitor<span class="cnt">10</span></button>
+    <button class="tab" onclick="sw('quality',this)"><span class="tab-icon">🎯</span>Quality<span class="cnt">17</span></button>
+    <button class="tab" onclick="sw('cost',this)"><span class="tab-icon">💰</span>Cost &amp; Health<span class="cnt">9</span></button>
+    <button class="tab" onclick="sw('safety',this)"><span class="tab-icon">🛡️</span>Safety<span class="cnt">7</span></button>
+  </div>
+  <div class="tr">
+    <div class="live-lbl"><div class="live-dot"></div>LIVE</div>
+    <select class="sel"><option>최근 24시간</option><option>최근 7일</option><option>최근 30일</option></select>
+    <select class="sel"><option>전체 고객사</option><option>고객사 A</option><option>고객사 B</option></select>
+  </div>
+</div>
+
+<!-- ═══ OPS ═══════════════════════════════════════════════════════════════════ -->
+<div id="ops" class="page on">
+  <div class="abar w">
+    <div class="adot"></div>
+    <span class="amsg"><b>[Warning]</b> Index Freshness 31h — 목표 24h 초과. Ingestion DAG 상태 확인 필요.</span>
+    <span class="atime">14:47</span>
+    <span class="ax" onclick="this.parentElement.remove()">✕</span>
+  </div>
+
+  <!-- KPI 5개 -->
+  <div class="r5">
+    <div class="kpi" onclick="toggleImpl('i-lat')"><div class="kpi-stripe" style="background:var(--green)"></div><div class="kpi-lbl">E2E LATENCY P95 <span class="bdg bdg-g">정상</span></div><div class="kpi-val" style="color:var(--green)">1,842<span style="font-size:13px;color:var(--t2);font-weight:400">ms</span></div><div class="kpi-foot"><span class="kpi-delta"><span class="dn">▼ 12%</span> vs 어제</span><span style="font-size:9px;color:var(--t3)">클릭: 구현</span></div></div>
+    <div class="kpi" onclick="toggleImpl('i-err')"><div class="kpi-stripe" style="background:var(--green)"></div><div class="kpi-lbl">ERROR RATE <span class="bdg bdg-g">정상</span></div><div class="kpi-val" style="color:var(--green)">0.3<span style="font-size:13px;color:var(--t2);font-weight:400">%</span></div><div class="kpi-foot"><span class="kpi-delta"><span class="dn">▼ 0.1%p</span></span><span style="font-size:9px;color:var(--t3)">클릭: 구현</span></div></div>
+    <div class="kpi" onclick="toggleImpl('i-ans')"><div class="kpi-stripe" style="background:var(--green)"></div><div class="kpi-lbl">ANSWER RATE <span class="bdg bdg-g">정상</span></div><div class="kpi-val" style="color:var(--green)">94.1<span style="font-size:13px;color:var(--t2);font-weight:400">%</span></div><div class="kpi-foot"><span class="kpi-delta">목표 > 90%</span><span style="font-size:9px;color:var(--t3)">클릭: 구현</span></div></div>
+    <div class="kpi" onclick="toggleImpl('i-fresh')"><div class="kpi-stripe" style="background:var(--amber)"></div><div class="kpi-lbl">INDEX FRESHNESS <span class="bdg bdg-a">경고</span></div><div class="kpi-val" style="color:var(--amber)">31<span style="font-size:13px;color:var(--t2);font-weight:400">h</span></div><div class="kpi-foot"><span class="kpi-delta warn">목표 < 24h</span><span style="font-size:9px;color:var(--t3)">클릭: 구현</span></div></div>
+    <div class="kpi" onclick="toggleImpl('i-fall')"><div class="kpi-stripe" style="background:var(--green)"></div><div class="kpi-lbl">FALLBACK RATE <span class="bdg bdg-g">정상</span></div><div class="kpi-val" style="color:var(--green)">3.1<span style="font-size:13px;color:var(--t2);font-weight:400">%</span></div><div class="kpi-foot"><span class="kpi-delta">목표 < 5%</span><span style="font-size:9px;color:var(--t3)">클릭: 구현</span></div></div>
+  </div>
+
+  <!-- Impl drawers for KPI -->
+  <div id="i-lat" class="pnl" style="display:none">
+    <div class="pb-inner" style="padding:0">
+      <div class="impl-body open" style="display:block;border-top:none;border-radius:10px">
+        <div class="impl-row"><span class="impl-tag src">수집</span><span class="impl-text">OpenTelemetry SDK — 각 요청 입구에 trace_id 생성. Retrieval·LLM·후처리 span 개별 계측.</span></div>
+        <div class="impl-row"><span class="impl-tag lib">라이브러리</span><span class="impl-text">opentelemetry-sdk, prometheus-client. FastAPI middleware에서 before/after 훅으로 자동 계측.</span></div>
+        <div class="impl-code">from opentelemetry import trace
+with tracer.start_as_current_span("retrieval") as span:
+    results = vector_db.search(query_embedding)
+    span.set_attribute("result_count", len(results))</div>
+        <div class="impl-row" style="margin-top:8px"><span class="impl-tag goal">목표</span><span class="impl-text">P95 &lt; 3,000ms. Prometheus histogram_buckets로 P값 산출. 알림: AlertManager → PagerDuty.</span></div>
+      </div>
+    </div>
+  </div>
+  <div id="i-err" class="pnl" style="display:none">
+    <div class="impl-body open" style="display:block;border-top:none;border-radius:10px">
+      <div class="impl-row"><span class="impl-tag src">수집</span><span class="impl-text">Nginx/LB 액세스 로그 + FastAPI middleware에서 status_code 기록. Prometheus Counter로 집계.</span></div>
+      <div class="impl-code">@app.middleware("http")
+async def record_metrics(request, call_next):
+    response = await call_next(request)
+    error_counter.labels(status=response.status_code).inc()
+    return response</div>
+    </div>
+  </div>
+  <div id="i-ans" class="pnl" style="display:none">
+    <div class="impl-body open" style="display:block;border-top:none;border-radius:10px">
+      <div class="impl-row"><span class="impl-tag src">수집</span><span class="impl-text">RAG 결과 객체에 answer_type Enum 필드 추가 (success / no_result / error). Prometheus counter로 비율 집계.</span></div>
+      <div class="impl-code">class AnswerType(Enum):
+    SUCCESS = "success"
+    NO_RESULT = "no_result"  # Fallback 또는 Gap
+    ERROR = "error"</div>
+    </div>
+  </div>
+  <div id="i-fresh" class="pnl" style="display:none">
+    <div class="impl-body open" style="display:block;border-top:none;border-radius:10px">
+      <div class="impl-row"><span class="impl-tag src">수집</span><span class="impl-text">Airflow DAG 완료 후 Redis에 last_indexed_at 타임스탬프 저장. 대시보드: NOW() - last_indexed_at 실시간 계산.</span></div>
+      <div class="impl-code">redis.set("last_indexed_at", datetime.utcnow().isoformat())
+# 대시보드에서
+freshness_hours = (now - redis.get("last_indexed_at")) / 3600</div>
+    </div>
+  </div>
+  <div id="i-fall" class="pnl" style="display:none">
+    <div class="impl-body open" style="display:block;border-top:none;border-radius:10px">
+      <div class="impl-row"><span class="impl-tag src">수집</span><span class="impl-text">VectorStore.search() 예외 캐치 시 fallback_flag=True 기록. Prometheus counter로 집계.</span></div>
+      <div class="impl-code">try:
+    results = vector_store.search(query)
+except VectorSearchError:
+    fallback_counter.inc()
+    results = keyword_search(query)  # BM25 fallback</div>
+    </div>
+  </div>
+
+  <!-- Latency + Pipeline -->
+  <div class="r21">
+    <div class="pnl">
+      <div class="ph"><div class="ph-l"><div class="ph-tag">실시간 트래픽</div><div class="ph-title">P50 / P90 / P95 / P99 레이턴시</div></div>
+        <div class="ph-r"><button class="bdg bdg-g" style="cursor:pointer;border:none">1h</button><button class="bdg bdg-gray" style="cursor:pointer;border:1px solid var(--b2)">6h</button></div>
+      </div>
+      <div class="pb-inner"><div style="height:160px"><canvas id="latC"></canvas></div></div>
+      <button class="impl-toggle" onclick="toggleImpl2(this)"><span class="arrow">▶</span> &nbsp;구현 방법 — OpenTelemetry span + Prometheus histogram</button>
+      <div class="impl-body">
+        <div class="impl-row"><span class="impl-tag src">수집</span><span class="impl-text">각 요청에 trace_id 부여. span 종료 시 elapsed_ms를 Prometheus histogram에 observe().</span></div>
+        <div class="impl-row"><span class="impl-tag freq">주기</span><span class="impl-text">실시간 스트리밍 (scrape interval 15s). ClickHouse에 raw trace 병렬 저장.</span></div>
+      </div>
+    </div>
+    <div class="pnl">
+      <div class="ph"><div class="ph-l"><div class="ph-tag">파이프라인 병목</div><div class="ph-title">단계별 레이턴시 P95</div></div></div>
+      <div class="pb-inner">
+        <div class="pl">
+          <div class="pr"><div class="pr-lbl">Retrieval</div><div class="pr-trk"><div class="pr-fil" style="width:38%;background:rgba(75,158,255,.5);color:#4b9eff">438ms</div></div><div class="pr-num">438ms</div></div>
+          <div class="pr"><div class="pr-lbl">Reranking</div><div class="pr-trk"><div class="pr-fil" style="width:13%;background:rgba(167,139,250,.5);color:#a78bfa">162ms</div></div><div class="pr-num">162ms</div></div>
+          <div class="pr"><div class="pr-lbl">LLM 호출</div><div class="pr-trk"><div class="pr-fil" style="width:71%;background:rgba(0,196,122,.5);color:#00c47a">1,128ms</div></div><div class="pr-num">1,128ms</div></div>
+          <div class="pr"><div class="pr-lbl">후처리</div><div class="pr-trk"><div class="pr-fil" style="width:9%;background:rgba(245,166,35,.5);color:#f5a623">114ms</div></div><div class="pr-num">114ms</div></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:11px;padding-top:9px;border-top:1px solid var(--b1);font-size:11px;color:var(--t3)"><span>합계</span><span style="color:var(--t1);font-family:'JetBrains Mono',monospace">1,842ms</span></div>
+      </div>
+      <button class="impl-toggle" onclick="toggleImpl2(this)"><span class="arrow">▶</span> &nbsp;구현 — LangChain callback handler로 단계별 span</button>
+      <div class="impl-body">
+        <div class="impl-code">class PipelineTimer(BaseCallbackHandler):
+    def on_retriever_start(self, *a): self._t = time.time()
+    def on_retriever_end(self, *a):
+        stage_hist.labels("retrieval").observe(time.time()-self._t)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drift + Infra + Ingestion Error -->
+  <div class="r3">
+    <div class="pnl">
+      <div class="ph"><div class="ph-l"><div class="ph-tag">드리프트 감지</div><div class="ph-title">Query Distribution Drift</div></div><span class="bdg bdg-g">정상</span></div>
+      <div class="pb-inner">
+        <div style="height:110px"><canvas id="driftLineC"></canvas></div>
+        <div style="margin-top:10px">
+          <div class="drift"><span class="drift-nm">Query Distribution</span><div class="drift-bar"><div class="drift-fill" style="width:22%;background:var(--green)"></div></div><span class="drift-val" style="color:var(--green)">0.022 ✓</span></div>
+          <div class="drift"><span class="drift-nm">Recall Deviation</span><div class="drift-bar"><div class="drift-fill" style="width:35%;background:var(--amber)"></div></div><span class="drift-val" style="color:var(--amber)">-3.5%p ⚠</span></div>
+          <div class="drift"><span class="drift-nm">Model Behavior</span><div class="drift-bar"><div class="drift-fill" style="width:12%;background:var(--green)"></div></div><span class="drift-val" style="color:var(--green)">0.12 ✓</span></div>
+        </div>
+      </div>
+      <button class="impl-toggle" onclick="toggleImpl2(this)"><span class="arrow">▶</span> &nbsp;구현 — 쿼리 임베딩 S3 저장 + 일 1회 cosine distance 배치</button>
+      <div class="impl-body">
+        <div class="impl-row"><span class="impl-tag src">수집</span><span class="impl-text">각 쿼리 임베딩 벡터를 S3에 parquet 저장. 일 1회 배치: rolling 7일 평균 중심 벡터 계산 → 현재 세트와 cosine distance.</span></div>
+        <div class="impl-code">baseline = np.mean(embeddings_7d, axis=0)
+current  = np.mean(embeddings_today, axis=0)
+drift = 1 - cosine_similarity([baseline], [current])[0][0]</div>
+      </div>
+    </div>
+    <div class="pnl">
+      <div class="ph"><div class="ph-l"><div class="ph-tag">인프라 효율</div><div class="ph-title">Vector DB / Embed API</div></div></div>
+      <div class="pb-inner" style="display:flex;flex-direction:column;gap:9px">
+        <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:var(--t2)">Vector DB Memory</span><span style="font-family:'JetBrains Mono',monospace;color:var(--green)">62%</span></div><div class="pb"><div class="pbf" style="width:62%;background:var(--green)"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:var(--t2)">Vector DB QPS</span><span style="font-family:'JetBrains Mono',monospace;color:var(--t1)">142 qps</span></div><div class="pb"><div class="pbf" style="width:47%;background:var(--blue)"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:var(--t2)">Embed API Rate Limit 히트</span><span style="font-family:'JetBrains Mono',monospace;color:var(--green)">0.02%</span></div><div class="pb"><div class="pbf" style="width:0.02%;background:var(--green)"></div></div></div>
+        <div style="height:70px"><canvas id="infraC"></canvas></div>
+      </div>
+      <button class="impl-toggle" onclick="toggleImpl2(this)"><span class="arrow">▶</span> &nbsp;구현 — Prometheus exporter + 429 응답 카운터</button>
+      <div class="impl-body">
+        <div class="impl-row"><span class="impl-tag lib">라이브러리</span><span class="impl-text">Qdrant /metrics 엔드포인트를 Prometheus scrape. Embed API: 429 응답 시 rate_limit_counter.inc().</span></div>
+        <div class="impl-code">try: embed(text)
+except RateLimitError: rate_limit_hits.inc(); sleep(1)</div>
+      </div>
+    </div>
+    <div class="pnl">
+      <div class="ph"><div class="ph-l"><div class="ph-tag">데이터 건강 — Ops 뷰</div><div class="ph-title">Index Freshness &amp; Ingestion</div></div></div>
+      <div class="pb-inner">
+        <div style="background:var(--abg);border:1px solid var(--abd);border-radius:7px;padding:11px;margin-bottom:10px">
+          <div style="font-size:10px;color:var(--amber);font-family:'JetBrains Mono',monospace;margin-bottom:3px">INDEX FRESHNESS ⚠ Warning</div>
+          <div style="font-size:24px;font-weight:700;color:var(--amber);font-family:'JetBrains Mono',monospace">31h 경과</div>
+          <div style="font-size:10px;color:var(--t3);margin-top:3px">목표 < 24h · Airflow DAG 상태 확인</div>
+        </div>
+        <div class="cst"><span class="cst-lbl">Ingestion Error Rate</span><span class="cst-val" style="color:var(--green)">0.4%</span></div>
+        <div class="cst"><span class="cst-lbl">최근 인덱싱 오류</span><span class="cst-val">3건</span></div>
+        <div class="cst"><span class="cst-lbl">마지막 성공 인덱싱</span><span class="cst-val" style="font-size:10px">03-21 09:12</span></div>
+      </div>
+      <button class="impl-toggle" onclick="toggleImpl2(this)"><span class="arrow">▶</span> &nbsp;구현 — Redis 타임스탬프 + Airflow 오류 로그 테이블</button>
+      <div class="impl-body">
+        <div class="impl-row"><span class="impl-tag src">수집</span><span class="impl-text">인덱싱 파이프라인 각 단계(parse/chunk/embed)에서 try-catch. 오류 시 ingestion_errors 테이블에 INSERT.</span></div>
+        <div class="impl-code">try: chunk_and_embed(doc)
+except Exception as e:
+    db.insert("ingestion_errors", {doc_id, stage, error: str(e)})</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alert Log -->
+  <div class="pnl">
+    <div class="ph"><div class="ph-l"><div class="ph-tag">알림 이벤트 로그</div><div class="ph-title">최근 이벤트 · 임계값 초과 기록</div></div><span class="bdg bdg-a">활성 2건</span></div>
+    <div class="pb-inner">
+      <table class="gtbl"><thead><tr><th>시각</th><th>지표</th><th>섹션</th><th>현재값</th><th>임계값</th><th>심각도</th><th>상태</th></tr></thead>
+      <tbody>
+        <tr><td style="font-family:'JetBrains Mono',monospace;font-size:10px">14:47</td><td>Index Freshness</td><td><span class="bdg bdg-gray">Ops</span></td><td style="font-family:'JetBrains Mono',monospace">31h</td><td style="font-family:'JetBrains Mono',monospace;color:var(--t3)">&gt;24h</td><td><span class="sev sev-w">⚠ Warning</span></td><td><span class="bdg bdg-a">활성</span></td></tr>
+        <tr><td style="font-family:'JetBrains Mono',monospace;font-size:10px">13:21</td><td>Recall Deviation</td><td><span class="bdg bdg-gray">Ops</span></td><td style="font-family:'JetBrains Mono',monospace">-3.5%p</td><td style="font-family:'JetBrains Mono',monospace;color:var(--t3)">±5%p</td><td><span class="sev sev-w">⚠ Warning</span></td><td><span class="bdg bdg-a">활성</span></td></tr>
+        <tr><td style="font-family:'JetBrains Mono',monospace;font-size:10px">11:05</td><td>Error Rate</td><td><span class="bdg bdg-gray">Ops</span></td><td style="font-family:'JetBrains Mono',monospace">1.1%</td><td style="font-family:'JetBrains Mono',monospace;color:var(--t3)">&gt;1%</td><td><span class="sev sev-c">✕ Critical</span></td><td><span class="sev sev-ok">✓ 해소</span></td></tr>
+      </tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ QUALITY ════════════════════════════════════════════════════════════════ -->
+<div id="quality" class="page">
+  <!-- Scorecard + Version compare -->
+  <div class="r2">
+    <div class="pnl">
+      <div class="ph"><div class="ph-l"><div class="ph-tag">평가 스코어카드</div><div class="ph-title">5축 레이더 — 현재 vs 이전 버전</div></div><div class="ph-r"><span class="bdg bdg-b">v2.4.1</span><span class="bdg bdg-gray">v2.3.0</span></div></div>
+      <div class="pb-inner" style="display:flex;align-items:center;gap:14px">
+        <canvas id="radarC" width="180" height="180" style="flex-shrink:0"></canvas>
+        <table class="gtbl" style="flex:1"><thead><tr><th>지표</th><th>현재</th><th>이전</th><th>Δ</th></tr></thead><tbody>
+          <tr><td>Faithfulness</td><td style="font-family:'JetBrains Mono',monospace;color:var(--green)">0.92</td><td style="font-family:'JetBrains Mono',monospace;color:var(--t3)">0.88</td><td style="font-family:'JetBrains Mono',monospace;color:var(--green)">+0.04</td></tr>
+          <tr><td>Ans. Relevance</td><td style="font-family:'JetBrains Mono',monospace;color:var(--green)">0.87</td><td style="font-family:'JetBrains Mono',monospace;color:var(--t3)">0.85</td><td style="font-family:'JetBrains Mono',monospace;color:var(--green)">+0.02</td></tr>
+          <tr><td>Recall@K</td><td style="font-family:'JetBrains Mono',monospace;color:var(--red)">0.88</td><td style="font-family:'JetBrains Mono',monospace;color:var(--t3)">0.91</td><td style="font-family:'JetBrains Mono',monospace;color:var(--red)">−0.03</td></tr>
+          <tr><td>Precision@K</td><td style="font-family:'JetBrains Mono',monospace;color:var(--green)">0.74</td><td style="font-family:'JetBrains Mono',monospace;color:var(--t3)">0.72</td><td style="font-family:'JetBrains Mono',monospace;color:var(--green)">+0.02</td></tr>
+          <tr><td>Correctness</td><td style="font-family:'JetBrains Mono',monospace;color:var(--green)">0.81</td><td style="font-family:'JetBrains Mono',monospace;color:var(--t3)">0.79</td><td style="font-family:'JetBrains Mono',monospace;color:var(--green)">+0.02</td></tr>
+        </tbody></table>
+      </div>
+      <button class="impl-toggle" onclick="toggleImpl2(this)"><span class="arrow">▶</span> &nbsp;구현 — RAGAS + LLM Judge 배치 (Celery Beat)</button>
+      <div class="impl-body">
+        <div class="impl-row"><span class="impl-tag lib">라이브러리</span><span class="impl-text">pip install ragas. Dataset 객체: question/answer/contexts/ground_truth 필드. evaluate(dataset, metrics=[faithfulness, answer_relevancy...]).</span></div>
+        <div class="impl-row"><span class="impl-tag how">배치</span><span class="impl-text">Celery Beat 1시간마다 최근 500건 샘플 자동 평가. 결과를 quality_scores(session_id, metric, score, judge_model) 테이블에 저장.</span></div>
+      </div>
+    </div>
+    <div class="pnl">
+      <div class="ph"><div class="ph-l"><div class="ph-tag">Hallucination &amp; Faithfulness 추이</div><div class="ph-title">시간별 품질 모니터링</div></div></div>
+      <div class="pb-inner"><div style="height:180px"><canvas id="hallC"></canvas></div></div>
+      <button class="impl-toggle" onclick="toggleImpl2(this)"><span class="arrow">▶</span> &nbsp;구현 — LLM-as-Judge NLI 분류</button>
+      <div class="impl-body">
+        <div class="impl-row"><span class="impl-tag how">Judge 프롬프트</span><span class="impl-text">답변의 각 주장을 분해 → "해당 주장이 컨텍스트에 없는 내용인가?" 이진 분류. 주장 수 대비 환각 주장 비율 = Hallucination Rate.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Retrieval -->
+  <div class="mgh"><span class="mgh-lbl">Retrieval 품질</span><div class="mgh-line"></div></div>
+  <div class="r3">
+    <div class="pnl">
+      <div class="ph"><div class="ph-l"><div class="ph-tag">Recall@K / Precision@K / MRR</div><div class="ph-title">Retrieval 핵심 지표</div></div></div>
+      <div class="pb-inner"><div style="height:120px"><canvas id="retC"></canvas></div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <div class="mm" style="flex:1"><div class="mm-lbl">MRR</div><div class="mm-val" style="color:var(--green)">0.78</div><div class="mm-sub">목표 > 0.75</div></div>
+          <div class="mm" style="flex:1"><div class="mm-lbl">Similarity P25</div><div class="mm-val" style="color:var(--green)">0.68</div><div class="mm-sub">목표 > 0.60</div></div>
+        </div>
+      </div>
+      <button class="impl-toggle" onclick="toggleImpl2(this)"><span class="arrow">▶</span> &nbsp;구현 — Synthetic QA Ground Truth + 검색 결과 비교</button>
+      <div class="impl-body">
+        <div class="impl-row"><span class="impl-tag src">수집</span><span class="impl-text">Synthetic QA에서 각 질문의 정답 chunk_id 사전 정의. 검색 결과 Top-K에 chunk_id 포함 여부로 Recall 계산. Precision: Judge가 각 청크 관련도 0/1 분류.</span></div>
+        <div class="impl-code">recall = sum(gt_id in result_ids for gt_id in ground_truth) / len(ground_truth)
+mrr    = mean([1/(rank+1) for rank in first_relevant_ranks])</div>
+      </div>
+    </div>
+    <div class="pnl">
+      <div class="ph"><div class="ph-l"><div class="ph-tag">인용 추적</div><div class="ph-title">Citation Coverage / Correctness</div></div></div>
+      <div class="pb-inner" style="margin-top:4px">
+        <div class="cit"><span class="cit-lbl">Context Utilization</span><div class="cit-trk"><div class="cit-fill" style="width:68%;background:rgba(0,196,122,.55);color:#00c47a">68%</div></div><span class="cit-num">68%</span></div>
+        <div class="cit"><span class="cit-lbl">Citation Coverage</span><div class="cit-trk"><div class="cit-fill" style="width:74%;background:rgba(75,158,255,.55);color:#4b9eff">74%</div></div><span class="cit-num">74%</span></div>
+        <div class="cit"><span class="cit-lbl">Citation Correctness</span><div class="cit-trk"><div class="cit-fill" style="width:88%;background:rgba(0,196,122,.55);color:#00c47a">88%</div></div><span class="cit-num">88%</span></div>
+        <div style="height:70px;margin-top:10px"><canvas id="srcDivC"></canvas></div>
+      </div>
+      <button class="impl-toggle" onclick="toggleImpl2(this)"><span class="arrow">▶</span> &nbsp;구현 — Attribution LLM Judge + sources[] 필드</button>
+      <div class="impl-body">
+        <div class="impl-row"><span class="impl-tag how">Judge 프롬프트</span><span class="impl-text">각 청크에 대해 "답변 생성에 이 청크가 사용되었는가?" 이진 분류 → Context Utilization. Citation Correctness: 인용 출처 내용이 해당 문장을 지지하는가?</span></div>
+        <div class="impl-row"><span class="impl-tag src">수집</span><span class="impl-text">RAG 응답 포맷에 sources[] 배열 포함 강제. len(sources)>0 여부로 Coverage 계산. 불일치 케이스 자동으로 QA 리뷰 큐 등록.</span></div>
+      </div>
+    </div>
+    <div class="pnl">
+      <div class="ph"><div class="ph-l"><div class="ph-tag">Synthetic QA 매트릭스</div><div class="ph-title">카테고리 × 난이도 정답률</div></div><span class="bdg bdg-b">324 케이스</span></div>
+      <div class="pb-inner">
+        <table class="gtbl"><thead><tr><th>카테고리</th><th>쉬움</th><th>중간</th><th>어려움</th></tr></thead>
+        <tbody id="hmTb"></tbody></table>
+      </div>
+      <button class="impl-toggle" onclick="toggleImpl2(this)"><span class="arrow">▶</span> &nbsp;구현 — GPT-4o로 (질문, 정답) 자동 생성 + 주간 배치</button>
+      <div class="impl-body">
+        <div class="impl-row"><span class="impl-tag src">생성</span><span class="impl-text">신규 문서 인덱싱 완료 이벤트 → Airflow DAG 하위 태스크로 GPT-4o에게 난이도별 Q&A 생성 요청.</span></div>
+        <div class="impl-code">prompt = f"청크: {chunk}\n난이도 {difficulty}의 질문 1개와 정답을 JSON으로 생성"
+qa = llm.generate(prompt)  # {question, answer, difficulty, category}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Multiturn + Session -->
+  <div class="mgh"><span class="mgh-lbl">멀티턴 품질</span><div class="mgh-line"></div></div>
+  <div class="r2">
+    <div class="pnl">
+      <div class="ph"><div class="ph-l"><div class="ph-tag">멀티턴 지표</div><div class="ph-title">대화 흐름 평가</div></div></div>
+      <div class="pb-inner" style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+        <div class="mm"><div class="mm-lbl">CTX RETENTION</div><div class="mm-val" style="color:var(--green)">82.4%</div><div class="mm-sub">목표 > 80%</div></div>
+        <div class="mm" style="background:var(--abg);border-color:var(--abd)"><div class="mm-lbl" style="color:var(--amber)">REF RESOLUTION ⚠</div><div class="mm-val" style="color:var(--amber)">71.3%</div><div class="mm-sub">목표 > 75%</div></div>
+        <div class="mm"><div class="mm-lbl">TOPIC COHERENCE</div><div class="mm-val" style="color:var(--green)">0.81</div><div class="mm-sub">목표 > 0.75</div></div>
+        <div class="mm"><div class="mm-lbl">RE-RETRIEVAL RATE</div><div class="mm-val" style="color:var(--blue)">34.2%</div><div class="mm-sub">신규 검색 판단율</div></div>
+      </div>
+      <div style="padding:0 16px 12px;margin-top:8px">
+        <div style="background:var(--rbg);border:1px solid var(--rbd);border-radius:6px;padding:9px;font-size:11px"><span style="color:var(--amber)">⚠</span><span style="color:var(--t2)"> Reference Resolution 71.3% — 지시어 해석 목표 미달. 멀티턴 프롬프트 개선 필요.</span></div>
+      </div>
+      <button class="impl-toggle" onclick="toggleImpl2(this)"><span class="arrow">▶</span> &nbsp;구현 — Synthetic 멀티턴 QA + LLM Judge</button>
+      <div class="impl-body">
+        <div class="impl-row"><span class="impl-tag src">생성</span><span class="impl-text">멀티턴 시나리오(A→B→C 연속 질문) 자동 생성. 각 턴에서 이전 맥락 참조 필요 여부 레이블링. Judge로 참조 정확도 평가.</span></div>
+        <div class="impl-row"><span class="impl-tag how">Reference Resolution</span><span class="impl-text">"이전 답변에서 언급한 A에 대해 더 설명해줘" 형식 케이스 생성. Judge가 대명사/지시어 해석 결과 평가.</span></div>
+      </div>
+    </div>
+    <div class="pnl">
+      <div class="ph"><div class="ph-l"><div class="ph-tag">Session Success Rate</div><div class="ph-title">사용자 목표 달성 비율</div></div><span class="bdg bdg-g">목표 75%</span></div>
+      <div class="pb-inner" style="text-align:center;padding-top:20px">
+        <div style="font-size:40px;font-weight:700;color:var(--green);font-family:'JetBrains Mono',monospace">78.4%</div>
+        <div style="font-size:11px;color:var(--t2);margin:4px 0 14px">이번 달 · <span style="color:var(--green)">▲ 3.1%p</span> vs 전월</div>
+        <div style="height:70px"><canvas id="sessC"></canvas></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--t2);margin-top:10px;padding-top:9px;border-top:1px solid var(--b1)"><span>평균 세션 길이</span><span style="font-family:'JetBrains Mono',monospace;color:var(--t1)">3.2 턴</span></div>
+      </div>
+      <button class="impl-toggle" onclick="toggleImpl2(this)"><span class="arrow">▶</span> &nbsp;구현 — 세션 종료 시 LLM Judge 분류</button>
+      <div class="impl-body">
+        <div class="impl-row"><span class="impl-tag how">Judge 프롬프트</span><span class="impl-text">세션 종료 시 전체 대화 이력 전달: "사용자가 원하는 답을 얻었는가? (success/failure/unclear)" 비율 집계.</span></div>
+        <div class="impl-code">session_result = judge.classify(
+    conversation_history,
+    prompt="Did the user get a satisfying answer? Return JSON: {result, reason}"
+)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ COST & HEALTH ═════════════════════════════════════════════════════════ -->
+<div id="cost" class="page">
+  <div class="r4">
+    <div class="kpi"><div class="kpi-stripe" style="background:var(--cyan)"></div><div class="kpi-lbl">COST / QUERY</div><div class="kpi-val" style="color:var(--cyan)">$0.004</div><div class="kpi-foot"><span class="kpi-delta">목표 $0.002~0.008</span><span class="bdg bdg-g">정상</span></div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:var(--green)"></div><div class="kpi-lbl">CACHE HIT RATE</div><div class="kpi-val" style="color:var(--green)">26.4<span style="font-size:13px;color:var(--t2);font-weight:400">%</span></div><div class="kpi-foot"><span class="kpi-delta">목표 > 20%</span><span class="bdg bdg-g">정상</span></div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:var(--amber)"></div><div class="kpi-lbl">KNOWLEDGE GAP RATE</div><div class="kpi-val" style="color:var(--amber)">9.3<span style="font-size:13px;color:var(--t2);font-weight:400">%</span></div><div class="kpi-foot"><span class="kpi-delta warn">목표 < 8%</span><span class="bdg bdg-a">경고</span></div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:var(--green)"></div><div class="kpi-lbl">STALE 문서 비율</div><div class="kpi-val" style="color:var(--green)">2.1<span style="font-size:13px;color:var(--t2);font-weight:400">%</span></div><div class="kpi-foot"><span class="kpi-delta">목표 < 5%</span><span class="bdg bdg-g">정상</span></div></div>
+  </div>
+
+  <div class="r2">
+    <div class="pnl">
+      <div class="ph"><div class="ph-l"><div class="ph-tag">일별 총 비용 (30일)</div><div class="ph-title">LLM API / 임베딩 / Reranker / 인프라</div></div><span class="bdg bdg-b">월 평균 $3,720</span></div>
+      <div class="pb-inner"><div style="height:150px"><canvas id="costC"></canvas></div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px">
+          <div style="text-align:center"><div style="font-size:10px;color:var(--t2);margin-bottom:3px">LLM API</div><div style="font-size:15px;font-weight:700;color:var(--green);font-family:'JetBrains Mono',monospace">68%</div></div>
+          <div style="text-align:center"><div style="font-size:10px;color:var(--t2);margin-bottom:3px">임베딩</div><div style="font-size:15px;font-weight:700;color:var(--blue);font-family:'JetBrains Mono',monospace">18%</div></div>
+          <div style="text-align:center"><div style="font-size:10px;color:var(--t2);margin-bottom:3px">Reranker</div><div style="font-size:15px;font-weight:700;color:var(--purple);font-family:'JetBrains Mono',monospace">9%</div></div>
+          <div style="text-align:center"><div style="font-size:10px;color:var(--t2);margin-bottom:3px">인프라</div><div style="font-size:15px;font-weight:700;color:var(--amber);font-family:'JetBrains Mono',monospace">5%</div></div>
+        </div>
+      </div>
+      <button class="impl-toggle" onclick="toggleImpl2(this)"><span class="arrow">▶</span> &nbsp;구현 — API usage 필드 파싱 + 고객사 태깅 + BigQuery 집계</button>
+      <div class="impl-body">
+        <div class="impl-row"><span class="impl-tag src">수집</span><span class="impl-text">LLM 응답의 usage.prompt_tokens / completion_tokens에 단가 곱산. 모든 호출에 customer_id, project_id 태그 부여.</span></div>
+        <div class="impl-code">cost = (resp.usage.prompt_tokens * 0.000003 +
+        resp.usage.completion_tokens * 0.000015)
+db.insert("cost_log", {query_id, customer_id, cost_usd: cost})</div>
+        <div class="impl-row" style="margin-top:6px"><span class="impl-tag how">집계</span><span class="impl-text">일 1회 배치: cost_log → GROUP BY customer_id, date, cost_type → daily_cost_summary. 예산 80% 도달 시 Slack 알림.</span></div>
+      </div>
+    </div>
+    <div class="pnl">
+      <div class="ph"><div class="ph-l"><div class="ph-tag">Token Usage 추이</div><div class="ph-title">입력 / 출력 토큰 (30일)</div></div></div>
+      <div class="pb-inner"><div style="height:150px"><canvas id="tokenC"></canvas></div>
+        <div class="cst" style="margin-top:8px"><span class="cst-lbl">평균 입력 토큰</span><span class="cst-val">2,840 tok</span></div>
+        <div class="cst"><span class="cst-lbl">평균 출력 토큰</span><span class="cst-val">412 tok</span></div>
+        <div class="cst"><span class="cst-lbl">Reranking 비용 기여</span><span class="cst-val" style="color:var(--green)">9.1%</span></div>
+      </div>
+      <button class="impl-toggle" onclick="toggleImpl2(this)"><span class="arrow">▶</span> &nbsp;구현 — response.usage 파싱 + token_log 테이블</button>
+      <div class="impl-body">
+        <div class="impl-row"><span class="impl-tag src">수집</span><span class="impl-text">모든 LLM 호출에서 response.usage를 파싱해 token_log 테이블 INSERT. 입력 토큰 급증 시 컨텍스트 압축 트리거.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="r3">
+    <div class="pnl">
+      <div class="ph"><div class="ph-l"><div class="ph-tag">시맨틱 캐시</div><div class="ph-title">Cache Hit Rate 추이</div></div><span class="bdg bdg-g">26.4%</span></div>
+      <div class="pb-inner"><div style="height:100px"><canvas id="cacheC"></canvas></div></div>
+      <button class="impl-toggle" onclick="toggleImpl2(this)"><span class="arrow">▶</span> &nbsp;구현 — Redis Stack VSEARCH (cosine 0.95 임계값)</button>
+      <div class="impl-body">
+        <div class="impl-row"><span class="impl-tag lib">스택</span><span class="impl-text">Redis Stack (Vector Search) 또는 pgvector. 쿼리 임베딩 → HNSW cosine > 0.95 → 캐시 히트. TTL 24h.</span></div>
+        <div class="impl-code">result = redis.vsearch(query_embedding, topk=1, threshold=0.95)
+if result: cache_hits.inc(); return result.answer
+else: cache_misses.inc(); answer = rag_pipeline(query)
+      redis.vset(query_embedding, answer)</div>
+      </div>
+    </div>
+    <div class="pnl">
+      <div class="ph"><div class="ph-l"><div class="ph-tag">지식베이스 건강</div><div class="ph-title">Knowledge Gap &amp; 중복</div></div></div>
+      <div class="pb-inner">
+        <table class="gtbl"><thead><tr><th>미커버 질문 Top 5</th><th>건수</th><th>상태</th></tr></thead><tbody>
+          <tr><td>계약 중도 해지 위약금</td><td style="font-family:'JetBrains Mono',monospace">142</td><td><span class="bdg bdg-a">인입</span></td></tr>
+          <tr><td>API 오류코드 E4029</td><td style="font-family:'JetBrains Mono',monospace">98</td><td><span class="bdg bdg-r">미처리</span></td></tr>
+          <tr><td>엔터프라이즈 커스텀 SLA</td><td style="font-family:'JetBrains Mono',monospace">76</td><td><span class="bdg bdg-r">미처리</span></td></tr>
+          <tr><td>다국어 인터페이스 지원</td><td style="font-family:'JetBrains Mono',monospace">61</td><td><span class="sev sev-ok">완료</span></td></tr>
+          <tr><td>모바일 앱 알림 설정</td><td style="font-family:'JetBrains Mono',monospace">44</td><td><span class="bdg bdg-r">미처리</span></td></tr>
+        </tbody></table>
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <div class="mm" style="flex:1"><div class="mm-lbl">문서 중복율</div><div class="mm-val" style="color:var(--green)">1.4%</div><div class="mm-sub">목표 < 3%</div></div>
+          <div class="mm" style="flex:1"><div class="mm-lbl">Embed Drift</div><div class="mm-val" style="color:var(--green)">0.07</div><div class="mm-sub">목표 < 0.15</div></div>
+        </div>
+      </div>
+      <button class="impl-toggle" onclick="toggleImpl2(this)"><span class="arrow">▶</span> &nbsp;구현 — Answer Rate 역산 + LLM 토픽 분류 + HNSW 중복 탐색</button>
+      <div class="impl-body">
+        <div class="impl-row"><span class="impl-tag src">Knowledge Gap</span><span class="impl-text">no_result 쿼리를 LLM으로 토픽 분류 → knowledge_gaps 테이블 저장. 주 1회 클러스터링으로 그룹화.</span></div>
+        <div class="impl-row"><span class="impl-tag src">중복 감지</span><span class="impl-text">인덱싱 완료 후 HNSW로 cosine > 0.95 청크 쌍 탐색. dedup_candidates 테이블에 저장 → 주간 수동 리뷰.</span></div>
+        <div class="impl-row"><span class="impl-tag src">Embed Drift</span><span class="impl-text">주 1회 전체 청크 임베딩 중심 벡터 계산. 지난 주와 cosine distance. 임계값 0.15 초과 시 경고.</span></div>
+      </div>
+    </div>
+    <div class="pnl">
+      <div class="ph"><div class="ph-l"><div class="ph-tag">Stale 문서 &amp; Reranking 비용</div></div></div>
+      <div class="pb-inner">
+        <div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px"><span style="color:var(--t2)">Stale 문서 비율 (>90일)</span><span style="font-family:'JetBrains Mono',monospace;color:var(--green)">2.1%</span></div>
+          <div class="pb" style="height:8px"><div class="pbf" style="width:2.1%;background:var(--green)"></div></div>
+          <div style="font-size:10px;color:var(--t3);margin-top:3px">목표 < 5%</div>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px"><span style="color:var(--t2)">Reranking 비용 기여율</span><span style="font-family:'JetBrains Mono',monospace;color:var(--green)">9.1%</span></div>
+          <div class="pb" style="height:8px"><div class="pbf" style="width:9.1%;background:var(--purple)"></div></div>
+          <div style="font-size:10px;color:var(--t3);margin-top:3px">목표 < 15%</div>
+        </div>
+        <div style="height:80px"><canvas id="rerankerC"></canvas></div>
+      </div>
+      <button class="impl-toggle" onclick="toggleImpl2(this)"><span class="arrow">▶</span> &nbsp;구현 — indexed_at 메타데이터 + reranker_calls 카운터</button>
+      <div class="impl-body">
+        <div class="impl-row"><span class="impl-tag src">Stale</span><span class="impl-text">인덱싱 시 각 청크에 source_updated_at 저장. 일 1회: NOW() - source_updated_at > 90일 비율 계산.</span></div>
+        <div class="impl-row"><span class="impl-tag src">Reranking</span><span class="impl-text">Cross-encoder API 호출 시 reranker_calls 카운터 증가. rerank_cost_usd 필드 저장. 총 비용 대비 비율 집계.</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SAFETY ════════════════════════════════════════════════════════════════ -->
+<div id="safety" class="page">
+  <div class="abar">
+    <div class="adot"></div>
+    <span class="amsg"><b>[Info]</b> 이번 달 PII 이벤트 0건 · 레드팀 v2.4.1 전 항목 통과 · Safety 종합점수 100/100</span>
+    <span class="atime">오늘</span>
+  </div>
+
+  <div class="r4">
+    <div class="kpi"><div class="kpi-stripe" style="background:var(--green)"></div><div class="kpi-lbl">PII LEAKAGE 이벤트</div><div class="kpi-val" style="color:var(--green)">0<span style="font-size:16px;color:var(--t2);font-weight:400">건</span></div><div class="kpi-foot"><span class="kpi-delta">이번 달</span><span class="bdg bdg-g">정상</span></div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:var(--green)"></div><div class="kpi-lbl">UNANSWERABLE DETECT</div><div class="kpi-val" style="color:var(--green)">88<span style="font-size:13px;color:var(--t2);font-weight:400">%</span></div><div class="kpi-foot"><span class="kpi-delta">목표 > 85%</span><span class="bdg bdg-g">정상</span></div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:var(--green)"></div><div class="kpi-lbl">ADVERSARIAL RESIST</div><div class="kpi-val" style="color:var(--green)">96.7<span style="font-size:13px;color:var(--t2);font-weight:400">%</span></div><div class="kpi-foot"><span class="kpi-delta">목표 > 95%</span><span class="bdg bdg-g">통과</span></div></div>
+    <div class="kpi"><div class="kpi-stripe" style="background:var(--green)"></div><div class="kpi-lbl">TOXICITY SCORE</div><div class="kpi-val" style="color:var(--green)">0.02<span style="font-size:13px;color:var(--t2);font-weight:400">%</span></div><div class="kpi-foot"><span class="kpi-delta">목표 < 0.1%</span><span class="bdg bdg-g">정상</span></div></div>
+  </div>
+
+  <div class="r2">
+    <div class="pnl">
+      <div class="ph"><div class="ph-l"><div class="ph-tag">PII 감지 실시간 모니터</div><div class="ph-title">Presidio 감지 현황 (오늘)</div></div><span class="bdg bdg-g">이벤트 없음</span></div>
+      <div class="pb-inner">
+        <div class="sfg">
+          <div class="sfc"><div class="sfc-lbl">PII LEAKAGE</div><div class="sfc-val" style="color:var(--green)">0건</div></div>
+          <div class="sfc"><div class="sfc-lbl">UNANSWERABLE</div><div class="sfc-val" style="color:var(--green)">88%</div></div>
+          <div class="sfc"><div class="sfc-lbl">OOD REJECT</div><div class="sfc-val" style="color:var(--green)">83%</div></div>
+          <div class="sfc"><div class="sfc-lbl">ADVERSARIAL</div><div class="sfc-val" style="color:var(--green)">96.7%</div></div>
+          <div class="sfc"><div class="sfc-lbl">TOXICITY</div><div class="sfc-val" style="color:var(--green)">0.02%</div></div>
+          <div class="sfc"><div class="sfc-lbl">SAFETY SCORE</div><div class="sfc-val" style="color:var(--green)">100</div></div>
+        </div>
+      </div>
+      <button class="impl-toggle" onclick="toggleImpl2(this)"><span class="arrow">▶</span> &nbsp;구현 — Microsoft Presidio + 커스텀 KR 패턴 + 실시간 차단</button>
+      <div class="impl-body">
+        <div class="impl-row"><span class="impl-tag lib">라이브러리</span><span class="impl-text">presidio-analyzer + presidio-anonymizer. 커스텀 recognizer: KR_SSN, KR_PHONE, KR_BANK_ACCT 정규식 추가.</span></div>
+        <div class="impl-code">analyzer = AnalyzerEngine()
+analyzer.registry.add_recognizer(KoreanSSNRecognizer())
+results = analyzer.analyze(llm_response, language="ko")
+if results:  # PII 감지
+    pii_events.insert({session_id, entity_type, detected_at})
+    slack.alert("🚨 PII 감지")  # 즉시 알림
+    return anonymizer.anonymize(llm_response, results)</div>
+        <div class="impl-row" style="margin-top:6px"><span class="impl-tag freq">주기</span><span class="impl-text">실시간 (모든 응답에 적용). 감지 즉시 Slack + PagerDuty 발송. 해당 세션 격리.</span></div>
+      </div>
+    </div>
+    <div class="pnl">
+      <div class="ph"><div class="ph-l"><div class="ph-tag">안전성 지표 추이</div><div class="ph-title">Unanswerable / OOD / Toxicity (30일)</div></div></div>
+      <div class="pb-inner"><div style="height:180px"><canvas id="safetyC"></canvas></div></div>
+      <button class="impl-toggle" onclick="toggleImpl2(this)"><span class="arrow">▶</span> &nbsp;구현 — Synthetic 안전성 케이스셋 + OpenAI Moderation API</button>
+      <div class="impl-body">
+        <div class="impl-row"><span class="impl-tag how">Unanswerable</span><span class="impl-text">정답 없는 케이스 200개 생성. RAG가 거부 응답("답변 드리기 어렵습니다" 등)을 생성하는지 Judge 판별.</span></div>
+        <div class="impl-row"><span class="impl-tag how">Toxicity</span><span class="impl-text">모든 응답을 OpenAI Moderation API에 전달. categories.hate/violence 점수 임계값(0.7) 초과 시 차단 + 로깅.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Red Team -->
+  <div class="pnl">
+    <div class="ph"><div class="ph-l"><div class="ph-tag">🔴 레드팀 평가 이력</div><div class="ph-title">배포 전 자동화 평가 결과 — CI/CD 연동</div></div><span class="bdg bdg-g">v2.4.1 전 항목 통과</span></div>
+    <div class="pb-inner">
+      <table class="gtbl"><thead><tr><th>버전</th><th>실행일</th><th>케이스 수</th><th>Unanswerable</th><th>OOD Reject</th><th>Adversarial</th><th>PII (0건)</th><th>Toxicity</th><th>최종 결과</th></tr></thead><tbody>
+        <tr><td style="font-family:'JetBrains Mono',monospace">v2.4.1</td><td style="font-family:'JetBrains Mono',monospace;font-size:10px">03-20</td><td style="font-family:'JetBrains Mono',monospace">610</td><td style="font-family:'JetBrains Mono',monospace;color:var(--green)">88.3%</td><td style="font-family:'JetBrains Mono',monospace;color:var(--green)">82.5%</td><td style="font-family:'JetBrains Mono',monospace;color:var(--green)">96.7%</td><td style="font-family:'JetBrains Mono',monospace;color:var(--green)">✓</td><td style="font-family:'JetBrains Mono',monospace;color:var(--green)">99.3%</td><td><span class="sev sev-ok">✓ 배포 승인</span></td></tr>
+        <tr><td style="font-family:'JetBrains Mono',monospace">v2.4.0</td><td style="font-family:'JetBrains Mono',monospace;font-size:10px">03-13</td><td style="font-family:'JetBrains Mono',monospace">610</td><td style="font-family:'JetBrains Mono',monospace;color:var(--green)">86.1%</td><td style="font-family:'JetBrains Mono',monospace;color:var(--green)">80.0%</td><td style="font-family:'JetBrains Mono',monospace;color:var(--red)">91.2%</td><td style="font-family:'JetBrains Mono',monospace;color:var(--green)">✓</td><td style="font-family:'JetBrains Mono',monospace;color:var(--green)">98.7%</td><td><span class="sev sev-c">✕ 블록됨</span></td></tr>
+        <tr><td style="font-family:'JetBrains Mono',monospace">v2.3.0</td><td style="font-family:'JetBrains Mono',monospace;font-size:10px">03-06</td><td style="font-family:'JetBrains Mono',monospace">580</td><td style="font-family:'JetBrains Mono',monospace;color:var(--green)">85.5%</td><td style="font-family:'JetBrains Mono',monospace;color:var(--green)">81.3%</td><td style="font-family:'JetBrains Mono',monospace;color:var(--green)">97.1%</td><td style="font-family:'JetBrains Mono',monospace;color:var(--green)">✓</td><td style="font-family:'JetBrains Mono',monospace;color:var(--green)">99.1%</td><td><span class="sev sev-ok">✓ 배포 승인</span></td></tr>
+      </tbody></table>
+    </div>
+    <button class="impl-toggle" onclick="toggleImpl2(this)"><span class="arrow">▶</span> &nbsp;구현 — GitHub Actions CI/CD 연동 + red_team_cases 테이블 + PR 코멘트 자동 게시</button>
+    <div class="impl-body">
+      <div class="impl-row"><span class="impl-tag src">케이스셋</span><span class="impl-text">red_team_cases(id, category, prompt, expected_behavior) 테이블. QA팀이 수동 관리. 분기 1회 갱신 권장.</span></div>
+      <div class="impl-row"><span class="impl-tag how">CI/CD</span><span class="impl-text">GitHub Actions workflow에 red_team_eval job 추가. PR 머지 전 실행. 통과율 < 95% 시 머지 블록.</span></div>
+      <div class="impl-code">jobs:
+  red_team_eval:
+    steps:
+      - run: python eval/red_team.py --version ${{ github.sha }}
+      - uses: peter-evans/create-or-update-comment@v3
+        with:
+          body: |
+            🔴 Red Team Result: ${{ steps.eval.outputs.pass_rate }}%
+            ${{ steps.eval.outputs.failed_cases }}</div>
+      <div class="impl-row" style="margin-top:6px"><span class="impl-tag lib">Chunk Overlap Quality</span><span class="impl-text">청크 분할 시 경계 ±N토큰 추출. 인접 청크 간 의미 연속성을 Judge로 평가. score&lt;0.5 청크 재분할 트리거.</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── TAB ──────────────────────────────────────────────────────────────────────
+function sw(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  el.classList.add('on');
+}
+
+// ── IMPL TOGGLE (for KPI cards) ───────────────────────────────────────────
+function toggleImpl(id){
+  const el=document.getElementById(id);
+  el.style.display = el.style.display==='none' ? 'block' : 'none';
+}
+
+// ── IMPL TOGGLE (for panel drawers) ──────────────────────────────────────
+function toggleImpl2(btn){
+  const body=btn.nextElementSibling;
+  const isOpen=body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  body.style.display=isOpen?'none':'block';
+  btn.classList.toggle('open',!isOpen);
+  const arr=btn.querySelector('.arrow');
+  arr.style.transform=isOpen?'':'rotate(90deg)';
+}
+
+// ── CHART DEFAULTS ────────────────────────────────────────────────────────
+Chart.defaults.color='#505868';
+Chart.defaults.borderColor='rgba(255,255,255,0.04)';
+Chart.defaults.font.family="'JetBrains Mono',monospace";
+Chart.defaults.font.size=10;
+
+const rnd=(b,s,n=30)=>Array.from({length:n},()=>+(b+(Math.random()-.5)*s).toFixed(3));
+
+// OPS: Latency
+new Chart(document.getElementById('latC'),{type:'line',
+  data:{labels:Array.from({length:60},(_,i)=>i%12===0?`${60-i}m`:''),
+    datasets:[
+      {label:'P50',data:rnd(1100,200,60),borderColor:'#00c47a',borderWidth:1.5,pointRadius:0,tension:.4,fill:false},
+      {label:'P90',data:rnd(1600,300,60),borderColor:'#4b9eff',borderWidth:1.5,pointRadius:0,tension:.4,fill:false},
+      {label:'P95',data:rnd(1900,400,60),borderColor:'#f5a623',borderWidth:1.5,pointRadius:0,tension:.4,fill:false},
+      {label:'P99',data:rnd(2600,600,60),borderColor:'#ff4560',borderWidth:1.5,pointRadius:0,tension:.4,fill:false},
+    ]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:8,padding:10,usePointStyle:true}}},
+    scales:{x:{grid:{color:'rgba(255,255,255,0.02)'},ticks:{maxRotation:0}},y:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{callback:v=>v+'ms'}}}}
+});
+
+// OPS: Drift line
+new Chart(document.getElementById('driftLineC'),{type:'line',
+  data:{labels:Array.from({length:30},(_,i)=>`3/${i+1}`),
+    datasets:[{data:rnd(0.025,0.012,30).map(v=>Math.max(0,Math.min(0.25,v))),borderColor:'#4b9eff',backgroundColor:'rgba(75,158,255,0.07)',borderWidth:1.5,pointRadius:0,tension:.4,fill:true}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{min:0,max:0.25,grid:{color:'rgba(255,255,255,0.03)'},ticks:{callback:v=>v.toFixed(2)}}}}
+});
+
+// OPS: Infra sparkline
+new Chart(document.getElementById('infraC'),{type:'line',
+  data:{labels:Array.from({length:20},(_,i)=>`${i*3}m`),
+    datasets:[{label:'Mem%',data:rnd(62,8,20),borderColor:'#00c47a',borderWidth:1.5,pointRadius:0,tension:.4,fill:false}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{min:40,max:90,ticks:{callback:v=>v+'%'},grid:{color:'rgba(255,255,255,0.03)'}}}}
+});
+
+// QUALITY: Radar
+new Chart(document.getElementById('radarC'),{type:'radar',
+  data:{labels:['Faithfulness','Relevance','Correctness','Recall@K','Precision@K'],
+    datasets:[
+      {label:'v2.4.1',data:[0.92,0.87,0.81,0.88,0.74],borderColor:'#00c47a',backgroundColor:'rgba(0,196,122,.12)',borderWidth:2,pointRadius:3},
+      {label:'v2.3.0',data:[0.88,0.85,0.79,0.91,0.72],borderColor:'#4b9eff',backgroundColor:'rgba(75,158,255,.06)',borderWidth:1.5,pointRadius:3,borderDash:[4,3]},
+    ]},
+  options:{responsive:false,plugins:{legend:{display:false}},scales:{r:{min:.5,max:1.0,grid:{color:'rgba(255,255,255,0.06)'},ticks:{display:false},pointLabels:{font:{size:9},color:'#8b93a8'}}}}
+});
+
+// QUALITY: Hallucination + Faithfulness
+new Chart(document.getElementById('hallC'),{type:'line',
+  data:{labels:Array.from({length:24},(_,i)=>`${i}h`),
+    datasets:[
+      {label:'Faithfulness',data:rnd(0.91,0.04,24).map(v=>Math.min(1,Math.max(0.7,v))),borderColor:'#00c47a',backgroundColor:'rgba(0,196,122,.07)',borderWidth:2,pointRadius:0,tension:.4,fill:true,yAxisID:'y'},
+      {label:'Hallucination %',data:rnd(4.1,1.5,24).map(v=>Math.max(0,v)),borderColor:'#ff4560',backgroundColor:'rgba(255,69,96,.06)',borderWidth:2,pointRadius:0,tension:.4,fill:true,yAxisID:'y2'},
+    ]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:8,padding:10,usePointStyle:true}}},
+    scales:{
+      y:{min:.7,max:1.0,position:'left',grid:{color:'rgba(255,255,255,0.03)'},ticks:{callback:v=>v.toFixed(2)}},
+      y2:{min:0,max:10,position:'right',grid:{display:false},ticks:{callback:v=>v+'%'}},
+      x:{grid:{display:false},ticks:{maxTicksLimit:8}}
+    }}
+});
+
+// QUALITY: Retrieval metrics
+new Chart(document.getElementById('retC'),{type:'line',
+  data:{labels:Array.from({length:30},(_,i)=>`3/${i+1}`),
+    datasets:[
+      {label:'Recall@5',data:rnd(0.88,0.04,30).map(v=>Math.min(1,Math.max(0.6,v))),borderColor:'#00c47a',borderWidth:1.5,pointRadius:0,tension:.4,fill:false},
+      {label:'Precision@5',data:rnd(0.74,0.05,30).map(v=>Math.min(1,Math.max(0.5,v))),borderColor:'#4b9eff',borderWidth:1.5,pointRadius:0,tension:.4,fill:false},
+    ]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:8,padding:8,usePointStyle:true}}},
+    scales:{y:{min:.5,max:1.0,grid:{color:'rgba(255,255,255,0.03)'}},x:{grid:{display:false},ticks:{maxTicksLimit:8}}}}
+});
+
+// QUALITY: Source diversity
+new Chart(document.getElementById('srcDivC'),{type:'bar',
+  data:{labels:['1개','2개','3개','4개','5개+'],datasets:[{data:[12,28,38,14,8],backgroundColor:'rgba(75,158,255,.5)',borderRadius:3,borderSkipped:false}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'rgba(255,255,255,0.03)'}}}}
+});
+
+// QUALITY: Session success
+new Chart(document.getElementById('sessC'),{type:'line',
+  data:{labels:Array.from({length:12},(_,i)=>`W${i+1}`),
+    datasets:[{data:[70,72,71,74,73,75,74,76,77,78,78,79],borderColor:'#00c47a',backgroundColor:'rgba(0,196,122,0.08)',borderWidth:2,pointRadius:2,tension:.3,fill:true}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:60,max:90,grid:{color:'rgba(255,255,255,0.03)'},ticks:{callback:v=>v+'%'}},x:{grid:{display:false}}}}
+});
+
+// COST: cost bar
+new Chart(document.getElementById('costC'),{type:'bar',
+  data:{labels:Array.from({length:30},(_,i)=>`3/${i+1}`),
+    datasets:[
+      {label:'LLM',data:rnd(84,15,30),backgroundColor:'rgba(0,196,122,.55)',borderRadius:2,borderSkipped:false},
+      {label:'임베딩',data:rnd(22,6,30),backgroundColor:'rgba(75,158,255,.45)',borderRadius:2,borderSkipped:false},
+      {label:'Reranker',data:rnd(11,3,30),backgroundColor:'rgba(167,139,250,.45)',borderRadius:2,borderSkipped:false},
+      {label:'인프라',data:rnd(7,2,30),backgroundColor:'rgba(245,166,35,.4)',borderRadius:2,borderSkipped:false},
+    ]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:8,padding:8,usePointStyle:true}}},scales:{x:{stacked:true,grid:{display:false},ticks:{maxTicksLimit:10,font:{size:9}}},y:{stacked:true,grid:{color:'rgba(255,255,255,0.03)'},ticks:{callback:v=>'$'+v}}}}
+});
+
+// COST: token
+new Chart(document.getElementById('tokenC'),{type:'line',
+  data:{labels:Array.from({length:30},(_,i)=>`3/${i+1}`),
+    datasets:[
+      {label:'입력(K)',data:rnd(2840,300,30),borderColor:'#4b9eff',backgroundColor:'rgba(75,158,255,.07)',borderWidth:1.5,pointRadius:0,tension:.3,fill:true},
+      {label:'출력(K)',data:rnd(412,60,30),borderColor:'#00c47a',backgroundColor:'rgba(0,196,122,.07)',borderWidth:1.5,pointRadius:0,tension:.3,fill:true},
+    ]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:8,padding:8,usePointStyle:true}}},scales:{x:{grid:{display:false},ticks:{maxTicksLimit:10,font:{size:9}}},y:{grid:{color:'rgba(255,255,255,0.03)'}}}}
+});
+
+// COST: cache
+new Chart(document.getElementById('cacheC'),{type:'line',
+  data:{labels:Array.from({length:30},(_,i)=>`3/${i+1}`),
+    datasets:[{data:rnd(26,8,30).map(v=>Math.max(0,v)),borderColor:'#22d3ee',backgroundColor:'rgba(34,211,238,0.07)',borderWidth:1.5,pointRadius:0,tension:.4,fill:true}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{maxTicksLimit:8,font:{size:9}}},y:{min:0,ticks:{callback:v=>v+'%'},grid:{color:'rgba(255,255,255,0.03)'}}}}
+});
+
+// COST: reranker share
+new Chart(document.getElementById('rerankerC'),{type:'bar',
+  data:{labels:['10월','11월','12월','1월','2월','3월'],
+    datasets:[{data:[11.2,10.8,9.5,9.9,9.3,9.1],backgroundColor:'rgba(167,139,250,.5)',borderRadius:3,borderSkipped:false}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{ticks:{callback:v=>v+'%'},grid:{color:'rgba(255,255,255,0.03)'}}}}
+});
+
+// SAFETY: chart
+new Chart(document.getElementById('safetyC'),{type:'line',
+  data:{labels:Array.from({length:30},(_,i)=>`3/${i+1}`),
+    datasets:[
+      {label:'Unanswerable %',data:rnd(88,4,30).map(v=>Math.min(100,Math.max(60,v))),borderColor:'#00c47a',borderWidth:1.5,pointRadius:0,tension:.4,fill:false},
+      {label:'OOD Reject %',data:rnd(83,5,30).map(v=>Math.min(100,Math.max(60,v))),borderColor:'#4b9eff',borderWidth:1.5,pointRadius:0,tension:.4,fill:false},
+      {label:'Toxicity %',data:rnd(0.03,0.02,30).map(v=>Math.max(0,v)),borderColor:'#ff4560',borderWidth:1.5,pointRadius:0,tension:.4,fill:false,yAxisID:'y2'},
+    ]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:8,padding:10,usePointStyle:true}}},
+    scales:{
+      y:{min:60,max:100,position:'left',grid:{color:'rgba(255,255,255,0.03)'},ticks:{callback:v=>v+'%'}},
+      y2:{min:0,max:0.2,position:'right',grid:{display:false},ticks:{callback:v=>v+'%'}},
+      x:{grid:{display:false},ticks:{maxTicksLimit:8}}
+    }}
+});
+
+// QUALITY: Synthetic QA heatmap
+const hmD=[{cat:'제품 문의',e:96,m:82,h:58},{cat:'기술 지원',e:94,m:79,h:44},{cat:'가격·계약',e:98,m:88,h:71},{cat:'사용법',e:99,m:91,h:63},{cat:'해지·변경',e:91,m:72,h:38}];
+const hmC=v=>v>=90?'rgba(0,196,122,.55)':v>=75?'rgba(0,196,122,.25)':v>=60?'rgba(245,166,35,.4)':'rgba(255,69,96,.5)';
+const hmTb=document.getElementById('hmTb');
+hmD.forEach(r=>{
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td>${r.cat}</td><td><span class="hmc" style="background:${hmC(r.e)}">${r.e}%</span></td><td><span class="hmc" style="background:${hmC(r.m)}">${r.m}%</span></td><td><span class="hmc" style="background:${hmC(r.h)}">${r.h}%</span></td>`;
+  hmTb.appendChild(tr);
+});
+</script>
+</body>
+</html>

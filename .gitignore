@@ -11,3 +11,4 @@ out/
 **/.venv/
 *.log
 .DS_Store
+data/
