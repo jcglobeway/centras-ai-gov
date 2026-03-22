@@ -187,14 +187,15 @@ def generate_sql(
         doc_rows = []
         for d in docs:
             doc_rows.append(
-                f"('{d.doc_id}', '{d.org_id}', '{d.service_id}', 'qa_pair', "
+                f"('{d.doc_id}', '{d.org_id}', 'qa_pair', "
                 f"'{_esc(d.title)}', '{d.source_uri}', NULL, "
                 f"'{d.published_date}', 'completed', 'indexed', 'organization', "
-                f"'{d.published_date} 00:00:00', '{d.published_date} 00:00:00', '{d.published_date} 00:00:00')"
+                f"'{d.published_date} 00:00:00', '{d.published_date} 00:00:00', "
+                f"'{d.published_date} 00:00:00', '{d.published_date} 00:00:00')"
             )
-        lines.append("INSERT INTO documents (id, organization_id, service_id, document_type, title, source_uri,")
+        lines.append("INSERT INTO documents (id, organization_id, document_type, title, source_uri,")
         lines.append("  version_label, published_at, ingestion_status, index_status, visibility_scope,")
-        lines.append("  last_ingested_at, last_indexed_at, created_at) VALUES")
+        lines.append("  last_ingested_at, last_indexed_at, created_at, updated_at) VALUES")
         lines.append(",\n".join(doc_rows) + ";")
         lines.append("")
 
@@ -203,9 +204,10 @@ def generate_sql(
         for d in docs:
             ver_id = f"docver_{_short_id()}"
             ver_rows.append(
-                f"('{ver_id}', '{d.doc_id}', 1, '초기 수집', '{d.published_date} 00:00:00')"
+                f"('{ver_id}', '{d.doc_id}', 'v1.0', NULL, NULL, NULL, false, NULL, NULL, '{d.published_date} 00:00:00')"
             )
-        lines.append("INSERT INTO document_versions (id, document_id, version_number, change_note, created_at) VALUES")
+        lines.append("INSERT INTO document_versions (id, document_id, version_label, content_hash, source_etag,")
+        lines.append("  source_last_modified_at, change_detected, snapshot_uri, parsed_text_uri, created_at) VALUES")
         lines.append(",\n".join(ver_rows) + ";")
         lines.append("")
 
@@ -215,12 +217,12 @@ def generate_sql(
             job_id = f"ing_job_pub_{_short_id()}"
             job_rows.append(
                 f"('{job_id}', '{d.org_id}', '{d.service_id}', '{d.crawl_source_id}', '{d.doc_id}', "
-                f"'crawl', 'complete', 'succeeded', 'python_worker', 'manual', 1, NULL, "
+                f"'crawl', 'succeeded', 'complete', 'manual', 'python_worker', 1, NULL, "
                 f"'{d.published_date} 00:00:00', '{d.published_date} 00:01:00', "
                 f"'{d.published_date} 00:10:00', '{d.published_date} 00:00:00')"
             )
         lines.append("INSERT INTO ingestion_jobs (id, organization_id, service_id, crawl_source_id, document_id,")
-        lines.append("  job_type, job_stage, status, runner_type, trigger_type, attempt_count, error_code,")
+        lines.append("  job_type, job_status, job_stage, trigger_type, runner_type, attempt_count, error_code,")
         lines.append("  requested_at, started_at, finished_at, created_at) VALUES")
         lines.append(",\n".join(job_rows) + ";")
         lines.append("")
