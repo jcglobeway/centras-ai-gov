@@ -38,7 +38,7 @@ open class CreateQuestionService(
                 CreateAnswerCommand(
                     questionId = createdQuestion.id,
                     answerText = ragResult.answerText,
-                    answerStatus = ragResult.answerStatus.toAnswerStatus(),
+                    answerStatus = ragResult.answerStatus,
                     responseTimeMs = ragResult.responseTimeMs,
                     citationCount = ragResult.citationCount,
                     fallbackReasonCode = ragResult.fallbackReasonCode,
@@ -56,11 +56,4 @@ open class CreateQuestionService(
         return createdQuestion
     }
 
-    private fun String.toAnswerStatus(): AnswerStatus =
-        when (this) {
-            "answered" -> AnswerStatus.ANSWERED
-            "fallback" -> AnswerStatus.FALLBACK
-            "no_answer" -> AnswerStatus.NO_ANSWER
-            else -> AnswerStatus.ERROR
-        }
 }

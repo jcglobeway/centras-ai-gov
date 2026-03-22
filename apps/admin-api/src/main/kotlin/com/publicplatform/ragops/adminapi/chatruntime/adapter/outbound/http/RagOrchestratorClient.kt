@@ -1,6 +1,7 @@
 package com.publicplatform.ragops.adminapi.chatruntime.adapter.outbound.http
 
 import com.publicplatform.ragops.chatruntime.application.port.out.RagOrchestrationPort
+import com.publicplatform.ragops.chatruntime.domain.AnswerStatus
 import com.publicplatform.ragops.chatruntime.domain.RagAnswerResult
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.web.client.RestTemplateBuilder
@@ -72,7 +73,7 @@ private data class GenerateAnswerResult(
 
 private fun GenerateAnswerResult.toRagAnswerResult() = RagAnswerResult(
     answerText = answer_text,
-    answerStatus = answer_status,
+    answerStatus = AnswerStatus.fromString(answer_status),
     responseTimeMs = response_time_ms,
     citationCount = citation_count,
     fallbackReasonCode = fallback_reason_code,

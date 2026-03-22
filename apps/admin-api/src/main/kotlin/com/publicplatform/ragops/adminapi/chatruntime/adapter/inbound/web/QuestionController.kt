@@ -165,20 +165,11 @@ private fun AdminSessionSnapshot.toScope(filterOrgId: String? = null): ChatScope
 }
 
 private fun String.toAnswerStatus(): AnswerStatus =
-    when (this) {
-        "answered" -> AnswerStatus.ANSWERED
-        "fallback" -> AnswerStatus.FALLBACK
-        "no_answer" -> AnswerStatus.NO_ANSWER
-        "error" -> AnswerStatus.ERROR
-        else -> throw org.springframework.web.server.ResponseStatusException(
-            org.springframework.http.HttpStatus.BAD_REQUEST, "Invalid answer_status: $this",
+    try { AnswerStatus.fromStringStrict(this) }
+    catch (e: IllegalArgumentException) {
+        throw org.springframework.web.server.ResponseStatusException(
+            org.springframework.http.HttpStatus.BAD_REQUEST, e.message,
         )
     }
 
-private fun AnswerStatus.toApiValue(): String =
-    when (this) {
-        AnswerStatus.ANSWERED -> "answered"
-        AnswerStatus.FALLBACK -> "fallback"
-        AnswerStatus.NO_ANSWER -> "no_answer"
-        AnswerStatus.ERROR -> "error"
-    }
+private fun AnswerStatus.toApiValue(): String = value

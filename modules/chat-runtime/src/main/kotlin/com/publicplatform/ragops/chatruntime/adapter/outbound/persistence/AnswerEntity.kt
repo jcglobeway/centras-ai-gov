@@ -37,15 +37,10 @@ class AnswerEntity(
 fun AnswerEntity.toSummary(): AnswerSummary =
     AnswerSummary(
         id = id, questionId = questionId, answerText = answerText,
-        answerStatus = answerStatus.toAnswerStatus(), responseTimeMs = responseTimeMs,
+        answerStatus = AnswerStatus.fromString(answerStatus), responseTimeMs = responseTimeMs,
         citationCount = citationCount, fallbackReasonCode = fallbackReasonCode,
         modelName = modelName, providerName = providerName,
         inputTokens = inputTokens, outputTokens = outputTokens, totalTokens = totalTokens,
         estimatedCostUsd = estimatedCostUsd, finishReason = finishReason,
         createdAt = createdAt,
     )
-
-private fun String.toAnswerStatus(): AnswerStatus = when (this) {
-    "answered" -> AnswerStatus.ANSWERED; "fallback" -> AnswerStatus.FALLBACK
-    "no_answer" -> AnswerStatus.NO_ANSWER; else -> AnswerStatus.ERROR
-}

@@ -52,7 +52,7 @@ open class SpringAiAnswerService(
 
             RagAnswerResult(
                 answerText = answerText,
-                answerStatus = AnswerStatus.ANSWERED.name.lowercase(),
+                answerStatus = AnswerStatus.ANSWERED,
                 responseTimeMs = responseTimeMs,
                 citationCount = 0,
                 fallbackReasonCode = null,

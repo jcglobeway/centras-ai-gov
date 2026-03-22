@@ -21,7 +21,7 @@ open class RecordAnswerPortAdapter(
         val id = "answer_${UUID.randomUUID().toString().substring(0, 8)}"
         val entity = AnswerEntity(
             id = id, questionId = command.questionId, answerText = command.answerText,
-            answerStatus = command.answerStatus.name.lowercase(), responseTimeMs = command.responseTimeMs,
+            answerStatus = command.answerStatus.value, responseTimeMs = command.responseTimeMs,
             citationCount = command.citationCount, fallbackReasonCode = command.fallbackReasonCode,
             modelName = command.modelName, providerName = command.providerName,
             inputTokens = command.inputTokens, outputTokens = command.outputTokens,
