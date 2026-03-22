@@ -66,7 +66,7 @@ export function KpiCard({
             {help && (
               <span className="group relative">
                 <span className="text-text-muted text-[10px] cursor-help select-none">ⓘ</span>
-                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 w-52 rounded-lg bg-bg-surface border border-bg-border px-3 py-2 text-xs text-text-secondary shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-normal">
+                <span className="absolute top-full left-0 mt-1.5 w-64 rounded-lg bg-bg-elevated border border-bg-border px-3 py-2.5 text-[11px] leading-relaxed text-text-secondary shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-normal">
                   {help}
                 </span>
               </span>

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/api";
-import type { PagedResponse, UnresolvedQuestion, QAReview, ReviewStatus, RagasEvaluation } from "@/lib/types";
+import type { PagedResponse, DailyMetric, UnresolvedQuestion, QAReview, ReviewStatus, RagasEvaluation, RootCauseCode } from "@/lib/types";
 import { KpiCard } from "@/components/charts/KpiCard";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -29,6 +29,12 @@ const REVIEW_STATUS_VARIANT: Record<ReviewStatus, BadgeVariant> = {
   false_alarm: "neutral",
 };
 
+const FAILURE_LABEL: Partial<Record<RootCauseCode, string>> = {
+  A01: "문서 없음", A02: "문서 최신 아님", A03: "파싱 실패",
+  A04: "검색 실패", A05: "재랭킹 실패",   A06: "생성 왜곡",
+  A07: "의도 실패", A08: "정책 제한",     A09: "질문 모호", A10: "채널 문제",
+};
+
 export default function QaDashboardPage() {
   const [orgId, setOrgId] = useState("");
   const [from, setFrom] = useState(getWeekFrom);
@@ -40,10 +46,13 @@ export default function QaDashboardPage() {
   if (to) params.set("to_date", to);
 
   const unresolvedParams = new URLSearchParams(params);
-  unresolvedParams.set("page_size", "1");
+  unresolvedParams.set("page_size", "5");
 
   const reviewParams = new URLSearchParams(params);
   reviewParams.set("page_size", "5");
+
+  const metricsParams = new URLSearchParams({ page_size: "1" });
+  if (orgId) metricsParams.set("organization_id", orgId);
 
   const { data: unresolvedData, isLoading: loadingUnresolved } =
     useSWR<PagedResponse<UnresolvedQuestion>>(
@@ -59,6 +68,11 @@ export default function QaDashboardPage() {
     fetcher
   );
 
+  const { data: metricsData } = useSWR<PagedResponse<DailyMetric>>(
+    `/api/admin/metrics/daily?${metricsParams}`,
+    fetcher
+  );
+
   if (loadingUnresolved || loadingReviews) {
     return (
       <div className="flex items-center justify-center h-48">
@@ -69,8 +83,8 @@ export default function QaDashboardPage() {
 
   const reviews = reviewsData?.items ?? [];
   const confirmedCount = reviews.filter((r) => r.reviewStatus === "confirmed_issue").length;
-  const resolvedCount = reviews.filter((r) => r.reviewStatus === "resolved").length;
-  const falseAlarmCount = reviews.filter((r) => r.reviewStatus === "false_alarm").length;
+  const unresolvedTotal = unresolvedData?.total ?? null;
+  const lowSatisfactionCount = metricsData?.items?.[0]?.lowSatisfactionCount ?? null;
 
   const latestRagas = ragasData?.items?.[0] ?? null;
   const ragasRows = [
@@ -78,6 +92,8 @@ export default function QaDashboardPage() {
     { label: "Answer Relevance", value: latestRagas?.answerRelevancy ?? null, target: 0.85 },
     { label: "Context Precision", value: latestRagas?.contextPrecision ?? null, target: 0.70 },
   ];
+
+  const unresolvedItems = unresolvedData?.items ?? [];
 
   return (
     <div className="space-y-6">
@@ -90,18 +106,88 @@ export default function QaDashboardPage() {
         />
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* PRD 기준 3 KPIs */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <KpiCard
-          label="미검수 건수"
-          value={unresolvedData?.total ?? "-"}
+          label="미응답 질문"
+          value={unresolvedTotal ?? "-"}
           sub="건"
-          trend="down"
-          trendValue="처리 필요"
+          status={
+            unresolvedTotal == null ? undefined
+            : unresolvedTotal === 0 ? "ok"
+            : unresolvedTotal < 20 ? "warn"
+            : "critical"
+          }
+          help="챗봇이 답변하지 못하거나 QA 검수에서 이슈가 확인된 질문의 누적 건수입니다. 0건이 목표입니다. 건수가 많을수록 지식 보강이 시급합니다."
         />
-        <KpiCard label="확인된 이슈" value={confirmedCount} sub="건" />
-        <KpiCard label="해결 완료" value={resolvedCount} sub="건" trend="up" trendValue="누적" />
-        <KpiCard label="오탐지" value={falseAlarmCount} sub="건" />
+        <KpiCard
+          label="오답 의심"
+          value={confirmedCount}
+          sub="건"
+          status={confirmedCount === 0 ? "ok" : confirmedCount < 5 ? "warn" : "critical"}
+          help="QA 검수자가 '이슈 확인' 상태로 분류한 응답 건수입니다. 환각·오정보·출처 누락 등이 해당됩니다. 신속한 원인 분석과 문서 보완이 필요합니다."
+        />
+        <KpiCard
+          label="저만족 응답"
+          value={lowSatisfactionCount ?? "-"}
+          sub="건"
+          status={
+            lowSatisfactionCount == null ? undefined
+            : lowSatisfactionCount === 0 ? "ok"
+            : lowSatisfactionCount < 10 ? "warn"
+            : "critical"
+          }
+          help="시민이 낮은 만족도(1~2점)를 준 응답의 건수입니다. 높으면 챗봇 답변 품질에 문제가 있는 신호입니다. 해당 질문을 직접 검토해 개선 포인트를 찾으세요."
+        />
       </div>
+
+      {/* 미응답 질문 목록 (원인코드 포함) */}
+      <Card>
+        <CardHeader>
+          <CardTitle>미응답 질문 목록 (최근 5건)</CardTitle>
+        </CardHeader>
+        <div className="overflow-hidden">
+          <Table>
+            <Thead>
+              <Th>질문 내용</Th>
+              <Th>원인 코드</Th>
+              <Th>답변 상태</Th>
+              <Th>생성일</Th>
+            </Thead>
+            <Tbody>
+              {unresolvedItems.map((q) => (
+                <Tr key={q.questionId}>
+                  <Td className="max-w-xs truncate text-sm">{q.questionText}</Td>
+                  <Td>
+                    {q.failureCode ? (
+                      <span className="font-mono text-xs text-warning">
+                        {q.failureCode} · {FAILURE_LABEL[q.failureCode] ?? q.failureCode}
+                      </span>
+                    ) : (
+                      <span className="text-text-muted text-xs">-</span>
+                    )}
+                  </Td>
+                  <Td>
+                    <Badge variant={q.answerStatus === "no_answer" ? "error" : "warning"}>
+                      {q.answerStatus === "no_answer" ? "무응답" : "Fallback"}
+                    </Badge>
+                  </Td>
+                  <Td className="text-xs text-text-muted">
+                    {new Date(q.createdAt).toLocaleDateString("ko-KR")}
+                  </Td>
+                </Tr>
+              ))}
+              {unresolvedItems.length === 0 && (
+                <Tr>
+                  <Td colSpan={4} className="text-center text-text-muted text-sm py-6">
+                    미응답 질문이 없습니다.
+                  </Td>
+                </Tr>
+              )}
+            </Tbody>
+          </Table>
+        </div>
+      </Card>
 
       {/* RAGAS 스코어 */}
       <Card>

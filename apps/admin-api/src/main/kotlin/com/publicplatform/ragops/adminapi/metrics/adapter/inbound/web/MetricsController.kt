@@ -50,6 +50,9 @@ data class DailyMetricsResponse(
     val id: String, val metricDate: String, val organizationId: String, val serviceId: String,
     val totalSessions: Int, val totalQuestions: Int, val resolvedRate: BigDecimal?,
     val fallbackRate: BigDecimal?, val zeroResultRate: BigDecimal?, val avgResponseTimeMs: Int?,
+    val autoResolutionRate: BigDecimal?, val escalationRate: BigDecimal?,
+    val revisitRate: BigDecimal?, val afterHoursRate: BigDecimal?,
+    val knowledgeGapCount: Int, val unansweredCount: Int, val lowSatisfactionCount: Int,
 )
 
 private fun DailyMetricsSummary.toResponse() = DailyMetricsResponse(
@@ -57,6 +60,10 @@ private fun DailyMetricsSummary.toResponse() = DailyMetricsResponse(
     serviceId = serviceId, totalSessions = totalSessions, totalQuestions = totalQuestions,
     resolvedRate = resolvedRate, fallbackRate = fallbackRate, zeroResultRate = zeroResultRate,
     avgResponseTimeMs = avgResponseTimeMs,
+    autoResolutionRate = autoResolutionRate, escalationRate = escalationRate,
+    revisitRate = revisitRate, afterHoursRate = afterHoursRate,
+    knowledgeGapCount = knowledgeGapCount, unansweredCount = unansweredCount,
+    lowSatisfactionCount = lowSatisfactionCount,
 )
 
 private fun AdminSessionSnapshot.toScope(filterOrgId: String? = null): MetricsScope {

@@ -106,6 +106,30 @@ export default function OpsDashboardPage() {
 
   const recentQuestions = questionsData?.items ?? [];
 
+  // 기관 헬스맵: 전체 metrics에서 기관별 최신 row 추출 후 상태 계산
+  const orgLatestMap = new Map<string, typeof latest>();
+  for (const m of metrics) {
+    const existing = orgLatestMap.get(m.organizationId);
+    if (!existing || m.metricDate > existing.metricDate) {
+      orgLatestMap.set(m.organizationId, m);
+    }
+  }
+  const orgHealthList = Array.from(orgLatestMap.entries()).map(([orgId, m]) => {
+    const resolved = m.resolvedRate != null ? Number(m.resolvedRate) : null;
+    const fallback = m.fallbackRate != null ? Number(m.fallbackRate) : null;
+    let healthStatus: "ok" | "warn" | "critical" = "ok";
+    let issue = "";
+    if (resolved != null && resolved < 80) { healthStatus = "critical"; issue = `응답률 ${resolved.toFixed(1)}% (목표 90%)`; }
+    else if (fallback != null && fallback >= 15) { healthStatus = "critical"; issue = `Fallback율 ${fallback.toFixed(1)}% (임계 15%)`; }
+    else if (resolved != null && resolved < 90) { healthStatus = "warn"; issue = `응답률 ${resolved.toFixed(1)}% (목표 90%)`; }
+    else if (fallback != null && fallback >= 10) { healthStatus = "warn"; issue = `Fallback율 ${fallback.toFixed(1)}% (임계 10%)`; }
+    return { orgId, healthStatus, issue };
+  });
+
+  const healthColor = { ok: "text-success", warn: "text-warning", critical: "text-error" };
+  const healthLabel = { ok: "정상", warn: "주의", critical: "위험" };
+  const healthDot = { ok: "bg-success", warn: "bg-warning", critical: "bg-error" };
+
   return (
     <div className="space-y-6">
       {showAlert && (
@@ -138,7 +162,7 @@ export default function OpsDashboardPage() {
             ok: (v) => v >= 90,
             warn: (v) => v >= 80,
           })}
-          help="전체 질문 중 정상적으로 답변이 제공된 비율입니다."
+          help="전체 질문 중 챗봇이 정상 답변을 제공한 비율입니다. 90% 이상이면 정상, 80% 미만이면 문서 품질 점검이 필요합니다."
         />
         <KpiCard
           label="Fallback율"
@@ -147,7 +171,7 @@ export default function OpsDashboardPage() {
             ok: (v) => v < 10,
             warn: (v) => v < 15,
           })}
-          help="신뢰도가 낮아 일반 안내문으로 대체된 비율입니다."
+          help="RAG가 신뢰도 낮은 답변을 감지해 일반 안내문으로 대체한 비율입니다. 10% 초과 시 관련 문서 품질 또는 검색 설정을 점검하세요."
         />
         <KpiCard
           label="무응답률"
@@ -156,7 +180,7 @@ export default function OpsDashboardPage() {
             ok: (v) => v < 5,
             warn: (v) => v < 8,
           })}
-          help="검색 결과가 전혀 없어 답변을 제공하지 못한 비율입니다."
+          help="벡터 검색에서 관련 문서가 전혀 없어 답변 자체를 생성하지 못한 비율입니다. 5% 초과 시 해당 주제의 문서 추가를 고객사에 요청하세요."
         />
         <KpiCard
           label="평균 응답시간"
@@ -165,15 +189,40 @@ export default function OpsDashboardPage() {
             ok: (v) => v < 1500,
             warn: (v) => v < 2500,
           })}
-          help="RAG 파이프라인이 답변을 생성하는 데 걸린 평균 시간입니다."
+          help="검색(Retrieval) + LLM 생성 + 후처리 전체 E2E 시간의 평균값입니다. 1.5초 미만이면 정상, 2.5초 초과 시 파이프라인 병목 구간을 점검하세요."
         />
         <KpiCard
           label="전체 질문 (최신일)"
           value={latest?.totalQuestions ?? "-"}
           sub="건"
-          help="당일 시민이 챗봇에 입력한 질문의 총 건수입니다."
+          help="당일 집계 기준으로 전체 기관에서 시민이 챗봇에 입력한 질문의 총 건수입니다."
         />
       </div>
+
+      {/* 기관 헬스맵 */}
+      {orgHealthList.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>기관 헬스맵</CardTitle>
+          </CardHeader>
+          <div className="px-4 pb-4 divide-y divide-bg-border">
+            {orgHealthList.map(({ orgId: oid, healthStatus, issue }) => (
+              <div key={oid} className="flex items-center justify-between py-2.5">
+                <div className="flex items-center gap-2.5">
+                  <div className={`w-2 h-2 rounded-full ${healthDot[healthStatus]}`} />
+                  <span className="text-text-primary text-sm font-medium font-mono">{oid}</span>
+                  {issue && (
+                    <span className="text-text-muted text-xs">{issue}</span>
+                  )}
+                </div>
+                <span className={`font-mono text-[11px] font-semibold ${healthColor[healthStatus]}`}>
+                  {healthLabel[healthStatus]}
+                </span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* 파이프라인 레이턴시 */}
       <Card>

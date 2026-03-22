@@ -238,4 +238,11 @@ export interface DailyMetric {
   fallbackRate: number | null;
   zeroResultRate: number | null;
   avgResponseTimeMs: number | null;
+  autoResolutionRate: number | null;
+  escalationRate: number | null;
+  revisitRate: number | null;
+  afterHoursRate: number | null;
+  knowledgeGapCount: number;
+  unansweredCount: number;
+  lowSatisfactionCount: number;
 }

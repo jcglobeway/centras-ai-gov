@@ -27,6 +27,10 @@ const METRIC_LABELS: Partial<Record<keyof DailyMetric, string>> = {
   fallbackRate: "Fallback율(%)",
   zeroResultRate: "무응답율(%)",
   avgResponseTimeMs: "평균 응답(ms)",
+  autoResolutionRate: "자동응대율(%)",
+  escalationRate: "상담전환율(%)",
+  revisitRate: "재문의율(%)",
+  afterHoursRate: "업무시간외 응대율(%)",
 };
 
 export function MetricsLineChart({

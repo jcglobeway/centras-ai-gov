@@ -3,15 +3,22 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/api";
-import type { PagedResponse, DailyMetric, UnresolvedQuestion } from "@/lib/types";
+import type { PagedResponse, DailyMetric } from "@/lib/types";
 import { KpiCard } from "@/components/charts/KpiCard";
 import { MetricsLineChart } from "@/components/charts/MetricsLineChart";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
-import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Spinner } from "@/components/ui/Spinner";
 import { PageFilters, getWeekFrom, getToday } from "@/components/ui/PageFilters";
 
-const RESPONSE_RATE_TARGET_MS = 80 * 10; // 80% 목표를 ms 단위로 표현 (ProgressBar 재사용)
+function getKpiStatus(
+  value: number | null,
+  thresholds: { ok: (v: number) => boolean; warn: (v: number) => boolean }
+): "ok" | "warn" | "critical" | undefined {
+  if (value == null) return undefined;
+  if (thresholds.ok(value)) return "ok";
+  if (thresholds.warn(value)) return "warn";
+  return "critical";
+}
 
 export default function ClientDashboardPage() {
   const [orgId, setOrgId] = useState("");
@@ -25,11 +32,6 @@ export default function ClientDashboardPage() {
 
   const { data, error, isLoading } = useSWR<PagedResponse<DailyMetric>>(
     `/api/admin/metrics/daily?${params}`,
-    fetcher
-  );
-
-  const { data: unresolvedData } = useSWR<PagedResponse<UnresolvedQuestion>>(
-    `/api/admin/questions/unresolved?page_size=1`,
     fetcher
   );
 
@@ -48,20 +50,12 @@ export default function ClientDashboardPage() {
   const metrics = data?.items ?? [];
   const latest = metrics[metrics.length - 1];
 
-  const resolvedRateVal = latest?.resolvedRate ?? null;
-  const fallbackRateVal = latest?.fallbackRate ?? null;
+  const autoResolutionVal = latest?.autoResolutionRate != null ? Number(latest.autoResolutionRate) * 100 : null;
+  const escalationVal = latest?.escalationRate != null ? Number(latest.escalationRate) * 100 : null;
+  const revisitVal = latest?.revisitRate != null ? Number(latest.revisitRate) * 100 : null;
+  const afterHoursVal = latest?.afterHoursRate != null ? Number(latest.afterHoursRate) * 100 : null;
+  const totalQuestions = latest?.totalQuestions ?? null;
   const avgResponseMsVal = latest?.avgResponseTimeMs ?? null;
-  const unresolvedCount = unresolvedData?.total ?? null;
-
-  const resolvedRate = resolvedRateVal != null ? resolvedRateVal.toFixed(1) + "%" : "-";
-  const fallbackRate = fallbackRateVal != null ? fallbackRateVal.toFixed(1) + "%" : "-";
-  const avgResponseMs = avgResponseMsVal != null
-    ? avgResponseMsVal.toLocaleString() + "ms"
-    : "-";
-
-  // ProgressBar 재사용: resolvedRate을 ms 단위로 변환 (목표 80% → 800 → maxMs 1000)
-  const progressValueMs = resolvedRateVal != null ? Math.round(resolvedRateVal * 10) : 0;
-  const progressMaxMs = 1000; // 100% → 1000
 
   return (
     <div className="space-y-6">
@@ -74,51 +68,70 @@ export default function ClientDashboardPage() {
         />
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <KpiCard label="응답률" value={resolvedRate} trend="up" trendValue="목표 > 80%" help="시민 질문 중 챗봇이 정상 답변을 제공한 비율입니다." />
-        <KpiCard label="Fallback율" value={fallbackRate} trend="down" trendValue="목표 < 15%" help="지식베이스의 답변 신뢰도가 낮아 일반 안내로 대체된 비율입니다. 낮을수록 서비스 품질이 높습니다." />
-        <KpiCard label="평균 응답시간" value={avgResponseMs} help="챗봇이 답변을 생성하는 데 걸린 평균 시간입니다." />
-        <KpiCard label="총 질문 수" value={latest?.totalQuestions ?? "-"} sub="건 (최신일)" help="최신 집계일 기준으로 챗봇에 입력된 전체 질문 건수입니다." />
+      {/* 민원응대 성과 KPI — Row 1 */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         <KpiCard
-          label="미해결 건수"
-          value={unresolvedCount ?? "-"}
-          sub="건"
-          status={
-            unresolvedCount == null ? undefined
-            : unresolvedCount === 0 ? "ok"
-            : unresolvedCount < 10 ? "warn"
-            : "critical"
-          }
-          help="QA 검수가 필요한 미해결 질문 건수입니다."
+          label="총 문의 수"
+          value={totalQuestions != null ? totalQuestions.toLocaleString() : "-"}
+          sub="건 (최신일)"
+          help="당일 시민이 챗봇에 입력한 전체 질문 건수입니다. 채널(웹·모바일·키오스크)을 합산한 수치입니다."
+        />
+        <KpiCard
+          label="자동응대 완료율"
+          value={autoResolutionVal != null ? autoResolutionVal.toFixed(1) + "%" : "-"}
+          status={getKpiStatus(autoResolutionVal, {
+            ok: (v) => v >= 70,
+            warn: (v) => v >= 60,
+          })}
+          help="상담원 연결 없이 챗봇만으로 대화가 완료된 비율입니다. 70% 이상이면 정상, 60% 미만이면 지식베이스 보강이 필요합니다."
+        />
+        <KpiCard
+          label="상담 전환율"
+          value={escalationVal != null ? escalationVal.toFixed(1) + "%" : "-"}
+          status={getKpiStatus(escalationVal, {
+            ok: (v) => v < 20,
+            warn: (v) => v < 30,
+          })}
+          help="챗봇이 답변하지 못해 상담원·콜센터로 넘어간 비율입니다. 20% 미만이면 정상, 30% 이상이면 자주 실패하는 민원 유형을 확인해야 합니다."
         />
       </div>
 
-      {/* 응답률 목표 진행 바 */}
-      {resolvedRateVal != null && (
-        <Card>
-          <CardHeader>
-            <CardTitle>응답률 목표 달성률</CardTitle>
-          </CardHeader>
-          <div className="px-4 pb-4">
-            <ProgressBar
-              label="응답률"
-              valueMs={progressValueMs}
-              maxMs={progressMaxMs}
-              color={resolvedRateVal >= 80 ? "bg-success" : resolvedRateVal >= 60 ? "bg-warning" : "bg-error"}
-            />
-            <p className="text-xs text-text-muted mt-2">목표: 80% | 현재: {resolvedRate}</p>
-          </div>
-        </Card>
-      )}
+      {/* 민원응대 성과 KPI — Row 2 */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <KpiCard
+          label="평균 응답시간"
+          value={avgResponseMsVal != null ? avgResponseMsVal.toLocaleString() + "ms" : "-"}
+          status={getKpiStatus(avgResponseMsVal, {
+            ok: (v) => v < 1500,
+            warn: (v) => v < 2500,
+          })}
+          help="챗봇이 답변을 생성하는 데 걸린 평균 시간입니다. 1.5초 미만이면 정상, 2.5초를 초과하면 시스템 성능 점검이 필요합니다."
+        />
+        <KpiCard
+          label="재문의율"
+          value={revisitVal != null ? revisitVal.toFixed(1) + "%" : "-"}
+          status={getKpiStatus(revisitVal, {
+            ok: (v) => v < 10,
+            warn: (v) => v < 15,
+          })}
+          help="같은 시민이 동일하거나 유사한 질문을 반복해서 입력한 비율입니다. 높으면 첫 답변이 충분하지 않았다는 신호입니다. 10% 미만이 목표입니다."
+        />
+        <KpiCard
+          label="업무시간 외 응대율"
+          value={afterHoursVal != null ? afterHoursVal.toFixed(1) + "%" : "-"}
+          help="야간·주말에 챗봇이 자동으로 처리한 질문 비율입니다. 챗봇이 없으면 모두 다음 영업일에 처리해야 하는 민원입니다."
+        />
+      </div>
 
+      {/* 추세 차트 */}
       {metrics.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>응답률 / Fallback 추세</CardTitle>
+            <CardTitle>자동응대율 / 상담 전환율 추세</CardTitle>
           </CardHeader>
           <MetricsLineChart
             data={metrics}
-            metrics={["resolvedRate", "fallbackRate"]}
+            metrics={["autoResolutionRate", "escalationRate"]}
           />
         </Card>
       )}
