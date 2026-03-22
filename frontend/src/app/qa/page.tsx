@@ -137,8 +137,8 @@ export default function QaDashboardPage() {
               <Th>생성일</Th>
             </Thead>
             <Tbody>
-              {reviews.map((r) => (
-                <Tr key={r.qaReviewId}>
+              {reviews.map((r, i) => (
+                <Tr key={r.qaReviewId ?? i}>
                   <Td className="font-mono text-xs text-text-muted">{r.qaReviewId}</Td>
                   <Td>
                     <Badge variant={REVIEW_STATUS_VARIANT[r.reviewStatus]}>
