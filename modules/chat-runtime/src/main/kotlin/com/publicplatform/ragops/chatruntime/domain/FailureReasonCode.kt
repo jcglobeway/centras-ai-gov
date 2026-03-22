@@ -27,6 +27,8 @@ enum class FailureReasonCode(val code: String, val description: String) {
                 "알 수 없는 실패 원인 코드: $code. 허용 코드: ${byCode.keys.sorted().joinToString()}"
             )
 
+        fun fromCodeOrNull(code: String?): FailureReasonCode? = code?.let { byCode[it] }
+
         fun isValid(code: String): Boolean = byCode.containsKey(code)
     }
 }

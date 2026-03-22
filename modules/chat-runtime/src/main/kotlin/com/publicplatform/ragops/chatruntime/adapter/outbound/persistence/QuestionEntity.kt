@@ -6,6 +6,7 @@
  */
 package com.publicplatform.ragops.chatruntime.adapter.outbound.persistence
 
+import com.publicplatform.ragops.chatruntime.domain.FailureReasonCode
 import com.publicplatform.ragops.chatruntime.domain.QuestionSummary
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -36,5 +37,5 @@ fun QuestionEntity.toSummary(): QuestionSummary =
         chatSessionId = chatSessionId, questionText = questionText,
         questionIntentLabel = questionIntentLabel, channel = channel,
         questionCategory = questionCategory, answerConfidence = answerConfidence,
-        failureReasonCode = failureReasonCode, isEscalated = isEscalated, createdAt = createdAt,
+        failureReasonCode = FailureReasonCode.fromCodeOrNull(failureReasonCode), isEscalated = isEscalated, createdAt = createdAt,
     )

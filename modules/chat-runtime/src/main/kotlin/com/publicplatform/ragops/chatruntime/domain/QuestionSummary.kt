@@ -20,7 +20,7 @@ data class QuestionSummary(
     val channel: String,
     val questionCategory: String?,
     val answerConfidence: BigDecimal?,
-    val failureReasonCode: String?,
+    val failureReasonCode: FailureReasonCode?,
     val isEscalated: Boolean,
     val createdAt: Instant,
 )
@@ -32,5 +32,5 @@ data class CreateQuestionCommand(
     val questionText: String,
     val questionIntentLabel: String?,
     val channel: String,
-    val failureReasonCode: String? = null,
+    val failureReasonCode: FailureReasonCode? = null,
 )

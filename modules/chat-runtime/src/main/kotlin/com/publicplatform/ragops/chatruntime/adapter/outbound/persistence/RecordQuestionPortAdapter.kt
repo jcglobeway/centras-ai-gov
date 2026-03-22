@@ -6,7 +6,6 @@
 package com.publicplatform.ragops.chatruntime.adapter.outbound.persistence
 
 import com.publicplatform.ragops.chatruntime.domain.CreateQuestionCommand
-import com.publicplatform.ragops.chatruntime.domain.FailureReasonCode
 import com.publicplatform.ragops.chatruntime.domain.QuestionSummary
 import com.publicplatform.ragops.chatruntime.application.port.out.RecordQuestionPort
 import org.springframework.transaction.annotation.Transactional
@@ -19,16 +18,13 @@ open class RecordQuestionPortAdapter(
 
     @Transactional
     override fun createQuestion(command: CreateQuestionCommand): QuestionSummary {
-        command.failureReasonCode?.let {
-            if (!FailureReasonCode.isValid(it)) FailureReasonCode.fromCode(it)
-        }
         val id = "question_${UUID.randomUUID().toString().substring(0, 8)}"
         val entity = QuestionEntity(
             id = id, organizationId = command.organizationId, serviceId = command.serviceId,
             chatSessionId = command.chatSessionId, questionText = command.questionText,
             questionIntentLabel = command.questionIntentLabel, channel = command.channel,
             questionCategory = null, answerConfidence = null,
-            failureReasonCode = command.failureReasonCode, isEscalated = false,
+            failureReasonCode = command.failureReasonCode?.code, isEscalated = false,
             createdAt = Instant.now(),
         )
         val saved = jpaRepository.save(entity)
