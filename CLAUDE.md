@@ -8,6 +8,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 The product core is a **DDD-lite modular monolith** (Spring Boot + Kotlin). Python services handle only ingestion and RAG orchestration as external workers.
 
+**Product PRD**: `docs/platform-prd.md` — 제품 요구사항 정의서 (단일 진실 출처)
+**Implementation Gap**: `docs/implementation-gap.md` — PRD vs. 현재 구현 상태 비교표
+
 ---
 
 ## Build and Run Commands
@@ -22,7 +25,7 @@ The product core is a **DDD-lite modular monolith** (Spring Boot + Kotlin). Pyth
 ./gradlew :apps:admin-api:bootRun
 
 # Run all tests
-./gradlew test
+JAVA_HOME=/Users/parkseokje/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home ./gradlew test
 
 # Run tests for a specific subproject
 ./gradlew :apps:admin-api:test
@@ -34,38 +37,55 @@ The product core is a **DDD-lite modular monolith** (Spring Boot + Kotlin). Pyth
 ./gradlew compileKotlin
 ```
 
-### Python Services
+### Frontend (Next.js)
 
-Each Python service uses `hatchling` and targets Python >= 3.12.
+```bash
+cd frontend
+npm install
+npm run dev   # http://localhost:3000
+```
+
+### Python Services
 
 ```bash
 # Ingestion worker (Typer CLI)
 cd python/ingestion-worker
 pip install -e .
-ingestion-worker run
+ingestion-worker run --job-id <id>
 
 # RAG orchestrator (FastAPI on port 8090)
 cd python/rag-orchestrator
 pip install -e .
 rag-orchestrator
+
+# Eval runner
+cd python/eval-runner
+pip install -e .
+```
+
+### Infrastructure
+
+```bash
+docker-compose up -d   # PostgreSQL + Redis
 ```
 
 ---
 
 ## Architecture
 
-### Hybrid System Boundary
+### System Boundary
 
 | Layer | Technology | Role |
 |---|---|---|
 | Admin API | Spring Boot + Kotlin | System of record, all operational state |
+| Frontend | Next.js 15 (App Router) | 3-portal admin UI (ops / client / qa) |
 | Product DB | PostgreSQL | Single source of truth |
 | Cache / Queue | Redis | Triggers, session cache |
-| Ingestion Worker | Python (Typer CLI) | Crawl, parse, chunk, embed, index |
-| RAG Orchestrator | Python (FastAPI) | Query rewrite, retrieval, reranking, answer synthesis |
-| Search Index | OpenSearch or pgvector | Vector retrieval (outside this repo) |
+| Ingestion Worker | Python (Typer CLI) | Crawl → parse → chunk → embed → index |
+| RAG Orchestrator | Python (FastAPI, port 8090) | pgvector retrieval + answer synthesis |
+| Vector Index | pgvector (`document_chunks`) | Embedding retrieval |
 
-**Spring Boot is the system of record.** Python services are workers/adapters only. All operational state flows back into the product DB via API callbacks or direct writes.
+**Spring Boot is the system of record.** Python services are workers/adapters only.
 
 ### Gradle Module Structure
 
@@ -77,80 +97,96 @@ modules/
   shared-kernel/      # DomainEvent interface and shared primitives
   identity-access/    # Auth, sessions, admin users, roles
   organization-directory/  # Multi-tenant org and service registry
-  chat-runtime/       # Chat sessions, questions, answers
+  chat-runtime/       # Chat sessions, questions, answers, feedbacks
   document-registry/  # Document metadata, versions, chunks
   ingestion-ops/      # Crawl sources, ingestion jobs
   qa-review/          # QA review workflow and state machine
   metrics-reporting/  # KPI aggregation and daily snapshots
 
 python/
-  ingestion-worker/   # CLI worker: crawl → parse → chunk → embed → index
-  rag-orchestrator/   # FastAPI: retrieval adapter and answer synthesis
+  ingestion-worker/   # Full pipeline: FETCH → EXTRACT → CHUNK → EMBED → INDEX
+  rag-orchestrator/   # FastAPI: pgvector retrieval + answer synthesis + /evaluate
+  eval-runner/        # RAGAS evaluation runner
   common/             # Shared Python utilities
+
+frontend/
+  src/app/
+    ops/              # 운영사 포털 (ops_admin / super_admin)
+    client/           # 고객사 포털 (client_org_admin / client_viewer)
+    qa/               # 품질관리 포털 (qa_manager / knowledge_editor)
 ```
 
 All modules use Java 25 (`kotlin { jvmToolchain(25) }`).
 
 ### Implementation Status
 
-**✅ All 7 modules fully implemented with JPA + PostgreSQL**:
-- identity-access, organization-directory, ingestion-ops, qa-review, chat-runtime, document-registry, metrics-reporting
-- 19 Flyway migrations (V001-V019; V018 = Kotlin migration for pgvector, no-op on H2)
-- 44 integration tests (100% passing) + 8 ArchUnit rules
-- Hexagonal architecture (canonical package structure)
+- **7 modules** fully implemented with JPA + PostgreSQL
+- **Flyway migrations**: V001–V027 (V018 = Kotlin pgvector migration, no-op on H2)
+- **50 integration tests** (100% passing) + 8 ArchUnit rules
+- **Frontend**: Next.js 15, 3-portal structure, "Control Tower" dark theme
+- **Hexagonal architecture**: canonical package structure 완성
 
 ### Bounded Context Responsibilities
 
-- **identity-access**: `admin_users`, `admin_user_roles`, `admin_sessions`, `audit_logs`. Handles login, session restore, role assignment.
-- **organization-directory**: `organizations`, `services`. Top-level multi-tenant scoping key for all other tables.
-- **chat-runtime**: `chat_sessions`, `questions`, `answers`. Primary record for citizen interaction; drives unresolved queue and QA.
-- **document-registry**: `documents`, `document_versions`, `document_chunks`. Tracks ingestion/index status and content versioning.
-- **ingestion-ops**: `crawl_sources`, `ingestion_jobs`. Controls crawl execution policy and tracks job lifecycle.
-- **qa-review**: `qa_reviews`. Append-only review records with state machine (`pending → confirmed_issue → resolved`).
-- **metrics-reporting**: `daily_metrics_org`. Pre-aggregated KPI snapshots; never computed on demand from raw logs.
-- **shared-kernel**: `DomainEvent` interface only.
+| Context | Tables | 역할 |
+|---------|--------|------|
+| identity-access | `admin_users`, `admin_user_roles`, `admin_sessions`, `audit_logs` | 로그인, 세션, 역할 |
+| organization-directory | `organizations`, `services` | 멀티테넌트 스코프 기준 |
+| chat-runtime | `chat_sessions`, `questions`, `answers`, `feedbacks`, `rag_search_logs` | 시민 인터랙션 전체 |
+| document-registry | `documents`, `document_versions`, `document_chunks` | 인덱싱 상태, 벡터 검색 |
+| ingestion-ops | `crawl_sources`, `ingestion_jobs` | 수집 정책, 잡 생명주기 |
+| qa-review | `qa_reviews` | 검수 상태 머신 |
+| metrics-reporting | `daily_metrics_org`, `ragas_evaluations` | KPI 스냅샷, RAGAS 평가 |
 
 ---
 
 ## Database Schema (Flyway Migrations)
 
-**15 tables across 7 bounded contexts** (V001-V015):
+### Core Tables (V001–V015)
 
-### Identity & Access
-- V001: `admin_users`, `admin_user_roles` (3 seed users, 3 roles)
-- V002: `admin_sessions` (session snapshot as JSON, 3 seed sessions)
-- V003: `audit_logs` (action tracking)
+| Migration | 내용 |
+|-----------|------|
+| V001 | `admin_users`, `admin_user_roles` (6 seed users) |
+| V002 | `admin_sessions` |
+| V003 | `audit_logs` |
+| V004 | `organizations` |
+| V005 | `services` |
+| V006 | `crawl_sources` |
+| V007 | `ingestion_jobs` |
+| V008 | `qa_reviews` |
+| V009 | `chat_sessions` |
+| V010 | `questions` |
+| V011 | `answers` |
+| V012 | QA reviews ↔ questions FK |
+| V013 | `documents` |
+| V014 | `document_versions` |
+| V015 | `daily_metrics_org` |
 
-### Organization
-- V004: `organizations` (2 seed orgs: Seoul, Busan)
-- V005: `services` (2 seed services: welfare, faq)
+### Extended Tables (V016–V027)
 
-### Ingestion
-- V006: `crawl_sources` (2 seed sources)
-- V007: `ingestion_jobs` (2 seed jobs: succeeded, failed)
+| Migration | 내용 |
+|-----------|------|
+| V016 | `document_chunks` (embedding_vector as TEXT/H2, vector(1024)/PostgreSQL) |
+| V017 | `rag_search_logs`, `rag_retrieved_documents` |
+| V018 | Kotlin migration — pgvector extension + ALTER document_chunks (no-op in H2) |
+| V019 | `feedbacks` (citizen satisfaction ratings) |
+| V020 | 역할 6개로 확장 (super_admin, ops_admin, qa_manager, client_org_admin, client_viewer, knowledge_editor) |
+| V021 | `questions` 확장: `question_category`, `failure_reason_code` (A01~A10), `is_escalated`, `answer_confidence` |
+| V022 | `feedbacks` 확장: 세션 종료 유형·암묵적 신호 |
+| V023 | `daily_metrics_org` 확장: 고객사 KPI 10종 (auto_resolution_rate, escalation_rate 등) |
+| V024 | 데모 데이터 시드 |
+| V025 | `ragas_evaluations` |
+| V026 | `answers` 확장: LLM 메트릭 (model_name, tokens, cost, finish_reason) |
+| V027 | 공공 문서 + LLM 메트릭 시드 데이터 |
 
-### QA & Chat
-- V008: `qa_reviews` (append-only, state machine)
-- V009: `chat_sessions` (2 seed sessions)
-- V010: `questions` (3 seed questions)
-- V011: `answers` (3 seed: answered, no_answer, fallback)
-- V012: QA reviews ↔ questions FK (reviewer FK deferred)
-
-### Documents & Metrics
-- V013: `documents` (2 seed docs)
-- V014: `document_versions` (2 seed versions)
-- V015: `daily_metrics_org` (2 seed metrics)
-
-**Test environment**: H2 in-memory (MODE=PostgreSQL) with automatic Flyway migration.
-**Production**: PostgreSQL 15+ via docker-compose.yml.
+**Test environment**: H2 in-memory (MODE=PostgreSQL), `spring.flyway.target: "27"`
+**Production**: PostgreSQL 15+ via `docker-compose.yml`
 
 ---
 
 ## Hexagonal Architecture Guidelines
 
 ### 패키지 구조 (Canonical)
-
-모든 모듈은 아래 canonical 헥사고날 패키지 구조를 따른다:
 
 ```
 {module}/src/main/kotlin/com/publicplatform/ragops/{context}/
@@ -174,7 +210,7 @@ apps/admin-api/.../
 ### 레이어 책임
 
 | 레이어 | 역할 |
-|---|---|
+|--------|------|
 | **domain** | 순수 비즈니스 모델. `@Entity` 등 JPA/Spring 어노테이션 금지 |
 | **application.port.in** | UseCase 인터페이스. Controller가 이를 호출 |
 | **application.port.out** | 아웃바운드 포트 인터페이스. Adapter가 구현 |
@@ -185,146 +221,49 @@ apps/admin-api/.../
 ### 의존성 규칙
 
 1. **안쪽 방향만**: `adapter` → `application.port` → `domain`. 역방향 불가.
-2. **domain 순수성**: domain 레이어는 `application.*`, `jakarta.persistence.*`, `org.springframework.*` 의존 금지.
-3. **service 격리**: `application.service`는 `adapter.outbound.persistence`를 직접 참조 금지. 반드시 port 인터페이스 경유.
-4. **controller 격리**: Controller는 JPA Entity·Adapter를 직접 참조 금지. UseCase 인터페이스만 호출.
+2. **domain 순수성**: domain 레이어는 `jakarta.persistence.*`, `org.springframework.*` 의존 금지.
+3. **service 격리**: `application.service`는 `adapter.outbound.persistence` 직접 참조 금지.
+4. **controller 격리**: Controller는 JPA Entity·Adapter 직접 참조 금지. UseCase 인터페이스만 호출.
 5. **엔티티-도메인 분리**: `*Entity` ↔ domain model 변환은 반드시 `toSummary()` / `toEntity()` 매퍼 사용.
 
 ### 명명 규칙
 
-- **Port 인터페이스**: 행위 중심 — `LoadQuestionPort`, `RecordQuestionPort`, `PersistIngestionJobPort`
-- **Port Adapter**: Port 이름 + `Adapter` suffix — `LoadQuestionPortAdapter`, `RecordQuestionPortAdapter`
-- **파일명 = 클래스명**: Kotlin 파일명은 반드시 최상위 클래스명과 일치해야 한다.
-- **JPA Repository**: `Jpa{Aggregate}Repository` (예: `JpaQuestionRepository`)
-- **UseCase 인터페이스**: `{동사}{대상}UseCase` (예: `CreateQuestionUseCase`, `ListQuestionsUseCase`)
-- **Service 구현체**: `{동사}{대상}Service` (예: `CreateQuestionService`)
+- **Port 인터페이스**: 행위 중심 — `LoadQuestionPort`, `RecordQuestionPort`
+- **Port Adapter**: Port 이름 + `Adapter` suffix — `LoadQuestionPortAdapter`
+- **파일명 = 클래스명**: Kotlin 파일명은 반드시 최상위 클래스명과 일치
+- **JPA Repository**: `Jpa{Aggregate}Repository`
+- **UseCase 인터페이스**: `{동사}{대상}UseCase`
+- **Service 구현체**: `{동사}{대상}Service`
 
 ### 코드 생성 규칙 (신규 도메인 추가 시)
 
 - `domain`, `application`, `adapter` 세 레이어를 **동시에** 생성할 것.
-- 도메인 모델은 Kotlin `data class`를 우선 사용할 것.
-- Port 인터페이스를 먼저 정의하고, 이후 Adapter에서 구현할 것.
 - 새 Bean은 `@Component` 대신 `RepositoryConfiguration` / `ServiceConfiguration`에 `@Bean`으로 명시 등록.
 - Adapter 클래스는 반드시 `open class` (Spring CGLIB 프록시 요건).
-- 모든 Kotlin 파일 최상단에 파일 레벨 KDoc 작성 필수.
+- admin-api에 JPA 엔티티 추가 시 `kotlin("plugin.jpa")` 필수 (no-arg constructor 생성).
 
 ### ArchUnit 보호 규칙 (`ArchitectureTest.kt`, 8개)
 
 | Rule | 내용 |
-|---|---|
+|------|------|
 | 1 | `domain` → JPA/Spring Data 의존 금지 |
 | 2 | `application.port.out` → `adapter.outbound.persistence` 역방향 금지 |
 | 3 | `application.port.in` → `adapter.outbound.persistence` 역방향 금지 |
 | 4 | `*Controller` → `adapter.outbound.persistence` 직접 접근 금지 |
-| 5 | `Jpa*Repository` → `adapter.outbound.persistence` 또는 `RepositoryConfiguration`/`ServiceConfiguration`에서만 접근 |
+| 5 | `Jpa*Repository` → `RepositoryConfiguration`/`ServiceConfiguration`에서만 접근 |
 | 6 | 모듈 간 순환 의존성 금지 |
 | 7 | `application.service` → `adapter.outbound.persistence` 직접 접근 금지 |
 | 8 | `domain` → `application` 역방향 의존 금지 |
-
-**Testing**:
-- Tests use H2 in-memory with `@ActiveProfiles("test")`
-- `@DirtiesContext` for test isolation
-- All adapters work with both H2 (test) and PostgreSQL (production)
-- All modules include `kotlin("plugin.spring")` and `kotlin("plugin.jpa")`
-
----
-
-## OpenSpec Workflow
-
-**All significant changes are tracked as OpenSpec changes**:
-
-```
-openspec/
-  changes/      # In-progress changes
-  archive/      # Completed changes
-  templates/    # Templates for new changes
-```
-
-**Process**:
-1. Create change: `mkdir openspec/changes/<change-id>`, copy templates
-2. Fill in: `proposal.md` (scope, impact), `tasks.md` (checklist), `status.md` (progress)
-3. Implement: Update `tasks.md` checkboxes as you work
-4. Verify: Run tests, update `status.md`
-5. Commit: Single commit per change, Korean commit message
-6. Archive: Move to `openspec/archive/<change-id>/`
-
-**Completed changes**: 10 changes (see `openspec/archive/`)
-
----
-
-## Python Worker Integration
-
-### Ingestion Worker
-
-**Implemented** (python/ingestion-worker):
-- AdminApiClient (httpx, X-Admin-Session-Id auth)
-- CrawlExecutor (Playwright async, screenshot stub)
-- IngestionJobRunner (job lifecycle: queued → running → succeeded/failed)
-- CLI: `ingestion-worker run --job-id <id>`
-
-**Environment**:
-```bash
-ADMIN_API_BASE_URL=http://localhost:8080
-ADMIN_API_SESSION_TOKEN=<session_token>
-```
-
-**Job callback flow**:
-1. Worker reads job from admin-api: `GET /admin/ingestion-jobs/{id}`
-2. Worker reads source: `GET /admin/crawl-sources/{id}`
-3. Worker transitions: `POST /admin/ingestion-jobs/{id}/status`
-4. Repeat for each stage (fetch → extract → complete)
-
-**Dependencies**: playwright (chromium), httpx, pydantic, typer
-
-### RAG Orchestrator
-
-**Planned** (python/rag-orchestrator):
-- FastAPI service (port 8090)
-- Query rewrite, retrieval adapter, answer synthesis
-- admin-api calls rag-orchestrator to generate answers
-
----
-
-## Testing Strategy
-
-**Current coverage: 44 API/integration tests + 8 ArchUnit rules (100% passing)**
-
-Test distribution:
-- Auth/session: 9 tests (login, logout, session restore, expiry)
-- Ingestion: 16 tests (source CRUD, job transition, scope validation)
-- QA Review: 5 tests (state machine, validation, permissions)
-- Chat Runtime: 5 tests (question creation, unresolved queue, documents, metrics)
-- E2E scenarios: 4 tests (full auth flow, full ingestion flow, multi-tenant isolation)
-- ArchUnit: 8 rules (dependency direction, layer isolation, cycle detection)
-
-**Test pattern**:
-- `@SpringBootTest` + `@AutoConfigureMockMvc` + `@ActiveProfiles("test")`
-- `@DirtiesContext` for test isolation
-- H2 in-memory DB (MODE=PostgreSQL)
-- Flyway migrations auto-run in tests
-- Helper functions: `loginAndReturnSessionId()`, `createQuestionAndReturnId()`
-
-**Run tests**: `./gradlew test` (H2) or `./gradlew :apps:admin-api:test`
 
 ---
 
 ## Key Design Rules
 
-### Package Structure
-
-Organize by **bounded context** (vertical slice), not by technical layer. Do not separate `controller/`, `service/`, `entity/` horizontally across contexts.
-
-### Domain Model
-
-- Do **not** expose JPA entities directly as API response models.
-- Encapsulate state transitions and permission checks inside domain rules, not in controllers or services.
-- Prefer soft delete (`status` field or `deleted_at`) over hard delete.
-
 ### Permission Model
 
 - Permission checks are **action-based**, not screen-based.
 - Every admin request must restore `user_id`, `role_code`, and `organization_scope` from the session.
-- Three roles: `ops_admin` (all orgs), `client_admin` (own org only), `qa_admin` (assigned org scope).
+- **6개 역할**: `super_admin` (전체), `ops_admin` (운영), `qa_manager` (검수), `client_org_admin` (기관 관리), `client_viewer` (기관 조회), `knowledge_editor` (문서 편집)
 - Unauthorized action → `403`; resource hidden by scope → `404`.
 - High-risk actions must write to `audit_logs`.
 
@@ -334,36 +273,40 @@ Organize by **bounded context** (vertical slice), not by technical layer. Do not
 - All list endpoints share the filter pattern: `organization_id`, `service_id`, `from`, `to`, `page`, `page_size`.
 - All responses include `request_id` and `generated_at`.
 - Error shape: `{ "error": { "code": "...", "message": "...", "request_id": "..." } }`.
-- API contracts are **independent of RAG backend**. Swapping OpenRAG or the ingestion runtime must not change the API shape.
 
-### Organization Scoping
+### State Machines
 
-Every business table must be reachable to `organization_id` (direct column or via FK join). This is enforced as a data constraint, not just a query convention.
+**Ingestion Job**: `pending → queued → running → success | failed | cancelled`
 
-### Ingestion Job State Machine
-
-`pending → queued → running → success | failed | cancelled`
-
-Trigger types: `schedule`, `manual`, `qa_request`, `document_event`.
-Runner types: `python_worker`, `openrag_flow`, `spring_batch`.
-
-### QA Review State Machine
-
-`pending → confirmed_issue → resolved` (valid)
-`pending → false_alarm` (valid, forces `action_type = no_action`)
-`false_alarm → resolved` (prohibited)
-
-`confirmed_issue` requires `root_cause_code` and `action_type`.
+**QA Review**:
+- `pending → confirmed_issue → resolved` (valid)
+- `pending → false_alarm` (valid, forces `action_type = no_action`)
+- `false_alarm → resolved` (prohibited)
+- `confirmed_issue` requires `root_cause_code` and `action_type`.
 
 ### Unresolved Queue Visibility Rule
 
-Show in unresolved queue if:
-- `answer_status` is `fallback`, `no_answer`, or `error`, **OR**
-- `answer_status = answered` but latest `qa_review.review_status = confirmed_issue`
-
+Show if `answer_status` ∈ {`fallback`, `no_answer`, `error`} **OR** latest `qa_review.review_status = confirmed_issue`.
 Exclude if latest review is `resolved` or `false_alarm`.
 
-**Implementation**: Native SQL query in `JpaQuestionRepository.findUnresolvedQuestions()` (avoids circular dependency between chat-runtime and qa-review modules).
+Implementation: native SQL in `JpaQuestionRepository.findUnresolvedQuestions()` (avoids circular dependency).
+
+### Failure Reason Code (A01–A10)
+
+`questions.failure_reason_code` 컬럼 + `FailureReasonCode` enum (chat-runtime/domain):
+
+| 코드 | 원인 | 조치 주체 |
+|------|------|-----------|
+| A01 | 관련 문서 없음 | 고객사 |
+| A02 | 문서 최신 아님 | 고객사 |
+| A03 | 파싱 실패 | 운영사 |
+| A04 | 검색 실패 | 운영사 |
+| A05 | 재랭킹 실패 | 운영사 |
+| A06 | 생성 답변 왜곡 (환각) | 운영사 |
+| A07 | 질문 의도 분류 실패 | 운영사 |
+| A08 | 정책상 답변 제한 | 협의 |
+| A09 | 질문 표현 모호함 | 고객사 |
+| A10 | 채널 UI/입력 문제 | 운영사 |
 
 ---
 
@@ -373,173 +316,92 @@ Exclude if latest review is `resolved` or `false_alarm`.
 
 **Enum storage**: Store as lowercase strings in DB, convert to Enum in code.
 ```kotlin
-// Entity
 @Column(name = "answer_status", nullable = false)
 val answerStatus: String  // "answered", "fallback", etc.
-
-// Conversion
-private fun String.toAnswerStatus(): AnswerStatus =
-    when (this) {
-        "answered" -> AnswerStatus.ANSWERED
-        "fallback" -> AnswerStatus.FALLBACK
-        else -> AnswerStatus.ERROR
-    }
 ```
 
-**JSON serialization**: Use Jackson for complex objects (e.g., AdminSessionSnapshot in admin_sessions.snapshot_json).
+**Adapter classes**: Must be `open class` for Spring CGLIB proxy support.
 
-**Adapter classes**: Must be `open class` (not final) for Spring CGLIB proxy support.
-
-**Circular dependencies**: Avoid module dependencies that create cycles. Use native queries if needed (e.g., chat-runtime querying qa_reviews table without importing qa-review module).
+**Circular dependencies**: Use native queries when needed (e.g., chat-runtime querying qa_reviews without importing qa-review module).
 
 ### Repository Bean Registration
 
-All repository adapters are registered in `apps/admin-api/config/RepositoryConfiguration`:
-- Adapters are NOT annotated with `@Component` (to avoid auto-scanning)
-- Explicit `@Bean` methods for each adapter
-- Spring Data JPA repositories ARE annotated with `@Repository`
+- Adapters are NOT `@Component` — registered via explicit `@Bean` in `RepositoryConfiguration`.
+- Spring Data JPA repositories ARE `@Repository`.
 
 ### Scope-based Filtering
 
-All Reader adapters implement organization-based filtering:
 ```kotlin
 override fun listX(scope: XScope): List<XSummary> {
     val all = jpaRepository.findAll().map { it.toSummary() }
-    return if (scope.globalAccess) {
-        all
-    } else {
-        all.filter { it.organizationId in scope.organizationIds }
-    }
+    return if (scope.globalAccess) all
+           else all.filter { it.organizationId in scope.organizationIds }
 }
 ```
 
-**Scope types**: `IngestionScope`, `ChatScope`, `DocumentScope`, `MetricsScope` (all have same structure).
+Scope types: `IngestionScope`, `ChatScope`, `DocumentScope`, `MetricsScope`.
 
 ### Dynamic ID Generation
 
-Use UUID for new resources:
 ```kotlin
 val id = "prefix_${UUID.randomUUID().toString().substring(0, 8)}"
 ```
 
 Prefixes: `crawl_src_`, `ing_job_`, `question_`, `answer_`, `qa_rev_`, etc.
 
-### Test Data Setup
+---
 
-Tests that need related resources:
-```kotlin
-// 1. Create question first
-val questionId = createQuestionAndReturnId()
+## Testing Strategy
 
-// 2. Then create review
-mockMvc.post("/admin/qa-reviews") {
-    content = """{"questionId": "$questionId", ...}"""
-}
-```
+**50 integration tests + 8 ArchUnit rules (100% passing)**
 
-**FK constraints**: Questions must exist before QA reviews (V012 adds FK).
+| Suite | Tests | 내용 |
+|-------|-------|------|
+| Auth/session | 9 | 로그인, 로그아웃, 세션 복원, 만료 |
+| Ingestion | 16 | Source CRUD, job 전이, 스코프 검증 |
+| QA Review | 5 | 상태 머신, 유효성, 권한 |
+| Chat Runtime | 5 | 질문 생성, 미응답 큐, 문서, 메트릭 |
+| E2E | 4 | 전체 플로우, 멀티테넌트 격리 |
+| RAGAS Evaluation | 3 | `POST /admin/ragas-evaluations` |
+| ArchUnit | 8 | 의존성 방향, 레이어 격리, 순환 탐지 |
+
+**Test pattern**:
+- `@SpringBootTest` + `@AutoConfigureMockMvc` + `@ActiveProfiles("test")`
+- `@DirtiesContext(AFTER_CLASS)` for test isolation
+- H2 in-memory DB (MODE=PostgreSQL), `flyway.target: "27"`
+- Helper: `loginAndReturnSessionId()`, `createQuestionAndReturnId()`
 
 ---
 
-## Test Layout
+## OpenSpec Workflow
+
+모든 주요 변경은 OpenSpec change로 추적한다.
 
 ```
-tests/
-  unit/    # Domain policy: state transitions, permission actions, aggregation functions
-  api/     # Auth/session APIs, question APIs, QA review API, document ops API, dashboard API
-  e2e/     # Full operating loop scenarios (login → unresolved → QA → reindex)
-  data/    # KPI aggregation correctness, trace_id/request_id coverage, audit log presence
+openspec/
+  changes/      # 진행 중인 변경
+  archive/      # 완료된 변경
+  templates/    # 템플릿
 ```
 
-Run order: unit → api → e2e → data. This order isolates failure causes fastest.
-
-The product contract tests (unit, api, e2e) must pass regardless of which RAG backend (self-built vs OpenRAG) is active.
+**Process**:
+1. `openspec/changes/<change-id>/` 생성, 템플릿 복사
+2. `proposal.md` (범위·영향), `tasks.md` (체크리스트), `status.md` (진행 현황) 작성
+3. `tasks.md` 체크박스 업데이트하며 구현
+4. 테스트 통과 후 `status.md` 업데이트
+5. 단일 커밋, 한국어 커밋 메시지
+6. `openspec/archive/<change-id>/` 로 이동
 
 ---
 
 ## Reference Documents
 
-Design decisions, API contracts, and data schemas are maintained in `mvp_docs/`:
-
-| File | Contents |
-|---|---|
-| `01_mvp_prd.md` | Product goals, scope, KPI definitions |
-| `04_data_api.md` | Full table schemas, status codes, API contracts |
-| `05_architecture_openrag.md` | Architecture decision: modular monolith + Python workers |
-| `06_access_policy.md` | Screen-level access policy by role |
-| `10_auth_authz_api.md` | Auth API contracts, session lifecycle, audit rules |
-| `12_test_strategy.md` | Test level mapping and Sprint 1 automation scope |
-| `16_springboot_kotlin_ddd_msa_review.md` | Why DDD-lite monolith over full MSA |
-| `09_unresolved_qa_state_machine.md` | Unresolved queue visibility and QA review state transitions |
-| `99_worklog.md` | Development history and completed changes |
-
----
-
-## Next Steps
-
-### Remaining Work
-
-**Python services** (not yet implemented):
-- RAG Orchestrator (FastAPI): Query rewrite, retrieval, answer synthesis
-- Actual parsing in ingestion-worker: HTML/PDF parsing, chunking, embedding
-
-**Integration**:
-- Run PostgreSQL: `docker-compose up -d`
-- Connect admin-api to PostgreSQL (currently test mode uses H2)
-- Test Python worker with real job execution
-
-**Production readiness**:
-- Logging improvements (request_id, trace_id)
-- Error response unification
-- Health check enhancements
-- CI/CD pipeline
-
----
-
-## R&D 기반 V2 변경 계획 (crawler-poc PRD 기반)
-
-**R&D 실험 완료 전에는 파싱 파이프라인·벡터 검색 관련 코드를 추가하지 않는다.**
-실험은 `web2rag-poc/experiments/` 에서 진행.
-
-### 현재 진행 중인 openspec changes (완료 우선)
-1. `extend-roles-6`
-2. `extend-question-model`
-3. `extend-feedback-model`
-4. `extend-daily-metrics`
-5. `standardize-failure-codes`
-
-### 바로 구현 가능 (R&D 불필요)
-| Change | 우선순위 | 내용 |
-|---|---|---|
-| `enhance-security` | HIGH | bcrypt 해싱, rate limiting, CORS |
-| `add-docker-build` | HIGH | 멀티스테이지 Dockerfile × 3 서비스 |
-| `add-production-logging` | MEDIUM | JSON 로그, request_id/trace_id |
-| `unify-error-handling` | MEDIUM | GlobalExceptionHandler, 에러 코드 체계 |
-
-### R&D 완료 후 proposal (의존 실험 완료 시)
-| Change | 의존 실험 | 주요 대상 파일 |
-|---|---|---|
-| `add-document-parsing-pipeline` | Exp-1, 3, 4 | `python/ingestion-worker/src/ingestion_worker/` |
-| `add-vector-search-retrieval` | Exp-4, 5 | `python/rag-orchestrator/src/rag_orchestrator/retrieval.py` |
-
-### V1 호환성 유지 사항
-- `UnifiedDocument` ↔ V1 MetadataModel 필드 매핑
-- 청킹 전략 이름: government / legal / sections / form / faq / casebook / semantic / recursive
-- `chunk_size=600`, `chunk_overlap=100` 기본값
-
----
-
-### Completed Today (10 OpenSpec Changes)
-
-1. `separate-repository-ports-identity-org`: Repository ports and in-memory adapters
-2. `add-ingestion-worker-crawl-flow`: Python worker + Playwright crawler
-3. `add-auth-ingestion-test-cases`: Individual resource endpoint tests
-4. `add-jpa-entities-identity-org`: PostgreSQL + JPA for identity/org
-5. `add-jpa-entities-ingestion-ops`: JPA for ingestion-ops
-6. `add-e2e-auth-ingestion-flow`: E2E integration tests
-7. `add-qa-review-module`: QA review state machine
-8. `add-chat-runtime-module`: Questions/answers/unresolved queue
-9. `add-document-registry-module`: Document metadata
-10. `add-metrics-reporting-module`: KPI dashboard
-
-**Result**: MVP core loop fully operational (question → answer → unresolved → QA → ingestion).
+| 파일 | 내용 |
+|------|------|
+| `docs/platform-prd.md` | **제품 PRD** — 단일 진실 출처 |
+| `docs/implementation-gap.md` | PRD vs. 현재 구현 상태 비교표 |
+| `docs/rag-pipeline-1pager.md` | RAG 품질 지표·자동화 평가 기술 참고 |
+| `mvp_docs/04_data_api.md` | 전체 테이블 스키마, 상태 코드, API 계약 |
+| `mvp_docs/09_unresolved_qa_state_machine.md` | 미응답 큐 가시성 규칙, QA 리뷰 상태 전이 |
+| `mvp_docs/10_auth_authz_api.md` | Auth API, 세션 생명주기, 감사 규칙 |
+| `openspec/archive/` | 완료된 변경사항 이력 |
