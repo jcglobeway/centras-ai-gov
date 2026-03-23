@@ -32,11 +32,20 @@ class AdminApiClient:
         self.base_url = base_url.rstrip("/")
         self.headers = {"X-Admin-Session-Id": session_token, "Content-Type": "application/json"}
 
+    # org별 eval 세션 ID 매핑 (reset_data 실행 후 DB에 직접 삽입된 더미 세션)
+    _EVAL_SESSIONS: dict = {
+        "org_seoul_120": "eval_session_seoul",
+        "org_busan_220": "eval_session_busan",
+    }
+    _DEFAULT_SESSION = "eval_session_seoul"
+
     def create_question(self, org_id: str, service_id: str, question_text: str) -> Optional[str]:
         """POST /admin/questions → question_id 반환."""
+        session_id = self._EVAL_SESSIONS.get(org_id, self._DEFAULT_SESSION)
         payload = {
             "organizationId": org_id,
             "serviceId": service_id,
+            "chatSessionId": session_id,
             "questionText": question_text,
             "channel": "api",
         }

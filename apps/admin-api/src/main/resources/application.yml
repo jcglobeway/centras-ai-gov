@@ -36,7 +36,7 @@ spring:
           model: gpt-5-latest
           temperature: 0.3
     ollama:
-      base-url: ${OLLAMA_URL:http://localhost:11434}
+      base-url: ${OLLAMA_URL:http://jcg-office.tailedf4dc.ts.net:11434}
       chat:
         model: ${OLLAMA_CHAT_MODEL:qwen2.5:7b}
         options:
@@ -55,19 +55,19 @@ server:
 
 rag:
   orchestrator:
-    enabled: ${RAG_ORCHESTRATOR_ENABLED:false}
+    enabled: true
     url: http://localhost:8090
 
 spring-ai:
   answer:
-    enabled: ${SPRING_AI_ANSWER_ENABLED:true}
-    provider: ${SPRING_AI_ANSWER_PROVIDER:openai}
+    enabled: true
+    provider: ollama
 
 evaluation:
   ragas:
     enabled: ${RAGAS_EVAL_ENABLED:true}
     judge-provider: ${RAGAS_JUDGE_PROVIDER:ollama}
-    ollama-url: ${OLLAMA_URL:http://localhost:11434}
+    ollama-url: ${OLLAMA_URL:http://jcg-office.tailedf4dc.ts.net:11434}
     ollama-model: ${RAGAS_OLLAMA_MODEL:qwen2.5:7b}
   llm-judge:
     enabled: ${LLM_JUDGE_ENABLED:false}
