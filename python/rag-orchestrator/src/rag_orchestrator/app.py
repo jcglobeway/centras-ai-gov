@@ -24,6 +24,9 @@ class GenerateAnswerResponse(BaseModel):
     citation_count: int
     response_time_ms: int
     fallback_reason_code: Optional[str] = None
+    confidence_score: Optional[float] = None
+    question_failure_reason_code: Optional[str] = None
+    is_escalated: bool = False
 
 
 @app.get("/healthz")
@@ -75,12 +78,28 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
         citation_count = len(search_results)
         fallback_reason = None
         response_time_ms = int(time.time() * 1000) - start_ms
+
+        if search_results:
+            distances = [float(r["distance"]) for r in search_results]
+            avg_distance = sum(distances) / len(distances)
+            # cosine distance(0~2) → similarity(0~1): max 처리로 음수 방지
+            confidence_score = round(max(0.0, 1.0 - avg_distance), 4)
+            question_failure_reason_code = None
+            is_escalated = False
+        else:
+            # 검색 실패 (zero result) → A04
+            confidence_score = 0.0
+            question_failure_reason_code = "A04"
+            is_escalated = True
     else:
         answer_text = f"[DEV MODE] Ollama not available. Stub answer for: {request.question_text}"
         answer_status = "fallback"
         citation_count = 0
         fallback_reason = "OLLAMA_NOT_AVAILABLE"
         response_time_ms = 0
+        confidence_score = None
+        question_failure_reason_code = "A04"
+        is_escalated = True
 
     return GenerateAnswerResponse(
         question_id=request.question_id,
@@ -89,6 +108,9 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
         citation_count=citation_count,
         response_time_ms=response_time_ms,
         fallback_reason_code=fallback_reason,
+        confidence_score=confidence_score,
+        question_failure_reason_code=question_failure_reason_code,
+        is_escalated=is_escalated,
     )
 
 

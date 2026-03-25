@@ -69,6 +69,9 @@ private data class GenerateAnswerResult(
     val citation_count: Int,
     val response_time_ms: Int,
     val fallback_reason_code: String?,
+    val confidence_score: Double? = null,
+    val question_failure_reason_code: String? = null,
+    val is_escalated: Boolean = false,
 )
 
 private fun GenerateAnswerResult.toRagAnswerResult() = RagAnswerResult(
@@ -77,4 +80,7 @@ private fun GenerateAnswerResult.toRagAnswerResult() = RagAnswerResult(
     responseTimeMs = response_time_ms,
     citationCount = citation_count,
     fallbackReasonCode = fallback_reason_code,
+    confidenceScore = confidence_score?.let { java.math.BigDecimal.valueOf(it) },
+    questionFailureReasonCode = question_failure_reason_code,
+    isEscalated = is_escalated,
 )

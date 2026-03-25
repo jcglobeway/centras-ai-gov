@@ -135,4 +135,12 @@ class RepositoryConfiguration {
         questionRepository: JpaQuestionRepository,
     ): com.publicplatform.ragops.chatruntime.application.port.out.LoadLlmMetricsPort =
         LoadLlmMetricsPortAdapter(answerRepository, questionRepository)
+
+    @Bean
+    fun updateQuestionPort(jpaRepository: JpaQuestionRepository): UpdateQuestionPort =
+        UpdateQuestionPortAdapter(jpaRepository)
+
+    @Bean
+    fun updateChatSessionPort(jpaRepository: JpaChatSessionRepository): UpdateChatSessionPort =
+        UpdateChatSessionPortAdapter(jpaRepository)
 }

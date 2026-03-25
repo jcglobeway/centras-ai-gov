@@ -8,6 +8,8 @@ import com.publicplatform.ragops.chatruntime.application.port.out.LoadQuestionPo
 import com.publicplatform.ragops.chatruntime.application.port.out.RecordQuestionPort
 import com.publicplatform.ragops.chatruntime.application.port.out.RagOrchestrationPort
 import com.publicplatform.ragops.chatruntime.application.port.out.SaveRagSearchLogPort
+import com.publicplatform.ragops.chatruntime.application.port.out.UpdateQuestionPort
+import com.publicplatform.ragops.chatruntime.application.port.out.UpdateChatSessionPort
 import com.publicplatform.ragops.chatruntime.application.port.`in`.GetLlmMetricsUseCase
 import com.publicplatform.ragops.chatruntime.application.service.CreateAnswerService
 import com.publicplatform.ragops.chatruntime.application.service.CreateQuestionService
@@ -85,7 +87,11 @@ class ServiceConfiguration {
         questionWriter: RecordQuestionPort,
         answerWriter: RecordAnswerPort,
         ragOrchestrationPort: RagOrchestrationPort,
-    ): CreateQuestionService = CreateQuestionService(questionWriter, answerWriter, ragOrchestrationPort)
+        updateQuestionPort: UpdateQuestionPort,
+        updateChatSessionPort: UpdateChatSessionPort,
+    ): CreateQuestionService = CreateQuestionService(
+        questionWriter, answerWriter, ragOrchestrationPort, updateQuestionPort, updateChatSessionPort,
+    )
 
     @Bean
     fun listQuestionsService(questionReader: LoadQuestionPort): ListQuestionsService =

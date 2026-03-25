@@ -23,7 +23,7 @@ open class RecordQuestionPortAdapter(
             id = id, organizationId = command.organizationId, serviceId = command.serviceId,
             chatSessionId = command.chatSessionId, questionText = command.questionText,
             questionIntentLabel = command.questionIntentLabel, channel = command.channel,
-            questionCategory = null, answerConfidence = null,
+            questionCategory = command.questionCategory, answerConfidence = null,
             failureReasonCode = command.failureReasonCode?.code, isEscalated = false,
             createdAt = Instant.now(),
         )

@@ -32,5 +32,6 @@ data class CreateQuestionCommand(
     val questionText: String,
     val questionIntentLabel: String?,
     val channel: String,
+    val questionCategory: String? = null,
     val failureReasonCode: FailureReasonCode? = null,
 )

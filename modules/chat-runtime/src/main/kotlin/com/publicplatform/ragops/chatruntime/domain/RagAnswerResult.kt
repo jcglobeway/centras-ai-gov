@@ -6,12 +6,17 @@
  */
 package com.publicplatform.ragops.chatruntime.domain
 
+import java.math.BigDecimal
+
 data class RagAnswerResult(
     val answerText: String,
     val answerStatus: AnswerStatus,
     val responseTimeMs: Int?,
     val citationCount: Int?,
     val fallbackReasonCode: String?,
+    val confidenceScore: BigDecimal? = null,
+    val questionFailureReasonCode: String? = null,
+    val isEscalated: Boolean = false,
     val modelName: String? = null,
     val providerName: String? = null,
     val inputTokens: Int? = null,

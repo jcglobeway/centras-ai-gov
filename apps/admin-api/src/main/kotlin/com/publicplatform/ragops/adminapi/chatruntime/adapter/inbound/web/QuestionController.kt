@@ -55,6 +55,7 @@ class QuestionController(
                 questionText = request.questionText,
                 questionIntentLabel = request.questionIntentLabel,
                 channel = request.channel,
+                questionCategory = request.questionCategory,
             ),
         )
 
@@ -119,6 +120,7 @@ data class CreateQuestionRequest(
     @field:NotBlank val questionText: String,
     val questionIntentLabel: String?,
     @field:NotBlank val channel: String,
+    val questionCategory: String? = null,
 )
 
 data class QuestionCreateResponse(val questionId: String, val created: Boolean)

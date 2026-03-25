@@ -4,6 +4,8 @@ import com.publicplatform.ragops.chatruntime.application.port.`in`.CreateQuestio
 import com.publicplatform.ragops.chatruntime.application.port.out.RecordAnswerPort
 import com.publicplatform.ragops.chatruntime.application.port.out.RecordQuestionPort
 import com.publicplatform.ragops.chatruntime.application.port.out.RagOrchestrationPort
+import com.publicplatform.ragops.chatruntime.application.port.out.UpdateChatSessionPort
+import com.publicplatform.ragops.chatruntime.application.port.out.UpdateQuestionPort
 import com.publicplatform.ragops.chatruntime.domain.AnswerStatus
 import com.publicplatform.ragops.chatruntime.domain.CreateAnswerCommand
 import com.publicplatform.ragops.chatruntime.domain.CreateQuestionCommand
@@ -21,10 +23,13 @@ open class CreateQuestionService(
     private val questionWriter: RecordQuestionPort,
     private val answerWriter: RecordAnswerPort,
     private val ragOrchestrationPort: RagOrchestrationPort,
+    private val updateQuestionPort: UpdateQuestionPort,
+    private val updateChatSessionPort: UpdateChatSessionPort,
 ) : CreateQuestionUseCase {
 
     override fun execute(command: CreateQuestionCommand): QuestionSummary {
         val createdQuestion = questionWriter.createQuestion(command)
+        updateChatSessionPort.incrementQuestionCount(command.chatSessionId)
 
         val ragResult = ragOrchestrationPort.generateAnswer(
             questionId = createdQuestion.id,
@@ -51,6 +56,14 @@ open class CreateQuestionService(
                     finishReason = ragResult.finishReason,
                 ),
             )
+            updateQuestionPort.updateAfterAnswer(
+                questionId = createdQuestion.id,
+                confidenceScore = ragResult.confidenceScore,
+                failureReasonCode = ragResult.questionFailureReasonCode,
+                isEscalated = ragResult.isEscalated,
+            )
+            val endType = if (ragResult.isEscalated) "escalated" else "answered"
+            updateChatSessionPort.updateSessionEndType(command.chatSessionId, endType)
         }
 
         return createdQuestion

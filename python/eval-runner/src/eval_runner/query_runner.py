@@ -41,7 +41,14 @@ class AdminApiClient:
     }
     _DEFAULT_SESSION = "eval_session_acc"
 
-    def create_question(self, org_id: str, service_id: str, question_text: str) -> Optional[str]:
+    def create_question(
+        self,
+        org_id: str,
+        service_id: str,
+        question_text: str,
+        question_category: Optional[str] = None,
+        question_intent_label: Optional[str] = None,
+    ) -> Optional[str]:
         """POST /admin/questions → question_id 반환."""
         session_id = self._EVAL_SESSIONS.get(org_id, self._DEFAULT_SESSION)
         payload = {
@@ -50,6 +57,8 @@ class AdminApiClient:
             "chatSessionId": session_id,
             "questionText": question_text,
             "channel": "api",
+            "questionCategory": question_category,
+            "questionIntentLabel": question_intent_label,
         }
         try:
             resp = httpx.post(
@@ -152,7 +161,11 @@ def run(
             })
             continue
 
-        question_id = client.create_question(org_id, svc_id, q_text)
+        question_id = client.create_question(
+            org_id, svc_id, q_text,
+            question_category=item.get("consulting_category"),
+            question_intent_label=item.get("task_category"),
+        )
         if not question_id:
             results.append({
                 "question": q_text, "answer": "", "contexts": [],
