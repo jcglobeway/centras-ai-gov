@@ -16,7 +16,7 @@ class IngestionApiTests : BaseApiTest() {
                 jsonPath("$.items[0].id") { value("crawl_src_001") }
                 jsonPath("$.items[0].serviceId") { value("svc_welfare") }
                 jsonPath("$.items[0].renderMode") { value("browser_playwright") }
-                jsonPath("$.items[1].organizationId") { value("org_busan_220") }
+                jsonPath("$.items[1].organizationId") { value("org_central_gov") }
             }
     }
 
@@ -24,11 +24,11 @@ class IngestionApiTests : BaseApiTest() {
     fun `crawl sources are scoped to client admin organization`() {
         mockMvc.get("/admin/crawl-sources") {
             header("X-Debug-Role", "client_admin")
-            header("X-Debug-Organization-Id", "org_busan_220")
+            header("X-Debug-Organization-Id", "org_central_gov")
         }.andExpect {
             status { isOk() }
             jsonPath("$.items[0].id") { value("crawl_src_002") }
-            jsonPath("$.items[0].organizationId") { value("org_busan_220") }
+            jsonPath("$.items[0].organizationId") { value("org_central_gov") }
         }
     }
 
@@ -36,7 +36,7 @@ class IngestionApiTests : BaseApiTest() {
     fun `ingestion jobs are scoped to session organization`() {
         mockMvc.get("/admin/ingestion-jobs") {
             header("X-Debug-Role", "qa_admin")
-            header("X-Debug-Organization-Id", "org_seoul_120")
+            header("X-Debug-Organization-Id", "org_local_gov")
         }.andExpect {
             status { isOk() }
             jsonPath("$.total") { value(4) }
@@ -53,7 +53,7 @@ class IngestionApiTests : BaseApiTest() {
             contentType = MediaType.APPLICATION_JSON
             content = """
                 {
-                  "organizationId": "org_busan_220",
+                  "organizationId": "org_central_gov",
                   "serviceId": "svc_faq",
                   "name": "Busan Welfare Notices",
                   "sourceType": "website",
@@ -74,11 +74,11 @@ class IngestionApiTests : BaseApiTest() {
     fun `client admin cannot create crawl source outside own scope`() {
         mockMvc.post("/admin/crawl-sources") {
             header("X-Debug-Role", "client_admin")
-            header("X-Debug-Organization-Id", "org_busan_220")
+            header("X-Debug-Organization-Id", "org_central_gov")
             contentType = MediaType.APPLICATION_JSON
             content = """
                 {
-                  "organizationId": "org_seoul_120",
+                  "organizationId": "org_local_gov",
                   "serviceId": "svc_welfare",
                   "name": "Forbidden Source",
                   "sourceType": "website",
@@ -111,11 +111,11 @@ class IngestionApiTests : BaseApiTest() {
     fun `qa admin cannot create crawl source without write action`() {
         mockMvc.post("/admin/crawl-sources") {
             header("X-Debug-Role", "qa_admin")
-            header("X-Debug-Organization-Id", "org_seoul_120")
+            header("X-Debug-Organization-Id", "org_local_gov")
             contentType = MediaType.APPLICATION_JSON
             content = """
                 {
-                  "organizationId": "org_seoul_120",
+                  "organizationId": "org_local_gov",
                   "serviceId": "svc_welfare",
                   "name": "QA Forbidden Source",
                   "sourceType": "website",
@@ -178,7 +178,7 @@ class IngestionApiTests : BaseApiTest() {
             .andExpect {
                 status { isOk() }
                 jsonPath("$.id") { value("crawl_src_001") }
-                jsonPath("$.organizationId") { value("org_seoul_120") }
+                jsonPath("$.organizationId") { value("org_local_gov") }
                 jsonPath("$.serviceId") { value("svc_welfare") }
                 jsonPath("$.name") { value("Seoul Notices") }
                 jsonPath("$.sourceType") { value("website") }
@@ -200,7 +200,7 @@ class IngestionApiTests : BaseApiTest() {
     fun `get crawl source by id respects organization scope`() {
         mockMvc.get("/admin/crawl-sources/crawl_src_001") {
             header("X-Debug-Role", "client_admin")
-            header("X-Debug-Organization-Id", "org_busan_220")
+            header("X-Debug-Organization-Id", "org_central_gov")
         }.andExpect {
             status { isNotFound() }
         }
@@ -212,7 +212,7 @@ class IngestionApiTests : BaseApiTest() {
             .andExpect {
                 status { isOk() }
                 jsonPath("$.id") { value("ing_job_101") }
-                jsonPath("$.organizationId") { value("org_seoul_120") }
+                jsonPath("$.organizationId") { value("org_local_gov") }
                 jsonPath("$.crawlSourceId") { value("crawl_src_001") }
                 jsonPath("$.jobType") { value("crawl") }
                 jsonPath("$.jobStage") { value("complete") }
@@ -232,7 +232,7 @@ class IngestionApiTests : BaseApiTest() {
     fun `get ingestion job by id respects organization scope`() {
         mockMvc.get("/admin/ingestion-jobs/ing_job_101") {
             header("X-Debug-Role", "qa_admin")
-            header("X-Debug-Organization-Id", "org_busan_220")
+            header("X-Debug-Organization-Id", "org_central_gov")
         }.andExpect {
             status { isNotFound() }
         }

@@ -39,7 +39,7 @@ abstract class BaseApiTest {
             contentType = MediaType.APPLICATION_JSON
             content = """
                 {
-                  "organizationId": "org_seoul_120",
+                  "organizationId": "org_local_gov",
                   "serviceId": "svc_welfare",
                   "chatSessionId": "chat_session_001",
                   "questionText": "Test question",

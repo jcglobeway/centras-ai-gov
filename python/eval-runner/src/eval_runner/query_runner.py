@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Optional
 
 import httpx
+import psycopg2
 import typer
 
 app = typer.Typer(help="RAG 질의 실행 및 결과 수집")
@@ -34,10 +35,11 @@ class AdminApiClient:
 
     # org별 eval 세션 ID 매핑 (reset_data 실행 후 DB에 직접 삽입된 더미 세션)
     _EVAL_SESSIONS: dict = {
-        "org_seoul_120": "eval_session_seoul",
-        "org_busan_220": "eval_session_busan",
+        "org_acc":         "eval_session_acc",
+        "org_local_gov":   "eval_session_local",
+        "org_central_gov": "eval_session_central",
     }
-    _DEFAULT_SESSION = "eval_session_seoul"
+    _DEFAULT_SESSION = "eval_session_acc"
 
     def create_question(self, org_id: str, service_id: str, question_text: str) -> Optional[str]:
         """POST /admin/questions → question_id 반환."""
@@ -60,18 +62,24 @@ class AdminApiClient:
             typer.echo(f"[query] 질의 생성 실패: {e}", err=True)
             return None
 
-    def fetch_question(self, question_id: str) -> Optional[dict]:
-        """GET /admin/questions/{id} → answer_text 포함 응답."""
+    def fetch_answer_text(self, question_id: str, db_url: Optional[str]) -> str:
+        """answers 테이블에서 answer_text를 직접 조회한다 (GET /admin/questions/{id} 미구현)."""
+        if not db_url:
+            return ""
         try:
-            resp = httpx.get(
-                f"{self.base_url}/admin/questions/{question_id}",
-                headers=self.headers, timeout=10.0,
+            conn = psycopg2.connect(db_url)
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT answer_text FROM answers WHERE question_id = %s LIMIT 1",
+                (question_id,),
             )
-            if resp.status_code == 200:
-                return resp.json()
+            row = cur.fetchone()
+            cur.close()
+            conn.close()
+            return row[0] if row else ""
         except Exception as e:
-            typer.echo(f"[query] 질의 조회 실패: {e}", err=True)
-        return None
+            typer.echo(f"[query] DB 답변 조회 실패: {e}", err=True)
+            return ""
 
     def fetch_rag_search_logs(self, question_id: str) -> list[str]:
         """GET /admin/rag-search-logs?question_id= → retrieved document 텍스트 목록."""
@@ -110,6 +118,7 @@ def run(
     """eval_questions.json을 읽어 RAG 질의를 실행하고 eval_results.json을 생성한다."""
     admin_api_url   = os.getenv("ADMIN_API_BASE_URL",    "http://localhost:8081")
     session_token   = os.getenv("ADMIN_API_SESSION_TOKEN", "")
+    db_url          = os.getenv("DATABASE_URL")
 
     if not input_path.exists():
         typer.echo(f"[query] 입력 파일 없음: {input_path}", err=True)
@@ -125,8 +134,8 @@ def run(
 
     for i, item in enumerate(questions, 1):
         q_text   = item["question"]
-        org_id   = item.get("org_id", "org_seoul_120")
-        svc_id   = item.get("service_id", "svc_welfare")
+        org_id   = item.get("org_id", "org_acc")
+        svc_id   = item.get("service_id", "svc_acc_chatbot")
         gt       = item.get("ground_truth", "")
         task_cat = item.get("task_category", "")
 
@@ -154,8 +163,7 @@ def run(
         # 답변이 비동기 생성되므로 짧게 대기
         time.sleep(max(delay, 1.0))
 
-        q_detail = client.fetch_question(question_id)
-        answer   = (q_detail or {}).get("answerText", "") if q_detail else ""
+        answer   = client.fetch_answer_text(question_id, db_url)
         contexts = client.fetch_rag_search_logs(question_id)
 
         results.append({
@@ -174,5 +182,11 @@ def run(
     typer.echo(f"[query] 완료 → {output_path} ({len(results)}건)")
 
 
-if __name__ == "__main__":
+def main() -> None:
+    from dotenv import load_dotenv
+    load_dotenv()
     app()
+
+
+if __name__ == "__main__":
+    main()

@@ -40,6 +40,8 @@ import com.publicplatform.ragops.adminapi.evaluation.application.port.out.SaveRa
 import com.publicplatform.ragops.adminapi.evaluation.application.service.ListRagasEvaluationsService
 import com.publicplatform.ragops.adminapi.evaluation.application.service.RagasEvaluationService
 import com.publicplatform.ragops.adminapi.chatruntime.adapter.outbound.ai.SpringAiAnswerService
+import com.publicplatform.ragops.adminapi.chatruntime.adapter.outbound.http.RagOrchestratorClient
+import org.springframework.boot.web.client.RestTemplateBuilder
 import com.publicplatform.ragops.adminapi.chatruntime.adapter.inbound.web.QuestionStreamController
 import com.publicplatform.ragops.identityaccess.application.port.`in`.AdminAuthUseCase
 import org.springframework.ai.chat.model.ChatModel
@@ -171,9 +173,16 @@ class ServiceConfiguration {
         @org.springframework.beans.factory.annotation.Autowired(required = false) ollamaChatModel: OllamaChatModel?,
         @Value("\${spring-ai.answer.enabled:true}") springAiEnabled: Boolean,
         @Value("\${spring-ai.answer.provider:openai}") provider: String,
+        @Value("\${rag.orchestrator.enabled:false}") ragOrchestratorEnabled: Boolean,
+        @Value("\${rag.orchestrator.url:http://localhost:8090}") ragOrchestratorUrl: String,
+        restTemplateBuilder: RestTemplateBuilder,
     ): RagOrchestrationPort {
         val noOp = object : RagOrchestrationPort {
             override fun generateAnswer(questionId: String, questionText: String, organizationId: String, serviceId: String) = null
+        }
+        // rag-orchestrator가 활성화되어 있으면 pgvector 검색 + 로그 저장을 포함한 전체 파이프라인 사용
+        if (ragOrchestratorEnabled) {
+            return RagOrchestratorClient(ragOrchestratorUrl, true, restTemplateBuilder)
         }
         if (!springAiEnabled || provider == "none") return noOp
         val chatModel = resolveModel(provider, openAiChatModel, ollamaChatModel) as? ChatModel

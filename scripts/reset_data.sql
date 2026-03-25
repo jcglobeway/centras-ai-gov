@@ -33,6 +33,15 @@ UPDATE daily_metrics_org SET
     unanswered_count        = 0,
     low_satisfaction_count  = 0;
 
+-- ── eval 세션 삽입 (query_runner.py 용) ──────────────────────────────────
+-- 실제 질의 투입 전 org별 eval용 chat_session 준비
+INSERT INTO chat_sessions (id, organization_id, service_id, channel, user_key_hash, started_at, created_at)
+VALUES
+  ('eval_session_acc',     'org_acc',         'svc_acc_chatbot', 'api', 'eval_hash_acc',     NOW(), NOW()),
+  ('eval_session_local',   'org_local_gov',   'svc_welfare',     'api', 'eval_hash_local',   NOW(), NOW()),
+  ('eval_session_central', 'org_central_gov', 'svc_faq',         'api', 'eval_hash_central', NOW(), NOW())
+ON CONFLICT (id) DO NOTHING;
+
 COMMIT;
 
 -- 확인 쿼리

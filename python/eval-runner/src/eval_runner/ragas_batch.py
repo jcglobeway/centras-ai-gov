@@ -2,15 +2,21 @@
 오프라인 RAGAS 배치 평가 실행기.
 
 admin-api에서 질문/답변 데이터를 조회한 뒤 RAGAS 지표(Faithfulness,
-AnswerRelevancy)를 계산하고 결과를 admin-api /admin/ragas-evaluations로 전송한다.
+AnswerRelevancy, ContextPrecision, ContextRecall)를 계산하고
+결과를 admin-api /admin/ragas-evaluations로 전송한다.
+
+ContextPrecision·ContextRecall은 eval_results.json(query_runner 출력)의
+contexts와 ground_truth를 사용한다.
 
 실행: eval-runner --date 2026-03-20
-     eval-runner --date 2026-03-20 --organization-id org_seoul_120
+     eval-runner --date 2026-03-20 --organization-id org_acc
 """
 from __future__ import annotations
 
+import json
 import math
 import os
+from pathlib import Path
 from typing import Optional
 
 import httpx
@@ -21,11 +27,16 @@ import typer
 app = typer.Typer(help="RAGAS 배치 평가 실행기")
 
 
+_PROJECT_ROOT = Path(__file__).parents[4]
+DEFAULT_EVAL_RESULTS = _PROJECT_ROOT / "python" / "eval-runner" / "eval_results.json"
+
+
 @app.command()
 def run(
     date_str: str = typer.Option(..., "--date", help="평가 대상 날짜 (YYYY-MM-DD)"),
     organization_id: Optional[str] = typer.Option(None, "--organization-id", help="조직 ID (미입력 시 전체)"),
     page_size: int = typer.Option(50, "--page-size", help="배치 크기"),
+    eval_results_path: Path = typer.Option(DEFAULT_EVAL_RESULTS, "--eval-results", help="eval_results.json 경로 (contexts/ground_truth 보완용)"),
     dry_run: bool = typer.Option(False, "--dry-run", help="결과를 전송하지 않고 출력만"),
 ) -> None:
     """지정한 날짜의 질문에 대해 RAGAS 평가를 수행하고 admin-api에 결과를 전송한다."""
@@ -50,8 +61,21 @@ def run(
         typer.echo("[eval-runner] 평가 대상 질문 없음")
         return
 
+    # eval_results.json에서 contexts·ground_truth 로드 (question_text 기준 매핑)
+    eval_lookup: dict[str, dict] = {}
+    if eval_results_path.exists():
+        try:
+            eval_data = json.loads(eval_results_path.read_text(encoding="utf-8"))
+            for item in eval_data:
+                q_text = item.get("question", "").strip()
+                if q_text:
+                    eval_lookup[q_text] = item
+            typer.echo(f"[eval-runner] eval_results.json 로드: {len(eval_lookup)}건")
+        except Exception as e:
+            typer.echo(f"[eval-runner] eval_results.json 로드 실패: {e}", err=True)
+
     typer.echo(f"[eval-runner] 평가 대상: {len(questions)}건")
-    results = evaluate_batch(questions)
+    results = evaluate_batch(questions, eval_lookup)
 
     for result in results:
         if dry_run:
@@ -133,20 +157,31 @@ def fetch_questions_from_db(
         return []
 
 
-def evaluate_batch(questions: list[dict]) -> list[dict]:
+def evaluate_batch(questions: list[dict], eval_lookup: dict[str, dict] | None = None) -> list[dict]:
+    lookup = eval_lookup or {}
     return [
         _compute_metrics(
             question_id=q.get("questionId", ""),
             question_text=q.get("questionText", ""),
             answer_text=q.get("answerText", ""),
+            contexts=lookup.get(q.get("questionText", ""), {}).get("contexts") or [""],
+            ground_truth=lookup.get(q.get("questionText", ""), {}).get("ground_truth"),
         )
         for q in questions
     ]
 
 
-def _compute_metrics(question_id: str, question_text: str, answer_text: str) -> dict:
+def _compute_metrics(
+    question_id: str,
+    question_text: str,
+    answer_text: str,
+    contexts: list[str] | None = None,
+    ground_truth: str | None = None,
+) -> dict:
     judge_model = os.getenv("RAGAS_OLLAMA_MODEL", "qwen2.5:7b")
     ollama_url = os.getenv("OLLAMA_URL", "http://jcg-office.tailedf4dc.ts.net:11434")
+    effective_contexts = contexts if contexts else [""]
+
     try:
         from ragas.metrics import faithfulness, answer_relevancy
         from ragas import evaluate
@@ -161,27 +196,41 @@ def _compute_metrics(question_id: str, question_text: str, answer_text: str) -> 
         answer_relevancy.llm = llm
         answer_relevancy.embeddings = emb
 
-        dataset = Dataset.from_dict({
+        metrics = [faithfulness, answer_relevancy]
+
+        data: dict = {
             "question": [question_text],
             "answer": [answer_text],
-            "contexts": [[""]],
-        })
-        result = evaluate(dataset, metrics=[faithfulness, answer_relevancy])
-        scores = result.to_pandas().iloc[0].to_dict()
+            "contexts": [effective_contexts],
+        }
 
-        def _safe(v: object) -> "float | None":
+        # context_precision·context_recall은 ground_truth가 있을 때만 계산
+        ctx_precision_score: float | None = None
+        ctx_recall_score: float | None = None
+        if ground_truth:
             try:
-                f = float(v)  # type: ignore[arg-type]
-                return None if math.isnan(f) else f
-            except (TypeError, ValueError):
-                return None
+                from ragas.metrics import context_precision, context_recall
+                context_precision.llm = llm
+                context_recall.llm = llm
+                data_with_gt = {**data, "ground_truth": [ground_truth]}
+                ds_gt = Dataset.from_dict(data_with_gt)
+                result_gt = evaluate(ds_gt, metrics=[context_precision, context_recall])
+                gt_scores = result_gt.to_pandas().iloc[0].to_dict()
+                ctx_precision_score = _safe(gt_scores.get("context_precision"))
+                ctx_recall_score = _safe(gt_scores.get("context_recall"))
+            except Exception as e:
+                typer.echo(f"[eval-runner] context 지표 계산 실패 ({question_id}): {e}", err=True)
+
+        dataset = Dataset.from_dict(data)
+        result = evaluate(dataset, metrics=metrics)
+        scores = result.to_pandas().iloc[0].to_dict()
 
         return {
             "questionId": question_id,
             "faithfulness": _safe(scores.get("faithfulness")),
             "answerRelevancy": _safe(scores.get("answer_relevancy")),
-            "contextPrecision": None,
-            "contextRecall": None,
+            "contextPrecision": ctx_precision_score,
+            "contextRecall": ctx_recall_score,
             "judgeProvider": "ollama",
             "judgeModel": judge_model,
         }
@@ -198,5 +247,19 @@ def _compute_metrics(question_id: str, question_text: str, answer_text: str) -> 
         }
 
 
-if __name__ == "__main__":
+def _safe(v: object) -> "float | None":
+    try:
+        f = float(v)  # type: ignore[arg-type]
+        return None if math.isnan(f) else f
+    except (TypeError, ValueError):
+        return None
+
+
+def main() -> None:
+    from dotenv import load_dotenv
+    load_dotenv()
     app()
+
+
+if __name__ == "__main__":
+    main()

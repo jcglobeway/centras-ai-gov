@@ -12,7 +12,7 @@ UPDATE daily_metrics_org SET
     knowledge_gap_count       = 5,
     unanswered_count          = 7,
     low_satisfaction_count    = 3
-WHERE organization_id = 'org_seoul_120';
+WHERE organization_id = 'org_local_gov';
 
 UPDATE daily_metrics_org SET
     auto_resolution_rate      = 0.7200,
@@ -25,4 +25,4 @@ UPDATE daily_metrics_org SET
     knowledge_gap_count       = 3,
     unanswered_count          = 4,
     low_satisfaction_count    = 2
-WHERE organization_id = 'org_busan_220';
+WHERE organization_id = 'org_central_gov';

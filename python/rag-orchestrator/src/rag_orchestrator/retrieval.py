@@ -15,17 +15,20 @@ def get_embedding(text: str, ollama_url: str = "http://localhost:11434") -> Opti
 
     try:
         response = httpx.post(
-            f"{ollama_url}/api/embeddings",
+            f"{ollama_url}/api/embed",
             json={
                 "model": model,
-                "prompt": text,
+                "input": text,
             },
-            timeout=10.0,
+            timeout=30.0,
         )
 
         if response.status_code == 200:
             result = response.json()
-            return result.get("embedding")
+            embeddings = result.get("embeddings") or result.get("embedding")
+            if isinstance(embeddings, list) and embeddings:
+                return embeddings[0] if isinstance(embeddings[0], list) else embeddings
+            return None
         else:
             return None
 
@@ -69,7 +72,7 @@ def vector_search(
             FROM document_chunks dc
             JOIN documents d ON dc.document_id = d.id
             WHERE dc.embedding_vector IS NOT NULL
-              AND d.visibility_scope = 'public'
+              AND d.visibility_scope IN ('public', 'organization')
             ORDER BY distance ASC
             LIMIT %s
             """,

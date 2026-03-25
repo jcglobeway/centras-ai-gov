@@ -44,7 +44,7 @@ class FullFlowE2ETests : BaseApiTest() {
             contentType = MediaType.APPLICATION_JSON
             content = """
                 {
-                  "organizationId": "org_seoul_120",
+                  "organizationId": "org_local_gov",
                   "serviceId": "svc_welfare",
                   "name": "E2E Test Source",
                   "sourceType": "website",
@@ -118,7 +118,7 @@ class FullFlowE2ETests : BaseApiTest() {
             header("X-Admin-Session-Id", sessionId)
         }.andExpect {
             status { isOk() }
-            jsonPath("$.organizationId") { value("org_busan_220") }
+            jsonPath("$.organizationId") { value("org_central_gov") }
         }
 
         mockMvc.get("/admin/crawl-sources/crawl_src_001") {
@@ -138,7 +138,7 @@ class FullFlowE2ETests : BaseApiTest() {
             contentType = MediaType.APPLICATION_JSON
             content = """
                 {
-                  "organizationId": "org_busan_220",
+                  "organizationId": "org_central_gov",
                   "serviceId": "svc_faq",
                   "name": "Forbidden",
                   "sourceType": "website",
@@ -183,8 +183,8 @@ class FullFlowE2ETests : BaseApiTest() {
         val items = clientSources.response.contentAsString.contentAsJson().path("items")
         val orgIds = items.map { it.path("organizationId").asText() }.toSet()
 
-        assert(orgIds == setOf("org_busan_220")) {
-            "client_admin should only see org_busan_220 sources, but saw: $orgIds"
+        assert(orgIds == setOf("org_central_gov")) {
+            "client_admin should only see org_central_gov sources, but saw: $orgIds"
         }
     }
 }

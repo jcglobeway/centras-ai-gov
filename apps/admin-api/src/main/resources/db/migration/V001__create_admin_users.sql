@@ -30,11 +30,13 @@ CREATE INDEX idx_admin_user_roles_organization_id ON admin_user_roles(organizati
 
 -- Seed development users
 INSERT INTO admin_users (id, email, display_name, status, last_login_at, created_at) VALUES
-('usr_ops_global_001', 'ops.platform@gov-platform.kr', 'Platform Operator', 'active', '2026-03-15 08:30:00', '2026-03-01 00:00:00'),
-('usr_client_busan_001', 'client.admin@busan.go.kr', 'Busan Client Admin', 'active', '2026-03-15 08:30:00', '2026-03-01 00:00:00'),
-('usr_qa_001', 'qa.manager@gov-platform.kr', 'QA Manager', 'active', '2026-03-15 08:30:00', '2026-03-01 00:00:00');
+('usr_ops_global_001',    'ops.platform@gov-platform.kr', '운영사 관리자',            'active', '2026-03-15 08:30:00', '2026-03-01 00:00:00'),
+('usr_client_acc_001',    'client.admin@acc.go.kr',       '국립아시아문화전당 관리자', 'active', '2026-03-15 08:30:00', '2026-03-01 00:00:00'),
+('usr_client_central_001','client.admin@mois.go.kr',      '중앙행정기관 관리자',      'active', '2026-03-15 08:30:00', '2026-03-01 00:00:00'),
+('usr_qa_001',            'qa.manager@gov-platform.kr',   'QA 담당자',                'active', '2026-03-15 08:30:00', '2026-03-01 00:00:00');
 
 INSERT INTO admin_user_roles (id, user_id, role_code, organization_id, assigned_at) VALUES
-('role_001', 'usr_ops_global_001', 'ops_admin', NULL, '2026-03-01 00:00:00'),
-('role_002', 'usr_client_busan_001', 'client_admin', 'org_busan_220', '2026-03-01 00:00:00'),
-('role_003', 'usr_qa_001', 'qa_admin', 'org_seoul_120', '2026-03-01 00:00:00');
+('role_001', 'usr_ops_global_001',    'ops_admin',   NULL,            '2026-03-01 00:00:00'),
+('role_002', 'usr_client_acc_001',    'client_admin','org_acc',       '2026-03-01 00:00:00'),
+('role_003', 'usr_client_central_001','client_admin','org_central_gov','2026-03-01 00:00:00'),
+('role_004', 'usr_qa_001',            'qa_admin',    'org_local_gov', '2026-03-01 00:00:00');

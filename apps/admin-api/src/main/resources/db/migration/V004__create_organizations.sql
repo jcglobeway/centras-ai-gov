@@ -18,5 +18,6 @@ CREATE INDEX idx_organizations_owner_user_id ON organizations(owner_user_id);
 
 -- Seed development organizations
 INSERT INTO organizations (id, name, org_code, status, institution_type, created_at) VALUES
-('org_seoul_120', 'Seoul City Civil Service Center', 'SEOUL_CIVIL', 'active', 'metro', '2026-03-01 00:00:00'),
-('org_busan_220', 'Busan Citizen Support Center', 'BUSAN_CIVIL', 'active', 'metro', '2026-03-01 00:00:00');
+('org_acc',         '국립아시아문화전당',  'ACC_NATIONAL',   'active', 'national_institution', '2026-03-01 00:00:00'),
+('org_central_gov', '중앙행정기관',       'CENTRAL_GOV',    'active', 'central_government',   '2026-03-01 00:00:00'),
+('org_local_gov',   '지방행정기관',       'LOCAL_GOV',      'active', 'local_government',     '2026-03-01 00:00:00');

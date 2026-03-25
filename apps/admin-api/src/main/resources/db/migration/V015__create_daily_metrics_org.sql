@@ -21,5 +21,5 @@ CREATE INDEX idx_daily_metrics_org_organization_id ON daily_metrics_org(organiza
 
 -- Seed development metrics
 INSERT INTO daily_metrics_org (id, metric_date, organization_id, service_id, total_sessions, total_questions, resolved_rate, fallback_rate, zero_result_rate, avg_response_time_ms, created_at) VALUES
-('metric_001', '2026-03-14', 'org_seoul_120', 'svc_welfare', 120, 180, 85.50, 10.20, 4.30, 1200, '2026-03-15 00:00:00'),
-('metric_002', '2026-03-14', 'org_busan_220', 'svc_faq', 80, 95, 78.30, 15.40, 6.30, 950, '2026-03-15 00:00:00');
+('metric_001', '2026-03-14', 'org_local_gov', 'svc_welfare', 120, 180, 85.50, 10.20, 4.30, 1200, '2026-03-15 00:00:00'),
+('metric_002', '2026-03-14', 'org_central_gov', 'svc_faq', 80, 95, 78.30, 15.40, 6.30, 950, '2026-03-15 00:00:00');

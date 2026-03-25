@@ -27,5 +27,6 @@ CREATE INDEX idx_crawl_sources_is_active ON crawl_sources(is_active);
 
 -- Seed development crawl sources
 INSERT INTO crawl_sources (id, organization_id, service_id, name, source_type, source_uri, collection_mode, render_mode, schedule_expr, is_active, status, last_succeeded_at, last_job_id, created_at) VALUES
-('crawl_src_001', 'org_seoul_120', 'svc_welfare', 'Seoul Notices', 'website', 'https://seoul.example.go.kr/notices', 'incremental', 'browser_playwright', '0 */6 * * *', true, 'active', '2026-03-15 01:20:00', 'ing_job_101', '2026-03-01 00:00:00'),
-('crawl_src_002', 'org_busan_220', 'svc_faq', 'Busan FAQ Sitemap', 'sitemap', 'https://busan.example.go.kr/faq/sitemap.xml', 'incremental', 'http_static', '0 */12 * * *', false, 'paused', '2026-03-14 22:10:00', 'ing_job_202', '2026-03-01 00:00:00');
+('crawl_src_001', 'org_acc',         'svc_acc_chatbot', '아시아문화전당 공식 사이트',  'website', 'https://www.acc.go.kr',           'incremental', 'browser_playwright', '0 */6 * * *',  true,  'active', '2026-03-15 01:20:00', 'ing_job_101', '2026-03-01 00:00:00'),
+('crawl_src_002', 'org_central_gov', 'svc_faq',         '중앙행정기관 민원 사이트맵',  'sitemap', 'https://www.gov.kr/sitemap.xml',  'incremental', 'http_static',        '0 */12 * * *', false, 'paused', '2026-03-14 22:10:00', 'ing_job_202', '2026-03-01 00:00:00'),
+('crawl_src_003', 'org_local_gov',   'svc_welfare',     '지방행정기관 민원 포털',      'website', 'https://www.mois.go.kr/notices', 'incremental', 'browser_playwright', '0 */6 * * *',  true,  'active', '2026-03-15 01:20:00', NULL,          '2026-03-01 00:00:00');

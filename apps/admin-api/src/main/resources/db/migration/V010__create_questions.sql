@@ -20,6 +20,6 @@ CREATE INDEX idx_questions_created_at ON questions(created_at);
 
 -- Seed development questions
 INSERT INTO questions (id, organization_id, service_id, chat_session_id, question_text, question_intent_label, channel, created_at) VALUES
-('question_001', 'org_seoul_120', 'svc_welfare', 'chat_session_001', 'How do I apply for welfare benefits?', 'welfare_application', 'web', '2026-03-15 09:01:00'),
-('question_002', 'org_busan_220', 'svc_faq', 'chat_session_002', 'What are the operating hours?', 'general_info', 'web', '2026-03-15 09:31:00'),
-('question_003', 'org_seoul_120', 'svc_welfare', 'chat_session_001', 'Where can I find welfare forms?', 'document_request', 'web', '2026-03-15 09:05:00');
+('question_001', 'org_local_gov', 'svc_welfare', 'chat_session_001', 'How do I apply for welfare benefits?', 'welfare_application', 'web', '2026-03-15 09:01:00'),
+('question_002', 'org_central_gov', 'svc_faq', 'chat_session_002', 'What are the operating hours?', 'general_info', 'web', '2026-03-15 09:31:00'),
+('question_003', 'org_local_gov', 'svc_welfare', 'chat_session_001', 'Where can I find welfare forms?', 'document_request', 'web', '2026-03-15 09:05:00');

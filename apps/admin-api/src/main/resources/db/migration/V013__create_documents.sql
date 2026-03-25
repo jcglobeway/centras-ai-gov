@@ -23,5 +23,5 @@ CREATE INDEX idx_documents_index_status ON documents(index_status);
 
 -- Seed development documents
 INSERT INTO documents (id, organization_id, document_type, title, source_uri, version_label, published_at, ingestion_status, index_status, visibility_scope, created_at) VALUES
-('doc_301', 'org_seoul_120', 'notice', 'Seoul Welfare Benefits Guide', 'https://seoul.example.go.kr/welfare/guide.pdf', 'v1.0', '2026-03-01 00:00:00', 'completed', 'indexed', 'public', '2026-03-01 00:00:00'),
-('doc_302', 'org_busan_220', 'faq', 'Busan FAQ Document', 'https://busan.example.go.kr/faq.html', 'v1.2', '2026-02-15 00:00:00', 'completed', 'indexed', 'public', '2026-02-15 00:00:00');
+('doc_301', 'org_acc',         'notice', '국립아시아문화전당 전시 안내', 'https://www.acc.go.kr/guide.pdf',          'v1.0', '2026-03-01 00:00:00', 'completed', 'indexed', 'public', '2026-03-01 00:00:00'),
+('doc_302', 'org_central_gov', 'faq',    '중앙행정기관 민원 안내 FAQ',  'https://www.gov.kr/faq.html',              'v1.2', '2026-02-15 00:00:00', 'completed', 'indexed', 'public', '2026-02-15 00:00:00');

@@ -16,5 +16,6 @@ CREATE INDEX idx_services_status ON services(status);
 
 -- Seed development services
 INSERT INTO services (id, organization_id, name, channel_type, status, go_live_at, created_at) VALUES
-('svc_welfare', 'org_seoul_120', 'Seoul Welfare Service', 'web', 'active', '2026-02-01 00:00:00', '2026-02-01 00:00:00'),
-('svc_faq', 'org_busan_220', 'Busan FAQ Service', 'web', 'active', '2026-02-15 00:00:00', '2026-02-15 00:00:00');
+('svc_acc_chatbot',   'org_acc',         '국립아시아문화전당 안내 챗봇', 'web', 'active', '2026-02-01 00:00:00', '2026-02-01 00:00:00'),
+('svc_welfare',       'org_local_gov',   '지방행정기관 민원 챗봇',       'web', 'active', '2026-02-01 00:00:00', '2026-02-01 00:00:00'),
+('svc_faq',           'org_central_gov', '중앙행정기관 민원 챗봇',       'web', 'active', '2026-02-15 00:00:00', '2026-02-15 00:00:00');

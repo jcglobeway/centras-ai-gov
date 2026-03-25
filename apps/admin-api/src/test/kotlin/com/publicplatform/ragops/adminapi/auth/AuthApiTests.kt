@@ -35,13 +35,13 @@ class AuthApiTests : BaseApiTest() {
     fun `auth me supports role override headers`() {
         mockMvc.get("/admin/auth/me") {
             header("X-Debug-Role", "qa_admin")
-            header("X-Debug-Organization-Id", "org_busan_220")
+            header("X-Debug-Organization-Id", "org_central_gov")
             header("X-Debug-User-Id", "usr_qa_001")
         }.andExpect {
             status { isOk() }
             jsonPath("$.user.id") { value("usr_qa_001") }
             jsonPath("$.roles[0].roleCode") { value("qa_admin") }
-            jsonPath("$.roles[0].organizationId") { value("org_busan_220") }
+            jsonPath("$.roles[0].organizationId") { value("org_central_gov") }
             jsonPath("$.actions") { isArray() }
         }
     }
@@ -55,7 +55,7 @@ class AuthApiTests : BaseApiTest() {
             status { isOk() }
             jsonPath("$.user.id") { value("usr_qa_001") }
             jsonPath("$.authorization.primaryRole") { value("qa_admin") }
-            jsonPath("$.authorization.organizationScope[0]") { value("org_seoul_120") }
+            jsonPath("$.authorization.organizationScope[0]") { value("org_local_gov") }
             jsonPath("$.session.token") { exists() }
         }
     }
@@ -96,7 +96,7 @@ class AuthApiTests : BaseApiTest() {
             status { isOk() }
             jsonPath("$.user.id") { value("usr_client_busan_001") }
             jsonPath("$.roles[0].roleCode") { value("client_admin") }
-            jsonPath("$.roles[0].organizationId") { value("org_busan_220") }
+            jsonPath("$.roles[0].organizationId") { value("org_central_gov") }
             jsonPath("$.actions") { isArray() }
         }
     }

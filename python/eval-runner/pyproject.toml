@@ -5,6 +5,7 @@ requires-python = ">=3.12"
 dependencies = [
   "httpx>=0.28.0",
   "pydantic>=2.11.0",
+  "python-dotenv>=1.0.0",
   "ragas>=0.2.0",
   "datasets>=3.0.0",
   "typer>=0.15.0",
@@ -13,7 +14,10 @@ dependencies = [
 ]
 
 [project.scripts]
-eval-runner = "eval_runner.ragas_batch:app"
+eval-runner          = "eval_runner.ragas_batch:main"
+query-runner         = "eval_runner.query_runner:main"
+prepare-eval-data    = "eval_runner.prepare_eval_data:main"
+ingest-training-docs = "eval_runner.ingest_training_docs:main"
 
 [build-system]
 requires = ["hatchling"]
