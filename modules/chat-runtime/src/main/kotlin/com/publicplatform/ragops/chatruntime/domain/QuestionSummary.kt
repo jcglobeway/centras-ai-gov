@@ -25,6 +25,18 @@ data class QuestionSummary(
     val createdAt: Instant,
 )
 
+data class UnresolvedQuestionSummary(
+    val questionId: String,
+    val organizationId: String,
+    val questionText: String,
+    val failureReasonCode: FailureReasonCode?,
+    val questionCategory: String?,
+    val isEscalated: Boolean,
+    val answerStatus: String?,
+    val latestReviewStatus: String?,
+    val createdAt: Instant,
+)
+
 data class CreateQuestionCommand(
     val organizationId: String,
     val serviceId: String,

@@ -72,6 +72,7 @@ private data class GenerateAnswerResult(
     val confidence_score: Double? = null,
     val question_failure_reason_code: String? = null,
     val is_escalated: Boolean = false,
+    val query_embedding: List<Float>? = null,
 )
 
 private fun GenerateAnswerResult.toRagAnswerResult() = RagAnswerResult(
@@ -83,4 +84,5 @@ private fun GenerateAnswerResult.toRagAnswerResult() = RagAnswerResult(
     confidenceScore = confidence_score?.let { java.math.BigDecimal.valueOf(it) },
     questionFailureReasonCode = question_failure_reason_code,
     isEscalated = is_escalated,
+    queryEmbedding = query_embedding,
 )

@@ -12,4 +12,5 @@ import org.springframework.stereotype.Repository
 @Repository
 interface JpaQAReviewRepository : JpaRepository<QAReviewEntity, String> {
     fun findByQuestionIdOrderByReviewedAtDesc(questionId: String): List<QAReviewEntity>
+    fun findByReviewStatusOrderByReviewedAtDesc(reviewStatus: String): List<QAReviewEntity>
 }

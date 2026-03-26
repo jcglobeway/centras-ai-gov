@@ -53,12 +53,12 @@ export default function FailurePage() {
 
   const questions = data?.items ?? [];
 
-  // failureCode 집계
+  // failureReasonCode 집계
   const counts: Record<RootCauseCode, number> = {} as Record<RootCauseCode, number>;
   ALL_CODES.forEach((c) => (counts[c] = 0));
   questions.forEach((q) => {
-    if (q.failureCode && q.failureCode in counts) {
-      counts[q.failureCode]++;
+    if (q.failureReasonCode && q.failureReasonCode in counts) {
+      counts[q.failureReasonCode as RootCauseCode]++;
     }
   });
 

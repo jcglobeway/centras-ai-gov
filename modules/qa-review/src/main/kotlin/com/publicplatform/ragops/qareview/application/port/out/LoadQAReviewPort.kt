@@ -11,4 +11,5 @@ import com.publicplatform.ragops.qareview.domain.QAReviewSummary
 interface LoadQAReviewPort {
     fun listReviews(questionId: String): List<QAReviewSummary>
     fun listAllReviews(): List<QAReviewSummary>
+    fun listByStatus(status: String): List<QAReviewSummary>
 }

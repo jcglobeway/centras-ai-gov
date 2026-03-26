@@ -10,4 +10,5 @@ import com.publicplatform.ragops.qareview.domain.QAReviewSummary
 interface ListQAReviewsUseCase {
     fun listByQuestion(questionId: String): List<QAReviewSummary>
     fun listAll(): List<QAReviewSummary>
+    fun listByStatus(status: String): List<QAReviewSummary>
 }

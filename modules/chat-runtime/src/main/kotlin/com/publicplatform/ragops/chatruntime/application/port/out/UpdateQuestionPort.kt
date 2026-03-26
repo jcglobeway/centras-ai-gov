@@ -9,4 +9,5 @@ interface UpdateQuestionPort {
         failureReasonCode: String?,
         isEscalated: Boolean,
     )
+    fun updateEmbedding(questionId: String, embedding: String)
 }

@@ -4,6 +4,8 @@ import com.publicplatform.ragops.chatruntime.application.port.`in`.ListQuestions
 import com.publicplatform.ragops.chatruntime.application.port.out.LoadQuestionPort
 import com.publicplatform.ragops.chatruntime.domain.ChatScope
 import com.publicplatform.ragops.chatruntime.domain.QuestionSummary
+import com.publicplatform.ragops.chatruntime.domain.UnresolvedQuestionSummary
+import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 
@@ -20,8 +22,13 @@ open class ListQuestionsService(
     override fun listAll(scope: ChatScope, from: String?, to: String?): List<QuestionSummary> =
         questionReader.listQuestions(scope).filterByDateRange(from, to)
 
-    override fun listUnresolved(scope: ChatScope, from: String?, to: String?): List<QuestionSummary> =
-        questionReader.listUnresolvedQuestions(scope).filterByDateRange(from, to)
+    override fun listUnresolved(scope: ChatScope, from: String?, to: String?): List<UnresolvedQuestionSummary> {
+        val fromInst = from?.let { LocalDate.parse(it).atStartOfDay(ZoneOffset.UTC).toInstant() }
+        val toInst = to?.let { LocalDate.parse(it).plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant() }
+        return questionReader.listUnresolvedQuestions(scope).filter {
+            (fromInst == null || it.createdAt >= fromInst) && (toInst == null || it.createdAt < toInst)
+        }
+    }
 
     private fun List<QuestionSummary>.filterByDateRange(from: String?, to: String?): List<QuestionSummary> {
         val fromInst = from?.let { LocalDate.parse(it).atStartOfDay(ZoneOffset.UTC).toInstant() }

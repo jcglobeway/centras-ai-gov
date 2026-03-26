@@ -18,4 +18,7 @@ open class ListQAReviewsService(
 
     override fun listAll(): List<QAReviewSummary> =
         qaReviewReader.listAllReviews()
+
+    override fun listByStatus(status: String): List<QAReviewSummary> =
+        qaReviewReader.listByStatus(status)
 }

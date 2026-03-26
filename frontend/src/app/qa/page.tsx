@@ -63,6 +63,11 @@ export default function QaDashboardPage() {
   const { data: reviewsData, isLoading: loadingReviews } =
     useSWR<PagedResponse<QAReview>>(`/api/admin/qa-reviews?${reviewParams}`, fetcher);
 
+  const { data: confirmedData } = useSWR<PagedResponse<QAReview>>(
+    `/api/admin/qa-reviews?review_status=confirmed_issue&page_size=1`,
+    fetcher
+  );
+
   const { data: ragasData } = useSWR<PagedResponse<RagasEvaluation>>(
     `/api/admin/ragas-evaluations?page_size=1`,
     fetcher
@@ -82,7 +87,7 @@ export default function QaDashboardPage() {
   }
 
   const reviews = reviewsData?.items ?? [];
-  const confirmedCount = reviews.filter((r) => r.reviewStatus === "confirmed_issue").length;
+  const confirmedCount = confirmedData?.total ?? reviews.filter((r) => r.reviewStatus === "confirmed_issue").length;
   const unresolvedTotal = unresolvedData?.total ?? null;
   const lowSatisfactionCount = metricsData?.items?.[0]?.lowSatisfactionCount ?? null;
 
@@ -159,9 +164,9 @@ export default function QaDashboardPage() {
                 <Tr key={q.questionId}>
                   <Td className="max-w-xs truncate text-sm">{q.questionText}</Td>
                   <Td>
-                    {q.failureCode ? (
+                    {q.failureReasonCode ? (
                       <span className="font-mono text-xs text-warning">
-                        {q.failureCode} · {FAILURE_LABEL[q.failureCode] ?? q.failureCode}
+                        {q.failureReasonCode} · {FAILURE_LABEL[q.failureReasonCode as RootCauseCode] ?? q.failureReasonCode}
                       </span>
                     ) : (
                       <span className="text-text-muted text-xs">-</span>

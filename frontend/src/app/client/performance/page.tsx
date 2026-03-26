@@ -3,28 +3,10 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/api";
-import type { PagedResponse, UnresolvedQuestion, AnswerStatus } from "@/lib/types";
+import type { PagedResponse, Question } from "@/lib/types";
 import { Table, Thead, Th, Tbody, Tr, Td } from "@/components/ui/Table";
-import { Badge } from "@/components/ui/Badge";
 import { Spinner } from "@/components/ui/Spinner";
 import { PageFilters, getWeekFrom, getToday } from "@/components/ui/PageFilters";
-import type { ComponentProps } from "react";
-
-type BadgeVariant = ComponentProps<typeof Badge>["variant"];
-
-const STATUS_LABEL: Record<AnswerStatus, string> = {
-  answered: "응답",
-  fallback: "Fallback",
-  no_answer: "미응답",
-  error: "오류",
-};
-
-const STATUS_VARIANT: Record<AnswerStatus, BadgeVariant> = {
-  answered: "success",
-  fallback: "warning",
-  no_answer: "error",
-  error: "error",
-};
 
 export default function PerformancePage() {
   const [orgId, setOrgId] = useState("");
@@ -36,8 +18,8 @@ export default function PerformancePage() {
   if (from) params.set("from_date", from);
   if (to) params.set("to_date", to);
 
-  const { data, error, isLoading } = useSWR<PagedResponse<UnresolvedQuestion>>(
-    `/api/admin/questions/unresolved?${params}`,
+  const { data, error, isLoading } = useSWR<PagedResponse<Question>>(
+    `/api/admin/questions?${params}`,
     fetcher
   );
 
@@ -59,7 +41,7 @@ export default function PerformancePage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-4">
-          <h2 className="text-text-primary font-semibold text-lg">민원응대 성과</h2>
+          <h2 className="text-text-primary font-semibold text-lg">최근 응대 현황</h2>
           <span className="text-text-muted text-xs">총 {data?.total ?? 0}건</span>
         </div>
         <PageFilters
@@ -75,8 +57,7 @@ export default function PerformancePage() {
             <Th>질문 ID</Th>
             <Th>내용</Th>
             <Th>카테고리</Th>
-            <Th>응답 상태</Th>
-            <Th>만족도</Th>
+            <Th>신뢰도</Th>
             <Th>생성일</Th>
           </Thead>
           <Tbody>
@@ -84,17 +65,9 @@ export default function PerformancePage() {
               <Tr key={q.questionId}>
                 <Td className="font-mono text-xs text-text-muted">{q.questionId}</Td>
                 <Td className="max-w-xs truncate text-sm">{q.questionText}</Td>
-                <Td className="text-xs text-text-secondary">
-                  {q.categoryL1 ?? "-"}
-                  {q.categoryL2 ? ` / ${q.categoryL2}` : ""}
-                </Td>
-                <Td>
-                  <Badge variant={STATUS_VARIANT[q.answerStatus]}>
-                    {STATUS_LABEL[q.answerStatus]}
-                  </Badge>
-                </Td>
+                <Td className="text-xs text-text-secondary">{q.questionCategory ?? "-"}</Td>
                 <Td className="text-xs">
-                  {q.satisfactionScore != null ? q.satisfactionScore : "-"}
+                  {q.answerConfidence != null ? Number(q.answerConfidence).toFixed(2) : "-"}
                 </Td>
                 <Td className="text-xs text-text-muted">
                   {new Date(q.createdAt).toLocaleDateString("ko-KR")}

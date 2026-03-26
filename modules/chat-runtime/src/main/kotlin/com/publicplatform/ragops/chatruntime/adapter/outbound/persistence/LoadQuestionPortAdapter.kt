@@ -7,7 +7,9 @@
 package com.publicplatform.ragops.chatruntime.adapter.outbound.persistence
 
 import com.publicplatform.ragops.chatruntime.domain.ChatScope
+import com.publicplatform.ragops.chatruntime.domain.FailureReasonCode
 import com.publicplatform.ragops.chatruntime.domain.QuestionSummary
+import com.publicplatform.ragops.chatruntime.domain.UnresolvedQuestionSummary
 import com.publicplatform.ragops.chatruntime.application.port.out.LoadQuestionPort
 
 open class LoadQuestionPortAdapter(
@@ -20,9 +22,21 @@ open class LoadQuestionPortAdapter(
         else allQuestions.filter { it.organizationId in scope.organizationIds }
     }
 
-    override fun listUnresolvedQuestions(scope: ChatScope): List<QuestionSummary> {
-        val unresolvedQuestions = jpaRepository.findUnresolvedQuestions().map { it.toSummary() }
-        return if (scope.globalAccess) unresolvedQuestions
-        else unresolvedQuestions.filter { it.organizationId in scope.organizationIds }
+    override fun listUnresolvedQuestions(scope: ChatScope): List<UnresolvedQuestionSummary> {
+        val rows = jpaRepository.findUnresolvedWithStatus().map { row ->
+            UnresolvedQuestionSummary(
+                questionId = row.getQuestionId(),
+                organizationId = row.getOrganizationId(),
+                questionText = row.getQuestionText(),
+                failureReasonCode = FailureReasonCode.fromCodeOrNull(row.getFailureReasonCode()),
+                questionCategory = row.getQuestionCategory(),
+                isEscalated = row.getIsEscalated(),
+                answerStatus = row.getAnswerStatus(),
+                latestReviewStatus = row.getLatestReviewStatus(),
+                createdAt = row.getCreatedAt(),
+            )
+        }
+        return if (scope.globalAccess) rows
+        else rows.filter { it.organizationId in scope.organizationIds }
     }
 }

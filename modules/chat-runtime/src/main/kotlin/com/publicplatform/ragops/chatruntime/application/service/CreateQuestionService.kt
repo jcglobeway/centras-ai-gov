@@ -62,6 +62,9 @@ open class CreateQuestionService(
                 failureReasonCode = ragResult.questionFailureReasonCode,
                 isEscalated = ragResult.isEscalated,
             )
+            ragResult.queryEmbedding?.let { vec ->
+                updateQuestionPort.updateEmbedding(createdQuestion.id, "[${vec.joinToString(",")}]")
+            }
             val endType = if (ragResult.isEscalated) "escalated" else "answered"
             updateChatSessionPort.updateSessionEndType(command.chatSessionId, endType)
         }

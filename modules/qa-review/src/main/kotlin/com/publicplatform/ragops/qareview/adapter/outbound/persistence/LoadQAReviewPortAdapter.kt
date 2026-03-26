@@ -17,4 +17,7 @@ open class LoadQAReviewPortAdapter(
 
     override fun listAllReviews(): List<QAReviewSummary> =
         jpaRepository.findAll().map { it.toSummary() }
+
+    override fun listByStatus(status: String): List<QAReviewSummary> =
+        jpaRepository.findByReviewStatusOrderByReviewedAtDesc(status).map { it.toSummary() }
 }

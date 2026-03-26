@@ -153,22 +153,29 @@ export type AnswerStatus = "answered" | "fallback" | "no_answer" | "error";
 
 export interface Question {
   questionId: string;
-  sessionId: string;
   organizationId: string;
   serviceId: string;
+  chatSessionId: string;
   questionText: string;
-  answerStatus: AnswerStatus;
-  categoryL1: string | null;
-  categoryL2: string | null;
-  intentTag: string | null;
-  satisfactionScore: number | null;
-  wasTransferred: boolean;
-  failureCode: RootCauseCode | null;
+  questionIntentLabel: string | null;
+  channel: string;
+  questionCategory: string | null;
+  failureReasonCode: string | null;
+  isEscalated: boolean;
+  answerConfidence: number | null;
   createdAt: string;
 }
 
-export interface UnresolvedQuestion extends Question {
-  latestReviewStatus: ReviewStatus | null;
+export interface UnresolvedQuestion {
+  questionId: string;
+  organizationId: string;
+  questionText: string;
+  failureReasonCode: string | null;
+  questionCategory: string | null;
+  isEscalated: boolean;
+  answerStatus: string | null;
+  latestReviewStatus: string | null;
+  createdAt: string;
 }
 
 // ── 문서 ──────────────────────────────────────────────────────────────────────

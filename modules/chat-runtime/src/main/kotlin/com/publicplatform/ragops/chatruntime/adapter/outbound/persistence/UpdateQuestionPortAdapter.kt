@@ -17,4 +17,9 @@ open class UpdateQuestionPortAdapter(
     ) {
         jpaRepository.updateEnrichment(questionId, confidenceScore, failureReasonCode, isEscalated)
     }
+
+    @Transactional
+    override fun updateEmbedding(questionId: String, embedding: String) {
+        jpaRepository.updateEmbedding(questionId, embedding)
+    }
 }

@@ -77,13 +77,17 @@ class QAReviewController(
     @GetMapping("/qa-reviews")
     fun listQAReviews(
         @RequestParam(required = false) questionId: String?,
+        @RequestParam("review_status", required = false) reviewStatus: String?,
         servletRequest: HttpServletRequest,
     ): QAReviewListResponse {
         val session = adminRequestSessionResolver.resolve(servletRequest)
         requireAuthorized(session, "qa.review.read")
 
-        val reviews = if (questionId != null) listQAReviewsUseCase.listByQuestion(questionId)
-        else listQAReviewsUseCase.listAll()
+        val reviews = when {
+            questionId != null -> listQAReviewsUseCase.listByQuestion(questionId)
+            reviewStatus != null -> listQAReviewsUseCase.listByStatus(reviewStatus)
+            else -> listQAReviewsUseCase.listAll()
+        }
 
         return QAReviewListResponse(items = reviews.map { it.toResponse() }, total = reviews.size)
     }

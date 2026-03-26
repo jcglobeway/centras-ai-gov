@@ -3,7 +3,7 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/api";
-import type { PagedResponse, DailyMetric, Question, AnswerStatus } from "@/lib/types";
+import type { PagedResponse, DailyMetric, Question } from "@/lib/types";
 import { KpiCard } from "@/components/charts/KpiCard";
 import { MetricsLineChart } from "@/components/charts/MetricsLineChart";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -11,24 +11,7 @@ import { Spinner } from "@/components/ui/Spinner";
 import { PageFilters, getWeekFrom, getToday } from "@/components/ui/PageFilters";
 import { AlertBanner } from "@/components/ui/AlertBanner";
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { Badge } from "@/components/ui/Badge";
 import { Table, Thead, Th, Tbody, Tr, Td } from "@/components/ui/Table";
-import type { ComponentProps } from "react";
-
-type BadgeVariant = ComponentProps<typeof Badge>["variant"];
-
-const ANSWER_STATUS_LABEL: Record<AnswerStatus, string> = {
-  answered: "답변 완료",
-  fallback: "Fallback",
-  no_answer: "무응답",
-  error: "오류",
-};
-const ANSWER_STATUS_VARIANT: Record<AnswerStatus, BadgeVariant> = {
-  answered: "success",
-  fallback: "warning",
-  no_answer: "neutral",
-  error: "error",
-};
 
 function getKpiStatus(
   value: number | null,
@@ -254,18 +237,14 @@ export default function OpsDashboardPage() {
           <Table>
             <Thead>
               <Th>내용</Th>
-              <Th>답변 상태</Th>
+              <Th>카테고리</Th>
               <Th>생성일</Th>
             </Thead>
             <Tbody>
               {recentQuestions.map((q) => (
                 <Tr key={q.questionId}>
                   <Td className="max-w-xs truncate text-sm">{q.questionText}</Td>
-                  <Td>
-                    <Badge variant={ANSWER_STATUS_VARIANT[q.answerStatus]}>
-                      {ANSWER_STATUS_LABEL[q.answerStatus]}
-                    </Badge>
-                  </Td>
+                  <Td className="text-xs text-text-secondary">{q.questionCategory ?? "-"}</Td>
                   <Td className="text-xs text-text-muted">
                     {new Date(q.createdAt).toLocaleString("ko-KR")}
                   </Td>

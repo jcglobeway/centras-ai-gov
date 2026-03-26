@@ -2,6 +2,7 @@ package com.publicplatform.ragops.chatruntime.application.port.`in`
 
 import com.publicplatform.ragops.chatruntime.domain.ChatScope
 import com.publicplatform.ragops.chatruntime.domain.QuestionSummary
+import com.publicplatform.ragops.chatruntime.domain.UnresolvedQuestionSummary
 
 /**
  * 질문 목록 조회 인바운드 포트.
@@ -11,5 +12,5 @@ import com.publicplatform.ragops.chatruntime.domain.QuestionSummary
  */
 interface ListQuestionsUseCase {
     fun listAll(scope: ChatScope, from: String? = null, to: String? = null): List<QuestionSummary>
-    fun listUnresolved(scope: ChatScope, from: String? = null, to: String? = null): List<QuestionSummary>
+    fun listUnresolved(scope: ChatScope, from: String? = null, to: String? = null): List<UnresolvedQuestionSummary>
 }

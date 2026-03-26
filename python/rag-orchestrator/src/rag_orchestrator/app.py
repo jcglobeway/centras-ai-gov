@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import time
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -27,6 +27,7 @@ class GenerateAnswerResponse(BaseModel):
     confidence_score: Optional[float] = None
     question_failure_reason_code: Optional[str] = None
     is_escalated: bool = False
+    query_embedding: Optional[List[float]] = None
 
 
 @app.get("/healthz")
@@ -51,7 +52,7 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
     if use_ollama:
         start_ms = int(time.time() * 1000)
 
-        from .retrieval import vector_search
+        from .retrieval import get_embedding, vector_search
         search_results = vector_search(
             query_text=request.question_text,
             top_k=3,
@@ -59,6 +60,7 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
             db_connection_string=db_url,
         )
 
+        query_embedding = get_embedding(request.question_text, ollama_url)
         latency_ms = int(time.time() * 1000) - start_ms
 
         # 검색 로그 Admin API 콜백
@@ -84,8 +86,13 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
             avg_distance = sum(distances) / len(distances)
             # cosine distance(0~2) → similarity(0~1): max 처리로 음수 방지
             confidence_score = round(max(0.0, 1.0 - avg_distance), 4)
-            question_failure_reason_code = None
-            is_escalated = False
+            if confidence_score < 0.4:
+                # 검색 결과는 있지만 신뢰도 낮음 → 재랭킹 실패 (A05)
+                question_failure_reason_code = "A05"
+                is_escalated = True
+            else:
+                question_failure_reason_code = None
+                is_escalated = False
         else:
             # 검색 실패 (zero result) → A04
             confidence_score = 0.0
@@ -100,6 +107,7 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
         confidence_score = None
         question_failure_reason_code = "A04"
         is_escalated = True
+        query_embedding = None
 
     return GenerateAnswerResponse(
         question_id=request.question_id,
@@ -111,6 +119,7 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
         confidence_score=confidence_score,
         question_failure_reason_code=question_failure_reason_code,
         is_escalated=is_escalated,
+        query_embedding=query_embedding,
     )
 
 

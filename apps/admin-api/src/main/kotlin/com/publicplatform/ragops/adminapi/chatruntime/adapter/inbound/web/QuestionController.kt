@@ -3,13 +3,17 @@ package com.publicplatform.ragops.adminapi.chatruntime.adapter.inbound.web
 import com.publicplatform.ragops.adminapi.auth.AdminRequestSessionResolver
 import com.publicplatform.ragops.chatruntime.application.port.`in`.CreateAnswerUseCase
 import com.publicplatform.ragops.chatruntime.application.port.`in`.CreateQuestionUseCase
+import com.publicplatform.ragops.chatruntime.application.port.`in`.ListFaqCandidatesUseCase
 import com.publicplatform.ragops.chatruntime.application.port.`in`.ListQuestionsUseCase
 import com.publicplatform.ragops.chatruntime.domain.AnswerStatus
 import com.publicplatform.ragops.chatruntime.domain.AnswerSummary
 import com.publicplatform.ragops.chatruntime.domain.ChatScope
+import com.publicplatform.ragops.chatruntime.domain.FaqCandidate
 import com.publicplatform.ragops.chatruntime.domain.CreateAnswerCommand
 import com.publicplatform.ragops.chatruntime.domain.CreateQuestionCommand
 import com.publicplatform.ragops.chatruntime.domain.QuestionSummary
+import com.publicplatform.ragops.chatruntime.domain.UnresolvedQuestionSummary
+import java.math.BigDecimal
 import com.publicplatform.ragops.identityaccess.domain.AdminSessionSnapshot
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
@@ -37,6 +41,7 @@ class QuestionController(
     private val createQuestionUseCase: CreateQuestionUseCase,
     private val listQuestionsUseCase: ListQuestionsUseCase,
     private val createAnswerUseCase: CreateAnswerUseCase,
+    private val listFaqCandidatesUseCase: ListFaqCandidatesUseCase,
 ) {
 
     @PostMapping("/questions")
@@ -80,10 +85,21 @@ class QuestionController(
         @RequestParam("from_date", required = false) from: String?,
         @RequestParam("to_date", required = false) to: String?,
         servletRequest: HttpServletRequest,
-    ): QuestionListResponse {
+    ): UnresolvedQuestionListResponse {
         val session = adminRequestSessionResolver.resolve(servletRequest)
         val questions = listQuestionsUseCase.listUnresolved(session.toScope(organizationId), from, to)
-        return QuestionListResponse(items = questions.map { it.toResponse() }, total = questions.size)
+        return UnresolvedQuestionListResponse(items = questions.map { it.toResponse() }, total = questions.size)
+    }
+
+    @GetMapping("/faq-candidates")
+    fun listFaqCandidates(
+        @RequestParam("organization_id") organizationId: String,
+        @RequestParam("threshold", defaultValue = "0.85") threshold: Double,
+        servletRequest: HttpServletRequest,
+    ): FaqCandidateListResponse {
+        adminRequestSessionResolver.resolve(servletRequest)
+        val candidates = listFaqCandidatesUseCase.list(organizationId, threshold)
+        return FaqCandidateListResponse(items = candidates.map { it.toResponse() }, total = candidates.size)
     }
 
     @PostMapping("/answers")
@@ -135,6 +151,24 @@ data class QuestionResponse(
     val questionText: String,
     val questionIntentLabel: String?,
     val channel: String,
+    val questionCategory: String?,
+    val failureReasonCode: String?,
+    val isEscalated: Boolean,
+    val answerConfidence: BigDecimal?,
+    val createdAt: Instant,
+)
+
+data class UnresolvedQuestionListResponse(val items: List<UnresolvedQuestionResponse>, val total: Int)
+
+data class UnresolvedQuestionResponse(
+    val questionId: String,
+    val organizationId: String,
+    val questionText: String,
+    val failureReasonCode: String?,
+    val questionCategory: String?,
+    val isEscalated: Boolean,
+    val answerStatus: String?,
+    val latestReviewStatus: String?,
     val createdAt: Instant,
 )
 
@@ -149,10 +183,39 @@ data class CreateAnswerRequest(
 
 data class AnswerCreateResponse(val answerId: String, val questionId: String, val answerStatus: String)
 
+data class FaqCandidateListResponse(val items: List<FaqCandidateResponse>, val total: Int)
+
+data class FaqCandidateResponse(
+    val questionId: String,
+    val questionText: String,
+    val questionCategory: String?,
+    val similarId: String,
+    val similarText: String,
+    val similarity: Double,
+)
+
+private fun FaqCandidate.toResponse() = FaqCandidateResponse(
+    questionId = questionId,
+    questionText = questionText,
+    questionCategory = questionCategory,
+    similarId = similarId,
+    similarText = similarText,
+    similarity = similarity,
+)
+
 private fun QuestionSummary.toResponse() = QuestionResponse(
     questionId = id, organizationId = organizationId, serviceId = serviceId,
     chatSessionId = chatSessionId, questionText = questionText,
-    questionIntentLabel = questionIntentLabel, channel = channel, createdAt = createdAt,
+    questionIntentLabel = questionIntentLabel, channel = channel,
+    questionCategory = questionCategory, failureReasonCode = failureReasonCode?.code,
+    isEscalated = isEscalated, answerConfidence = answerConfidence, createdAt = createdAt,
+)
+
+private fun UnresolvedQuestionSummary.toResponse() = UnresolvedQuestionResponse(
+    questionId = questionId, organizationId = organizationId, questionText = questionText,
+    failureReasonCode = failureReasonCode?.code, questionCategory = questionCategory,
+    isEscalated = isEscalated, answerStatus = answerStatus,
+    latestReviewStatus = latestReviewStatus, createdAt = createdAt,
 )
 
 private fun AdminSessionSnapshot.toScope(filterOrgId: String? = null): ChatScope {

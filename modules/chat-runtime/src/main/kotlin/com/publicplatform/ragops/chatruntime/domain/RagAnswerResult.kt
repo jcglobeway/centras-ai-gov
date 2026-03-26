@@ -17,6 +17,7 @@ data class RagAnswerResult(
     val confidenceScore: BigDecimal? = null,
     val questionFailureReasonCode: String? = null,
     val isEscalated: Boolean = false,
+    val queryEmbedding: List<Float>? = null,
     val modelName: String? = null,
     val providerName: String? = null,
     val inputTokens: Int? = null,

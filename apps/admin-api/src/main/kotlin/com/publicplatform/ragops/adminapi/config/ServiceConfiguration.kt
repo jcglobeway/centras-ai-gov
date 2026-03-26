@@ -10,10 +10,13 @@ import com.publicplatform.ragops.chatruntime.application.port.out.RagOrchestrati
 import com.publicplatform.ragops.chatruntime.application.port.out.SaveRagSearchLogPort
 import com.publicplatform.ragops.chatruntime.application.port.out.UpdateQuestionPort
 import com.publicplatform.ragops.chatruntime.application.port.out.UpdateChatSessionPort
+import com.publicplatform.ragops.chatruntime.application.port.out.LoadFaqCandidatesPort
 import com.publicplatform.ragops.chatruntime.application.port.`in`.GetLlmMetricsUseCase
+import com.publicplatform.ragops.chatruntime.application.port.`in`.ListFaqCandidatesUseCase
 import com.publicplatform.ragops.chatruntime.application.service.CreateAnswerService
 import com.publicplatform.ragops.chatruntime.application.service.CreateQuestionService
 import com.publicplatform.ragops.chatruntime.application.service.GetLlmMetricsService
+import com.publicplatform.ragops.chatruntime.application.service.ListFaqCandidatesService
 import com.publicplatform.ragops.chatruntime.application.service.ListQuestionsService
 import com.publicplatform.ragops.chatruntime.application.service.ManageFeedbackService
 import com.publicplatform.ragops.chatruntime.application.service.SaveRagSearchLogService
@@ -172,6 +175,10 @@ class ServiceConfiguration {
     @Bean
     fun getLlmMetricsUseCase(loadLlmMetricsPort: LoadLlmMetricsPort): GetLlmMetricsUseCase =
         GetLlmMetricsService(loadLlmMetricsPort)
+
+    @Bean
+    fun listFaqCandidatesUseCase(loadFaqCandidatesPort: LoadFaqCandidatesPort): ListFaqCandidatesUseCase =
+        ListFaqCandidatesService(loadFaqCandidatesPort)
 
     @Bean
     fun ragOrchestrationPort(
