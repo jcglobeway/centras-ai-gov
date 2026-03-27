@@ -45,7 +45,7 @@ open class SaveMetricsPortAdapter(
                 id = "metric_${UUID.randomUUID().toString().substring(0, 8)}",
                 metricDate = command.metricDate, organizationId = command.organizationId,
                 serviceId = command.serviceId, totalSessions = command.totalSessions,
-                totalQuestions = command.totalQuestions, resolvedRate = null,
+                totalQuestions = command.totalQuestions, resolvedRate = command.resolvedRate,
                 fallbackRate = command.fallbackRate, zeroResultRate = command.zeroResultRate,
                 avgResponseTimeMs = command.avgResponseTimeMs,
                 autoResolutionRate = command.autoResolutionRate,
