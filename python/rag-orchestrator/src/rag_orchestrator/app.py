@@ -28,6 +28,11 @@ class GenerateAnswerResponse(BaseModel):
     question_failure_reason_code: Optional[str] = None
     is_escalated: bool = False
     query_embedding: Optional[List[float]] = None
+    model_name: Optional[str] = None
+    provider_name: str = "ollama"
+    input_tokens: Optional[int] = None
+    output_tokens: Optional[int] = None
+    total_tokens: Optional[int] = None
 
 
 @app.get("/healthz")
@@ -52,12 +57,16 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
     if use_ollama:
         start_ms = int(time.time() * 1000)
 
-        from .retrieval import get_embedding, vector_search
-        search_results = vector_search(
+        from .retrieval import get_embedding, hybrid_search
+        top_k = int(os.getenv("HYBRID_SEARCH_TOP_K", "10"))
+        reranker_enabled = os.getenv("RERANKER_ENABLED", "false").lower() == "true"
+
+        search_results = hybrid_search(
             query_text=request.question_text,
-            top_k=3,
+            top_k=top_k,
             ollama_url=ollama_url,
-            db_connection_string=db_url,
+            db_url=db_url,
+            reranker_enabled=reranker_enabled,
         )
 
         query_embedding = get_embedding(request.question_text, ollama_url)
@@ -71,11 +80,17 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
             latency_ms=latency_ms,
         )
 
-        answer_text = generate_answer_with_ollama(
+        llm_result = generate_answer_with_ollama(
             question=request.question_text,
             search_results=search_results,
             ollama_url=ollama_url,
         )
+        answer_text = llm_result["content"]
+        model_name = llm_result.get("model")
+        input_tokens = llm_result.get("input_tokens")
+        output_tokens = llm_result.get("output_tokens")
+        total_tokens = (input_tokens or 0) + (output_tokens or 0) or None
+
         answer_status = "answered"
         citation_count = len(search_results)
         fallback_reason = None
@@ -84,17 +99,14 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
         if search_results:
             distances = [float(r["distance"]) for r in search_results]
             avg_distance = sum(distances) / len(distances)
-            # cosine distance(0~2) → similarity(0~1): max 처리로 음수 방지
             confidence_score = round(max(0.0, 1.0 - avg_distance), 4)
             if confidence_score < 0.4:
-                # 검색 결과는 있지만 신뢰도 낮음 → 재랭킹 실패 (A05)
                 question_failure_reason_code = "A05"
                 is_escalated = True
             else:
                 question_failure_reason_code = None
                 is_escalated = False
         else:
-            # 검색 실패 (zero result) → A04
             confidence_score = 0.0
             question_failure_reason_code = "A04"
             is_escalated = True
@@ -108,6 +120,10 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
         question_failure_reason_code = "A04"
         is_escalated = True
         query_embedding = None
+        model_name = None
+        input_tokens = None
+        output_tokens = None
+        total_tokens = None
 
     return GenerateAnswerResponse(
         question_id=request.question_id,
@@ -120,6 +136,11 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
         question_failure_reason_code=question_failure_reason_code,
         is_escalated=is_escalated,
         query_embedding=query_embedding,
+        model_name=model_name,
+        provider_name="ollama",
+        input_tokens=input_tokens,
+        output_tokens=output_tokens,
+        total_tokens=total_tokens,
     )
 
 
@@ -138,8 +159,13 @@ def generate_answer_with_ollama(
     question: str,
     search_results: list[dict[str, str]],
     ollama_url: str,
-) -> str:
-    """Ollama API를 사용해 검색된 컨텍스트 기반 답변을 생성한다."""
+) -> dict:
+    """
+    Ollama API를 사용해 검색된 컨텍스트 기반 답변을 생성한다.
+
+    반환값: {"content": str, "model": str, "input_tokens": int|None, "output_tokens": int|None}
+    Ollama stream=false 응답에서 prompt_eval_count(입력 토큰), eval_count(출력 토큰)를 추출한다.
+    """
     import httpx
 
     if search_results:
@@ -149,10 +175,13 @@ def generate_answer_with_ollama(
         ])
         retrieval_context = f"검색된 관련 문서:\n\n{context_chunks}"
     else:
-        # pgvector 검색 결과가 없을 때 기본 안내 제공
         retrieval_context = "관련 문서를 찾지 못했습니다. 일반적인 정보로 답변드립니다."
 
-    system_prompt = "당신은 공공기관 민원 안내 챗봇입니다. 제공된 문서를 기반으로 정확하고 친절하게 답변하세요."
+    system_prompt = (
+        "당신은 공공기관 민원 안내 챗봇입니다. "
+        "제공된 문서를 기반으로 정확하고 친절하게 답변하세요. "
+        "답변을 찾을 수 없으면 모른다고 말하세요."
+    )
     user_prompt = f"""참고 문서:
 {retrieval_context}
 
@@ -172,22 +201,26 @@ def generate_answer_with_ollama(
                     {"role": "user", "content": user_prompt},
                 ],
                 "stream": False,
-                "options": {
-                    "temperature": 0.3,
-                    "num_predict": 500,
-                },
+                "options": {"temperature": 0.3, "num_predict": 500},
             },
             timeout=30.0,
         )
 
         if response.status_code == 200:
             result = response.json()
-            return result.get("message", {}).get("content", "[답변 생성 실패]")
+            return {
+                "content": result.get("message", {}).get("content", "[답변 생성 실패]"),
+                "model": result.get("model", model),
+                "input_tokens": result.get("prompt_eval_count"),
+                "output_tokens": result.get("eval_count"),
+            }
         else:
-            return f"[Ollama API 오류: {response.status_code}]"
+            return {"content": f"[Ollama API 오류: {response.status_code}]", "model": model,
+                    "input_tokens": None, "output_tokens": None}
 
     except Exception as e:
-        return f"[Ollama 호출 실패: {str(e)}]"
+        return {"content": f"[Ollama 호출 실패: {str(e)}]", "model": model,
+                "input_tokens": None, "output_tokens": None}
 
 
 def _log_search_result(

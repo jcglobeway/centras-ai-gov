@@ -50,7 +50,7 @@ export default function SafetyPage() {
 
   const questions = questionsData?.items ?? [];
   const total = questions.length;
-  const noAnswerCount = questions.filter((q) => q.answerStatus === "no_answer").length;
+  const noAnswerCount = questions.filter((q) => q.isEscalated).length;
   const unanswerableRate = total > 0 ? ((noAnswerCount / total) * 100).toFixed(1) + "%" : "-";
 
   return (

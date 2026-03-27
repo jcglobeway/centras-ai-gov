@@ -3,7 +3,7 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/api";
-import type { PagedResponse, DailyMetric, LlmMetrics, Question } from "@/lib/types";
+import type { PagedResponse, DailyMetric, LlmMetrics, UnresolvedQuestion } from "@/lib/types";
 import { KpiCard } from "@/components/charts/KpiCard";
 import { MetricsLineChart } from "@/components/charts/MetricsLineChart";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -47,7 +47,7 @@ export default function CostHealthPage() {
     fetcher
   );
 
-  const { data: unresolvedData } = useSWR<PagedResponse<Question>>(
+  const { data: unresolvedData } = useSWR<PagedResponse<UnresolvedQuestion>>(
     `/api/admin/questions/unresolved?page_size=5`,
     fetcher
   );

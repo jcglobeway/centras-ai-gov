@@ -105,14 +105,14 @@ export default function UnresolvedPage() {
                   </span>
                 </Td>
                 <Td>
-                  <Badge variant={ANSWER_VARIANT[q.answerStatus]}>
-                    {ANSWER_LABEL[q.answerStatus]}
+                  <Badge variant={q.answerStatus ? ANSWER_VARIANT[q.answerStatus as AnswerStatus] : "neutral"}>
+                    {q.answerStatus ? ANSWER_LABEL[q.answerStatus as AnswerStatus] : "-"}
                   </Badge>
                 </Td>
                 <Td>
                   {q.latestReviewStatus ? (
-                    <Badge variant={REVIEW_VARIANT[q.latestReviewStatus]}>
-                      {REVIEW_LABEL[q.latestReviewStatus]}
+                    <Badge variant={REVIEW_VARIANT[q.latestReviewStatus as ReviewStatus]}>
+                      {REVIEW_LABEL[q.latestReviewStatus as ReviewStatus]}
                     </Badge>
                   ) : (
                     <span className="text-text-muted text-xs">없음</span>

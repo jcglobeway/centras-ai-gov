@@ -11,10 +11,10 @@ import org.springframework.http.MediaType
 import org.springframework.web.client.RestTemplate
 
 /**
- * RAG 오케스트레이터 HTTP 클라이언트 (fallback용).
+ * RAG 오케스트레이터 HTTP 클라이언트.
  *
- * Spring AI가 기본 답변 생성을 담당하며, 이 클라이언트는 fallback으로만 사용된다.
- * rag.orchestrator.enabled=false이면 null을 반환해 답변 생성을 건너뛴다.
+ * rag.orchestrator.enabled=true이면 Python rag-orchestrator(/generate)를 호출해
+ * pgvector Hybrid Search + LLM 답변 생성 전체 파이프라인을 위임한다.
  */
 class RagOrchestratorClient(
     @Value("\${rag.orchestrator.url:http://localhost:8090}")
@@ -73,6 +73,11 @@ private data class GenerateAnswerResult(
     val question_failure_reason_code: String? = null,
     val is_escalated: Boolean = false,
     val query_embedding: List<Float>? = null,
+    val model_name: String? = null,
+    val provider_name: String? = null,
+    val input_tokens: Int? = null,
+    val output_tokens: Int? = null,
+    val total_tokens: Int? = null,
 )
 
 private fun GenerateAnswerResult.toRagAnswerResult() = RagAnswerResult(
@@ -85,4 +90,9 @@ private fun GenerateAnswerResult.toRagAnswerResult() = RagAnswerResult(
     questionFailureReasonCode = question_failure_reason_code,
     isEscalated = is_escalated,
     queryEmbedding = query_embedding,
+    modelName = model_name,
+    providerName = provider_name,
+    inputTokens = input_tokens,
+    outputTokens = output_tokens,
+    totalTokens = total_tokens,
 )

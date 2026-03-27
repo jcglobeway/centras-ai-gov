@@ -1,8 +1,9 @@
 import clsx from "clsx";
 
 interface TableProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   className?: string;
+  colSpan?: number;
 }
 
 export function Table({ children, className }: TableProps) {
@@ -54,9 +55,9 @@ export function Tr({
   );
 }
 
-export function Td({ children, className }: TableProps) {
+export function Td({ children, className, colSpan }: TableProps) {
   return (
-    <td className={clsx("px-3 py-2 text-[11px] text-text-secondary", className)}>
+    <td colSpan={colSpan} className={clsx("px-3 py-2 text-[11px] text-text-secondary", className)}>
       {children}
     </td>
   );
