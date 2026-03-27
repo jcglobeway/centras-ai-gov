@@ -49,7 +49,9 @@ class MetricsController(
     @PostMapping("/metrics/aggregate")
     fun triggerAggregation(
         @RequestParam("date", required = false) date: String?,
+        servletRequest: HttpServletRequest,
     ): AggregationTriggeredResponse {
+        adminRequestSessionResolver.resolve(servletRequest)
         val targetDate = date?.let { LocalDate.parse(it) } ?: LocalDate.now().minusDays(1)
         metricsAggregationScheduler.aggregate(targetDate)
         return AggregationTriggeredResponse(targetDate = targetDate.toString())
