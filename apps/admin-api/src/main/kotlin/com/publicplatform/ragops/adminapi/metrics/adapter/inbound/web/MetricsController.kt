@@ -1,12 +1,14 @@
 package com.publicplatform.ragops.adminapi.metrics.adapter.inbound.web
 
 import com.publicplatform.ragops.adminapi.auth.AdminRequestSessionResolver
+import com.publicplatform.ragops.adminapi.metrics.adapter.inbound.scheduler.MetricsAggregationScheduler
 import com.publicplatform.ragops.identityaccess.domain.AdminSessionSnapshot
 import com.publicplatform.ragops.metricsreporting.application.port.`in`.ListMetricsUseCase
 import com.publicplatform.ragops.metricsreporting.domain.DailyMetricsSummary
 import com.publicplatform.ragops.metricsreporting.domain.MetricsScope
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -23,6 +25,7 @@ import java.time.LocalDate
 class MetricsController(
     private val adminRequestSessionResolver: AdminRequestSessionResolver,
     private val listMetricsUseCase: ListMetricsUseCase,
+    private val metricsAggregationScheduler: MetricsAggregationScheduler,
 ) {
 
     @GetMapping("/metrics/daily")
@@ -42,7 +45,18 @@ class MetricsController(
 
         return DailyMetricsListResponse(items = metrics.map { it.toResponse() }, total = metrics.size)
     }
+
+    @PostMapping("/metrics/aggregate")
+    fun triggerAggregation(
+        @RequestParam("date", required = false) date: String?,
+    ): AggregationTriggeredResponse {
+        val targetDate = date?.let { LocalDate.parse(it) } ?: LocalDate.now().minusDays(1)
+        metricsAggregationScheduler.aggregate(targetDate)
+        return AggregationTriggeredResponse(targetDate = targetDate.toString())
+    }
 }
+
+data class AggregationTriggeredResponse(val targetDate: String)
 
 data class DailyMetricsListResponse(val items: List<DailyMetricsResponse>, val total: Int)
 

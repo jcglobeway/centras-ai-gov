@@ -36,7 +36,7 @@ class MetricsAggregationScheduler(
                 COUNT(q.id)                        AS total_questions,
                 SUM(CASE WHEN a.answer_status = 'fallback'  THEN 1 ELSE 0 END)  AS fallback_count,
                 SUM(CASE WHEN a.answer_status = 'no_answer' THEN 1 ELSE 0 END)  AS no_answer_count,
-                AVG(CAST(a.response_time_ms AS DOUBLE))                          AS avg_response_time_ms
+                AVG(CAST(a.response_time_ms AS DOUBLE PRECISION))               AS avg_response_time_ms
             FROM questions q
             LEFT JOIN answers a ON q.id = a.question_id
             WHERE CAST(q.created_at AS DATE) = :targetDate
