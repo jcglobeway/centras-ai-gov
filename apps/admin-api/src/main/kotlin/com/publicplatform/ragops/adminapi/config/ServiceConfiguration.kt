@@ -58,6 +58,7 @@ import com.publicplatform.ragops.qareview.application.port.out.LoadQAReviewPort
 import com.publicplatform.ragops.qareview.application.port.out.RecordQAReviewPort
 import com.publicplatform.ragops.qareview.application.service.CreateQAReviewService
 import com.publicplatform.ragops.qareview.application.service.ListQAReviewsService
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -86,8 +87,9 @@ class ServiceConfiguration {
         ragOrchestrationPort: RagOrchestrationPort,
         updateQuestionPort: UpdateQuestionPort,
         updateChatSessionPort: UpdateChatSessionPort,
+        eventPublisher: ApplicationEventPublisher,
     ): CreateQuestionService = CreateQuestionService(
-        questionWriter, answerWriter, ragOrchestrationPort, updateQuestionPort, updateChatSessionPort,
+        questionWriter, answerWriter, ragOrchestrationPort, updateQuestionPort, updateChatSessionPort, eventPublisher,
     )
 
     @Bean
@@ -127,12 +129,16 @@ class ServiceConfiguration {
     ): ListIngestionService = ListIngestionService(crawlSourceReader, ingestionJobReader)
 
     @Bean
-    fun transitionJobService(ingestionJobWriter: PersistIngestionJobPort): TransitionJobService =
-        TransitionJobService(ingestionJobWriter)
+    fun transitionJobService(
+        ingestionJobWriter: PersistIngestionJobPort,
+        eventPublisher: ApplicationEventPublisher,
+    ): TransitionJobService = TransitionJobService(ingestionJobWriter, eventPublisher)
 
     @Bean
-    fun createQAReviewService(qaReviewWriter: RecordQAReviewPort): CreateQAReviewService =
-        CreateQAReviewService(qaReviewWriter)
+    fun createQAReviewService(
+        qaReviewWriter: RecordQAReviewPort,
+        eventPublisher: ApplicationEventPublisher,
+    ): CreateQAReviewService = CreateQAReviewService(qaReviewWriter, eventPublisher)
 
     @Bean
     fun listQAReviewsService(qaReviewReader: LoadQAReviewPort): ListQAReviewsService =

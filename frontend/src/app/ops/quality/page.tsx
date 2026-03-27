@@ -64,6 +64,7 @@ export default function QualityPage() {
     { label: "Faithfulness", value: latestRagas?.faithfulness ?? null, target: 0.90 },
     { label: "Answer Relevance", value: latestRagas?.answerRelevancy ?? null, target: 0.85 },
     { label: "Context Precision", value: latestRagas?.contextPrecision ?? null, target: 0.70 },
+    { label: "Context Recall", value: latestRagas?.contextRecall ?? null, target: 0.75 },
   ];
 
   return (

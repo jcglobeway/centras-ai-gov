@@ -26,7 +26,7 @@ open class SaveMetricsPortAdapter(
                 id = existing.id, metricDate = command.metricDate,
                 organizationId = command.organizationId, serviceId = command.serviceId,
                 totalSessions = command.totalSessions, totalQuestions = command.totalQuestions,
-                resolvedRate = null, fallbackRate = command.fallbackRate,
+                resolvedRate = command.resolvedRate, fallbackRate = command.fallbackRate,
                 zeroResultRate = command.zeroResultRate, avgResponseTimeMs = command.avgResponseTimeMs,
                 autoResolutionRate = command.autoResolutionRate,
                 escalationRate = command.escalationRate,

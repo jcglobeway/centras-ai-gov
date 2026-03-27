@@ -46,6 +46,7 @@ data class SaveDailyMetricsCommand(
     val serviceId: String,
     val totalSessions: Int,
     val totalQuestions: Int,
+    val resolvedRate: BigDecimal? = null,
     val fallbackRate: BigDecimal?,
     val zeroResultRate: BigDecimal?,
     val avgResponseTimeMs: Int?,

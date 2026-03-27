@@ -32,5 +32,5 @@ CREATE INDEX idx_ingestion_jobs_requested_at ON ingestion_jobs(requested_at);
 
 -- Seed development ingestion jobs
 INSERT INTO ingestion_jobs (id, organization_id, service_id, crawl_source_id, document_id, job_type, job_status, job_stage, trigger_type, runner_type, attempt_count, error_code, requested_at, started_at, finished_at, created_at) VALUES
-('ing_job_101', 'org_acc',         'svc_acc_chatbot', 'crawl_src_001', 'doc_301', 'crawl', 'succeeded', 'complete', 'scheduled', 'python_worker', 1, NULL,            '2026-03-15 01:00:00', '2026-03-15 01:01:00', '2026-03-15 01:20:00', '2026-03-15 01:00:00'),
+('ing_job_101', 'org_local_gov',   'svc_welfare',     'crawl_src_001', 'doc_301', 'crawl', 'succeeded', 'complete', 'scheduled', 'python_worker', 1, NULL,            '2026-03-15 01:00:00', '2026-03-15 01:01:00', '2026-03-15 01:20:00', '2026-03-15 01:00:00'),
 ('ing_job_202', 'org_central_gov', 'svc_faq',         'crawl_src_002', NULL,      'crawl', 'failed',    'complete', 'manual',    'python_worker', 2, 'CRAWL_TIMEOUT', '2026-03-14 22:00:00', '2026-03-14 22:01:00', '2026-03-14 22:03:00', '2026-03-14 22:00:00');

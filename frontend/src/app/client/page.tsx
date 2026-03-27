@@ -108,13 +108,13 @@ export default function ClientDashboardPage() {
           help="챗봇이 답변을 생성하는 데 걸린 평균 시간입니다. 1.5초 미만이면 정상, 2.5초를 초과하면 시스템 성능 점검이 필요합니다."
         />
         <KpiCard
-          label="재문의율"
+          label="피드백 완료율"
           value={revisitVal != null ? revisitVal.toFixed(1) + "%" : "-"}
           status={getKpiStatus(revisitVal, {
             ok: (v) => v < 10,
             warn: (v) => v < 15,
           })}
-          help="같은 시민이 동일하거나 유사한 질문을 반복해서 입력한 비율입니다. 높으면 첫 답변이 충분하지 않았다는 신호입니다. 10% 미만이 목표입니다."
+          help="시민이 피드백 버튼을 통해 대화를 완료한 세션 비율입니다. 높을수록 대화 완결도가 높음을 의미합니다."
         />
         <KpiCard
           label="업무시간 외 응대율"
@@ -130,7 +130,11 @@ export default function ClientDashboardPage() {
             <CardTitle>자동응대율 / 상담 전환율 추세</CardTitle>
           </CardHeader>
           <MetricsLineChart
-            data={metrics}
+            data={metrics.map((m) => ({
+              ...m,
+              autoResolutionRate: m.autoResolutionRate != null ? Number(m.autoResolutionRate) * 100 : null,
+              escalationRate: m.escalationRate != null ? Number(m.escalationRate) * 100 : null,
+            }))}
             metrics={["autoResolutionRate", "escalationRate"]}
           />
         </Card>

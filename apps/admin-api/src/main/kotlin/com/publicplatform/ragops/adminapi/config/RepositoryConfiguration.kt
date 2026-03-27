@@ -19,6 +19,8 @@ import com.publicplatform.ragops.adminapi.evaluation.adapter.outbound.persistenc
 import com.publicplatform.ragops.adminapi.evaluation.adapter.outbound.persistence.SaveRagasEvaluationPortAdapter
 import com.publicplatform.ragops.adminapi.evaluation.application.port.out.LoadRagasEvaluationsPort
 import com.publicplatform.ragops.adminapi.evaluation.application.port.out.SaveRagasEvaluationPort
+import com.publicplatform.ragops.qareview.adapter.inbound.event.QuestionAnsweredEventHandler
+import com.publicplatform.ragops.qareview.application.port.`in`.CreateQAReviewUseCase
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -147,4 +149,8 @@ class RepositoryConfiguration {
     @Bean
     fun loadFaqCandidatesPort(jpaRepository: JpaQuestionRepository): com.publicplatform.ragops.chatruntime.application.port.out.LoadFaqCandidatesPort =
         LoadFaqCandidatesPortAdapter(jpaRepository)
+
+    @Bean
+    fun questionAnsweredEventHandler(createQAReviewUseCase: CreateQAReviewUseCase): QuestionAnsweredEventHandler =
+        QuestionAnsweredEventHandler(createQAReviewUseCase)
 }

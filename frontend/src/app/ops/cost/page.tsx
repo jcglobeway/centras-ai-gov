@@ -192,27 +192,6 @@ export default function CostHealthPage() {
         </Card>
       )}
 
-      {/* 문서 건강도 */}
-      <Card>
-        <CardHeader>
-          <CardTitle tag="DOC HEALTH">문서 건강도</CardTitle>
-        </CardHeader>
-        <div className="px-4 pb-4">
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-            {[
-              { label: "Stale Doc Rate", value: "—", note: "90일 이상 미갱신 문서 비율. 계산 예정." },
-              { label: "중복 문서율", value: "—", note: "의미 유사 문서 비율 (OTel 연동 후)." },
-              { label: "Cache Hit Rate", value: "—", note: "쿼리 캐시 적중률 (미추적)." },
-            ].map((item) => (
-              <div key={item.label} className="bg-bg-elevated rounded p-3">
-                <p className="font-mono text-[10px] uppercase tracking-[0.4px] text-text-muted mb-1">{item.label}</p>
-                <p className="font-mono text-[18px] font-bold text-text-primary mb-1">{item.value}</p>
-                <p className="text-[10px] text-text-muted">{item.note}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </Card>
     </div>
   );
 }

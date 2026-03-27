@@ -1,19 +1,25 @@
 # Status
 
-- 상태: `planned`
+- 상태: `완료`
 - 시작일: 2026-03-22
-- 마지막 업데이트: 2026-03-22
+- 마지막 업데이트: 2026-03-27
 
 ## Progress
 
-- proposal, tasks, status 작성 완료
+- P1: 이벤트 클래스 3개 생성 완료 (QuestionAnsweredEvent, IngestionJobCompletedEvent, QAReviewResolvedEvent)
+- P2: 서비스 3개에 이벤트 발행 로직 추가, ServiceConfiguration 업데이트
+- P3: 핸들러 3개 생성, RepositoryConfiguration에 QuestionAnsweredEventHandler 빈 등록
+- P4: 기존 50개 테스트 전체 통과 확인
 
 ## Verification
 
-- 미실행
+- `JAVA_HOME=.../openjdk-25.0.2/Contents/Home ./gradlew :apps:admin-api:test` → BUILD SUCCESSFUL
+- 50 tests, 0 failures
 
-## Risks
+## Notes
 
-- `TransitionJobService`가 현재 전이 결과의 최종 status를 직접 확인하지 않으므로, `IngestionJobSummary.status`를 읽어 발행 여부를 판단하는 로직 필요
-- 핸들러가 UseCase를 의존할 때 순환 빈 등록 발생 가능 — `@Lazy` 또는 `RepositoryConfiguration` 등록 순서 조정으로 해결
-- `@TransactionalEventListener(phase = AFTER_COMMIT)` 사용 시 핸들러 예외가 원본 트랜잭션에 영향 없음 — 핸들러 실패 무시 여부를 명시적으로 처리 필요
+- `QuestionAnsweredEvent.failureReasonCode`: `FailureReasonCode?` 대신 `String?` 사용
+  (RagAnswerResult.questionFailureReasonCode가 String?로 정의되어 있어 타입 일치 필요)
+- `IngestionJobCompletedEventHandler`, `QAReviewResolvedEventHandler`: admin-api 패키지에 `@Component`로 배치
+  (MetricsAggregationScheduler 접근을 위해 admin-api scan 범위 활용)
+- `QuestionAnsweredEventHandler`: qa-review 모듈에 위치, `@Bean`으로 RepositoryConfiguration에서 등록

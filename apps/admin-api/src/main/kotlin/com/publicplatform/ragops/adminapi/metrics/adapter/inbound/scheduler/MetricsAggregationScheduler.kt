@@ -106,6 +106,7 @@ class MetricsAggregationScheduler(
                     serviceId         = row["service_id"] as String,
                     totalSessions     = totalSessions.toInt(),
                     totalQuestions    = totalQuestions.toInt(),
+                    resolvedRate      = rate2(answered, totalQuestions),
                     fallbackRate      = rate2(fallbackCount, totalQuestions),
                     zeroResultRate    = rate2(noAnswerCount, totalQuestions),
                     avgResponseTimeMs = avgMs?.toInt(),

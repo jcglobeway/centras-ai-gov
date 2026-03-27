@@ -94,7 +94,7 @@ class AuthApiTests : BaseApiTest() {
             header("X-Admin-Session-Id", sessionId)
         }.andExpect {
             status { isOk() }
-            jsonPath("$.user.id") { value("usr_client_busan_001") }
+            jsonPath("$.user.id") { value("usr_client_central_001") }
             jsonPath("$.roles[0].roleCode") { value("client_admin") }
             jsonPath("$.roles[0].organizationId") { value("org_central_gov") }
             jsonPath("$.actions") { isArray() }

@@ -96,6 +96,7 @@ export default function QaDashboardPage() {
     { label: "Faithfulness", value: latestRagas?.faithfulness ?? null, target: 0.90 },
     { label: "Answer Relevance", value: latestRagas?.answerRelevancy ?? null, target: 0.85 },
     { label: "Context Precision", value: latestRagas?.contextPrecision ?? null, target: 0.70 },
+    { label: "Context Recall", value: latestRagas?.contextRecall ?? null, target: 0.75 },
   ];
 
   const unresolvedItems = unresolvedData?.items ?? [];
@@ -173,8 +174,8 @@ export default function QaDashboardPage() {
                     )}
                   </Td>
                   <Td>
-                    <Badge variant={q.answerStatus === "no_answer" ? "error" : "warning"}>
-                      {q.answerStatus === "no_answer" ? "무응답" : "Fallback"}
+                    <Badge variant={q.answerStatus === "no_answer" ? "error" : q.answerStatus === "error" ? "warning" : "warning"}>
+                      {q.answerStatus === "no_answer" ? "무응답" : q.answerStatus === "error" ? "오류" : "Fallback"}
                     </Badge>
                   </Td>
                   <Td className="text-xs text-text-muted">

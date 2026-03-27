@@ -10,7 +10,6 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
 import { PageFilters, getWeekFrom, getToday } from "@/components/ui/PageFilters";
 import { AlertBanner } from "@/components/ui/AlertBanner";
-import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Table, Thead, Th, Tbody, Tr, Td } from "@/components/ui/Table";
 
 function getKpiStatus(
@@ -23,13 +22,6 @@ function getKpiStatus(
   return "critical";
 }
 
-// 파이프라인 레이턴시 고정값 (실제 OpenTelemetry 연동 전 seed 값)
-const PIPELINE_STEPS = [
-  { label: "Retrieval", valueMs: 438, color: "bg-blue-500" },
-  { label: "LLM 호출", valueMs: 1128, color: "bg-violet-500" },
-  { label: "후처리", valueMs: 114, color: "bg-teal-500" },
-];
-const PIPELINE_TOTAL_MS = PIPELINE_STEPS.reduce((s, x) => s + x.valueMs, 0);
 
 export default function OpsDashboardPage() {
   const [orgId, setOrgId] = useState("");
@@ -206,27 +198,6 @@ export default function OpsDashboardPage() {
           </div>
         </Card>
       )}
-
-      {/* 파이프라인 레이턴시 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>파이프라인 레이턴시 (P95)</CardTitle>
-        </CardHeader>
-        <div className="px-4 pb-4 space-y-3">
-          {PIPELINE_STEPS.map((step) => (
-            <ProgressBar
-              key={step.label}
-              label={step.label}
-              valueMs={step.valueMs}
-              maxMs={PIPELINE_TOTAL_MS}
-              color={step.color}
-            />
-          ))}
-          <p className="text-xs text-text-muted mt-2">
-            * 실측 기반 고정값. OpenTelemetry 연동 후 실시간 교체 예정.
-          </p>
-        </div>
-      </Card>
 
       {/* 최근 질문 테이블 */}
       <Card>

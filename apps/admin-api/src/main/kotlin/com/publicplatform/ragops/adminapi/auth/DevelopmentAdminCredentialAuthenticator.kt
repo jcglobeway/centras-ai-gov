@@ -44,11 +44,11 @@ class DevelopmentAdminCredentialAuthenticator(
             "client@jcg.com" to DevelopmentAdminAccount(
                 passwordHash = passwordEncoder.encode("pass1234"),
                 snapshot = snapshotFor(
-                    userId = "usr_client_busan_001",
+                    userId = "usr_client_central_001",
                     email = "client@jcg.com",
                     displayName = "Client Admin",
                     roleCode = "client_admin",
-                    organizationId = "org_busan_220",
+                    organizationId = "org_central_gov",
                 ),
             ),
             "viewer@jcg.com" to DevelopmentAdminAccount(
@@ -58,7 +58,7 @@ class DevelopmentAdminCredentialAuthenticator(
                     email = "viewer@jcg.com",
                     displayName = "Client Viewer",
                     roleCode = "client_viewer",
-                    organizationId = "org_busan_220",
+                    organizationId = "org_acc",
                 ),
             ),
             "qa@jcg.com" to DevelopmentAdminAccount(
@@ -68,7 +68,7 @@ class DevelopmentAdminCredentialAuthenticator(
                     email = "qa@jcg.com",
                     displayName = "QA Manager",
                     roleCode = "qa_admin",
-                    organizationId = "org_seoul_120",
+                    organizationId = "org_local_gov",
                 ),
             ),
             "editor@jcg.com" to DevelopmentAdminAccount(
@@ -78,7 +78,7 @@ class DevelopmentAdminCredentialAuthenticator(
                     email = "editor@jcg.com",
                     displayName = "Knowledge Editor",
                     roleCode = "knowledge_editor",
-                    organizationId = "org_seoul_120",
+                    organizationId = "org_local_gov",
                 ),
             ),
         )

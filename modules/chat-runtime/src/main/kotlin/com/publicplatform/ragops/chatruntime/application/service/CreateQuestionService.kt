@@ -9,7 +9,9 @@ import com.publicplatform.ragops.chatruntime.application.port.out.UpdateQuestion
 import com.publicplatform.ragops.chatruntime.domain.AnswerStatus
 import com.publicplatform.ragops.chatruntime.domain.CreateAnswerCommand
 import com.publicplatform.ragops.chatruntime.domain.CreateQuestionCommand
+import com.publicplatform.ragops.chatruntime.domain.QuestionAnsweredEvent
 import com.publicplatform.ragops.chatruntime.domain.QuestionSummary
+import org.springframework.context.ApplicationEventPublisher
 
 /**
  * 질문 생성 유스케이스 구현체.
@@ -25,6 +27,7 @@ open class CreateQuestionService(
     private val ragOrchestrationPort: RagOrchestrationPort,
     private val updateQuestionPort: UpdateQuestionPort,
     private val updateChatSessionPort: UpdateChatSessionPort,
+    private val eventPublisher: ApplicationEventPublisher,
 ) : CreateQuestionUseCase {
 
     override fun execute(command: CreateQuestionCommand): QuestionSummary {
@@ -67,6 +70,15 @@ open class CreateQuestionService(
             }
             val endType = if (ragResult.isEscalated) "escalated" else "answered"
             updateChatSessionPort.updateSessionEndType(command.chatSessionId, endType)
+            eventPublisher.publishEvent(
+                QuestionAnsweredEvent(
+                    questionId = createdQuestion.id,
+                    organizationId = createdQuestion.organizationId,
+                    serviceId = createdQuestion.serviceId,
+                    answerStatus = ragResult.answerStatus,
+                    failureReasonCode = ragResult.questionFailureReasonCode,
+                ),
+            )
         }
 
         return createdQuestion
