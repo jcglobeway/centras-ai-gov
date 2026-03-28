@@ -2,8 +2,9 @@
 # dev.sh — admin-api + rag-orchestrator + frontend 일괄 시작
 #
 # 사용법:
-#   ./dev.sh          # 전체 시작
-#   ./dev.sh --no-rag # rag-orchestrator 제외
+#   ./dev.sh           # 전체 시작
+#   ./dev.sh --no-rag  # rag-orchestrator 제외
+#   ./dev.sh --clean   # Gradle clean 후 시작 (캐시 문제 해결 시 사용)
 #
 # 종료: Ctrl+C → 모든 프로세스 일괄 종료
 # 로그: logs/ 디렉토리에 서비스별 파일로 저장
@@ -15,8 +16,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOGS_DIR="$SCRIPT_DIR/logs"
 
 START_RAG=true
+CLEAN_BUILD=false
 for arg in "$@"; do
   [[ "$arg" == "--no-rag" ]] && START_RAG=false
+  [[ "$arg" == "--clean"  ]] && CLEAN_BUILD=true
 done
 
 mkdir -p "$LOGS_DIR"
@@ -24,11 +27,24 @@ mkdir -p "$LOGS_DIR"
 log()  { echo "[dev] $*"; }
 url()  { echo "  → $1"; }
 
+# ── 기존 프로세스 종료 ───────────────────────────────────────────────────────
+
+log "Killing existing processes on ports 8081 8090 3000..."
+for port in 8081 8090 3000; do
+  pid=$(lsof -ti:"$port" 2>/dev/null) && kill -9 $pid 2>/dev/null && log "  killed port $port (pid $pid)" || true
+done
+sleep 1
+
 # ── admin-api (port 8081) ────────────────────────────────────────────────────
+
+if $CLEAN_BUILD; then
+  log "Cleaning build cache..."
+  JAVA_HOME="$JAVA_HOME" "$SCRIPT_DIR/gradlew" clean > "$LOGS_DIR/admin-api.log" 2>&1
+fi
 
 log "Starting admin-api (port 8081)..."
 JAVA_HOME="$JAVA_HOME" "$SCRIPT_DIR/gradlew" :apps:admin-api:bootRun \
-  > "$LOGS_DIR/admin-api.log" 2>&1 &
+  >> "$LOGS_DIR/admin-api.log" 2>&1 &
 ADMIN_PID=$!
 
 # ── rag-orchestrator (port 8090) ─────────────────────────────────────────────

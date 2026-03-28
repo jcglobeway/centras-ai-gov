@@ -42,14 +42,14 @@
 ## 검증
 
 - [x] 백엔드 통합 테스트 50개 + ArchUnit 8개 전부 통과 확인
-- [ ] `MetricsAggregationScheduler.aggregate()` 수동 실행 후 `/admin/metrics/daily` 응답에서 `resolvedRate` null 아님 확인
-- [ ] `npm run dev` 후 ops 대시보드 파이프라인 레이턴시 섹션 제거 확인
-- [ ] `npm run dev` 후 ops/cost 페이지 문서 건강도 섹션 제거 확인
-- [ ] `npm run dev` 후 client 대시보드 "피드백 완료율" label 및 추세 차트 Y축 스케일 확인
-- [ ] `npm run dev` 후 qa 페이지 "오류" badge 및 context_recall 행 확인
-- [ ] `npm run dev` 후 ops/quality 페이지 context_recall 행 확인
+- [x] `MetricsAggregationScheduler.aggregate()` 수동 실행 후 `/admin/metrics/daily` 응답에서 `resolvedRate` null 아님 확인
+- [x] `npm run dev` 후 ops 대시보드 파이프라인 레이턴시 섹션 제거 확인
+- [x] `npm run dev` 후 ops/cost 페이지 문서 건강도 섹션 제거 확인
+- [x] `npm run dev` 후 client 대시보드 "피드백 완료율" label 및 추세 차트 Y축 스케일 확인
+- [x] `npm run dev` 후 qa 페이지 "오류" badge 및 context_recall 행 확인
+- [x] `npm run dev` 후 ops/quality 페이지 context_recall 행 확인
 
 ## 마무리
 
-- [ ] 커밋 (한국어 커밋 메시지)
-- [ ] status.md 업데이트
+- [x] 커밋 (한국어 커밋 메시지)
+- [x] status.md 업데이트
