@@ -20,6 +20,7 @@ const OPS_NAV: NavItem[] = [
   { href: "/ops/cost", label: "비용 & 건강도", icon: "◉" },
   { href: "/ops/safety", label: "안전성", icon: "◐" },
   { href: "/ops/incidents", label: "장애 관리", icon: "⚠" },
+  { href: "/ops/simulator", label: "챗봇 시뮬레이터", icon: "◷" },
 ];
 
 const CLIENT_NAV: NavItem[] = [

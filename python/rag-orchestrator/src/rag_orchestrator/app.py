@@ -223,6 +223,126 @@ def generate_answer_with_ollama(
                 "input_tokens": None, "output_tokens": None}
 
 
+@app.post("/generate/stream")
+def generate_answer_stream(request: GenerateAnswerRequest):
+    """
+    질문에 대한 답변을 NDJSON 스트리밍으로 반환한다.
+
+    retrieval은 동기로 수행하고, LLM 생성만 stream=True로 토큰 단위로 emit한다.
+    청크 형식:
+      {"content": "토큰"}        -- LLM 생성 중
+      {"done": true, ...}        -- 완료 신호 (마지막)
+    """
+    from fastapi.responses import StreamingResponse
+    import json
+
+    ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
+    db_url = os.getenv("DATABASE_URL")
+    use_ollama = check_ollama_available(ollama_url)
+
+    if not use_ollama:
+        def fallback_stream():
+            stub = f"[DEV MODE] Ollama not available. Stub answer for: {request.question_text}"
+            yield json.dumps({"content": stub}) + "\n"
+            yield json.dumps({
+                "done": True,
+                "answer_status": "fallback",
+                "citation_count": 0,
+                "response_time_ms": 0,
+                "confidence_score": 0.0,
+            }) + "\n"
+        return StreamingResponse(fallback_stream(), media_type="application/x-ndjson")
+
+    from .retrieval import get_embedding, hybrid_search
+    start_ms = int(time.time() * 1000)
+    top_k = int(os.getenv("HYBRID_SEARCH_TOP_K", "10"))
+    reranker_enabled = os.getenv("RERANKER_ENABLED", "false").lower() == "true"
+
+    search_results = hybrid_search(
+        query_text=request.question_text,
+        top_k=top_k,
+        ollama_url=ollama_url,
+        db_url=db_url,
+        reranker_enabled=reranker_enabled,
+    )
+    get_embedding(request.question_text, ollama_url)
+    latency_ms = int(time.time() * 1000) - start_ms
+
+    _log_search_result(
+        question_id=request.question_id,
+        query_text=request.question_text,
+        search_results=search_results,
+        latency_ms=latency_ms,
+    )
+
+    citation_count = len(search_results)
+    if search_results:
+        distances = [float(r["distance"]) for r in search_results]
+        avg_distance = sum(distances) / len(distances)
+        confidence_score = round(max(0.0, 1.0 - avg_distance), 4)
+    else:
+        confidence_score = 0.0
+
+    if search_results:
+        context_chunks = "\n\n".join([
+            f"[문서 {i+1}] {chunk['chunk_text']}"
+            for i, chunk in enumerate(search_results)
+        ])
+        retrieval_context = f"검색된 관련 문서:\n\n{context_chunks}"
+    else:
+        retrieval_context = "관련 문서를 찾지 못했습니다. 일반적인 정보로 답변드립니다."
+
+    system_prompt = (
+        "당신은 공공기관 민원 안내 챗봇입니다. "
+        "제공된 문서를 기반으로 정확하고 친절하게 답변하세요. "
+        "답변을 찾을 수 없으면 모른다고 말하세요."
+    )
+    user_prompt = f"""참고 문서:
+{retrieval_context}
+
+질문: {request.question_text}
+
+위 문서를 참고하여 질문에 답변해주세요."""
+    model = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
+
+    def token_stream():
+        import httpx
+        with httpx.stream(
+            "POST",
+            f"{ollama_url}/api/chat",
+            json={
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                "stream": True,
+                "options": {"temperature": 0.3, "num_predict": 500},
+            },
+            timeout=60.0,
+        ) as r:
+            for line in r.iter_lines():
+                if not line:
+                    continue
+                try:
+                    chunk = json.loads(line)
+                    token = chunk.get("message", {}).get("content", "")
+                    if token:
+                        yield json.dumps({"content": token}) + "\n"
+                except Exception:
+                    continue
+        response_time_ms = int(time.time() * 1000) - start_ms
+        yield json.dumps({
+            "done": True,
+            "answer_status": "answered",
+            "citation_count": citation_count,
+            "response_time_ms": response_time_ms,
+            "confidence_score": confidence_score,
+        }) + "\n"
+
+    return StreamingResponse(token_stream(), media_type="application/x-ndjson")
+
+
 def _log_search_result(
     question_id: str,
     query_text: str,

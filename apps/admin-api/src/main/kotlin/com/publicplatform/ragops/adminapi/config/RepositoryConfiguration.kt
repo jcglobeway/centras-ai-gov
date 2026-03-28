@@ -147,6 +147,10 @@ class RepositoryConfiguration {
         UpdateChatSessionPortAdapter(jpaRepository)
 
     @Bean
+    fun createChatSessionPort(jpaRepository: JpaChatSessionRepository): CreateChatSessionPort =
+        CreateChatSessionPortAdapter(jpaRepository)
+
+    @Bean
     fun loadFaqCandidatesPort(jpaRepository: JpaQuestionRepository): com.publicplatform.ragops.chatruntime.application.port.out.LoadFaqCandidatesPort =
         LoadFaqCandidatesPortAdapter(jpaRepository)
 
