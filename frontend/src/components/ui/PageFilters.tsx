@@ -49,7 +49,7 @@ export function PageFilters({
   to,
   onToChange,
 }: PageFiltersProps) {
-  const [preset, setPreset] = useState<Preset>("today");
+  const [preset, setPreset] = useState<Preset>("week");
 
   const { data } = useSWR<PagedResponse<Organization>>(
     "/api/admin/organizations?page_size=50",

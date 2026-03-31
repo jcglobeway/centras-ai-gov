@@ -31,11 +31,13 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   }
 
   return (
-    <div className="flex h-screen bg-bg-base">
+    <div className="flex h-screen bg-bg-surface">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="기관 어드민" />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-[1400px] mx-auto">{children}</div>
+        </main>
       </div>
     </div>
   );
