@@ -44,8 +44,19 @@ class RepositoryConfiguration {
         RecordAuditLogPortAdapter(jpaRepository)
 
     @Bean
-    fun organizationDirectoryReader(jpaRepository: JpaOrganizationRepository): LoadOrganizationPort =
-        LoadOrganizationPortAdapter(jpaRepository)
+    fun loadAuditLogPort(jpaRepository: JpaRecordAuditLogPort): LoadAuditLogPort =
+        LoadAuditLogPortAdapter(jpaRepository)
+
+    @Bean
+    fun loadAdminUsersPort(jpaRepository: JpaManageAdminUserPort): LoadAdminUsersPort =
+        LoadAdminUsersPortAdapter(jpaRepository)
+
+    @Bean
+    fun organizationDirectoryReader(
+        jpaOrganizationRepository: JpaOrganizationRepository,
+        jpaServiceRepository: JpaServiceRepository,
+    ): LoadOrganizationPort =
+        LoadOrganizationPortAdapter(jpaOrganizationRepository, jpaServiceRepository)
 
     @Bean
     fun crawlSourceReader(jpaRepository: JpaCrawlSourceRepository): LoadCrawlSourcePort =

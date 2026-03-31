@@ -47,6 +47,12 @@ import com.publicplatform.ragops.adminapi.evaluation.application.service.RagasEv
 import com.publicplatform.ragops.adminapi.chatruntime.adapter.outbound.http.RagOrchestratorClient
 import org.springframework.boot.web.client.RestTemplateBuilder
 import com.publicplatform.ragops.identityaccess.application.port.`in`.AdminAuthUseCase
+import com.publicplatform.ragops.identityaccess.application.port.`in`.GetAuditLogsUseCase
+import com.publicplatform.ragops.identityaccess.application.port.`in`.GetAdminUsersUseCase
+import com.publicplatform.ragops.identityaccess.application.port.out.LoadAuditLogPort
+import com.publicplatform.ragops.identityaccess.application.port.out.LoadAdminUsersPort
+import com.publicplatform.ragops.identityaccess.application.service.GetAuditLogsService
+import com.publicplatform.ragops.identityaccess.application.service.GetAdminUsersService
 import org.springframework.beans.factory.annotation.Value
 import com.publicplatform.ragops.identityaccess.application.port.out.AdminCredentialAuthenticator
 import com.publicplatform.ragops.identityaccess.application.port.out.ManageAdminSessionPort
@@ -70,6 +76,14 @@ import org.springframework.context.annotation.Configuration
  */
 @Configuration
 class ServiceConfiguration {
+
+    @Bean
+    fun getAuditLogsUseCase(loadAuditLogPort: LoadAuditLogPort): GetAuditLogsUseCase =
+        GetAuditLogsService(loadAuditLogPort)
+
+    @Bean
+    fun getAdminUsersUseCase(loadAdminUsersPort: LoadAdminUsersPort): GetAdminUsersUseCase =
+        GetAdminUsersService(loadAdminUsersPort)
 
     @Bean
     fun adminAuthUseCase(
