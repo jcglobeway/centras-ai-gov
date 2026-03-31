@@ -7,6 +7,7 @@ import com.publicplatform.ragops.metricsreporting.application.port.`in`.ListMetr
 import com.publicplatform.ragops.metricsreporting.domain.DailyMetricsSummary
 import com.publicplatform.ragops.metricsreporting.domain.MetricsScope
 import jakarta.servlet.http.HttpServletRequest
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -26,6 +27,7 @@ class MetricsController(
     private val adminRequestSessionResolver: AdminRequestSessionResolver,
     private val listMetricsUseCase: ListMetricsUseCase,
     private val metricsAggregationScheduler: MetricsAggregationScheduler,
+    private val jdbcTemplate: NamedParameterJdbcTemplate,
 ) {
 
     @GetMapping("/metrics/daily")
@@ -46,6 +48,119 @@ class MetricsController(
         return DailyMetricsListResponse(items = metrics.map { it.toResponse() }, total = metrics.size)
     }
 
+    @GetMapping("/metrics/category-distribution")
+    fun getCategoryDistribution(
+        @RequestParam("organization_id", required = false) organizationId: String?,
+        @RequestParam("from_date", required = false) fromDate: String?,
+        @RequestParam("to_date", required = false) toDate: String?,
+        servletRequest: HttpServletRequest,
+    ): CategoryDistributionResponse {
+        val session = adminRequestSessionResolver.resolve(servletRequest)
+        val scope = session.toScope(organizationId)
+
+        val sql = buildString {
+            append("""
+                SELECT COALESCE(question_category, '미분류') AS category, COUNT(*) AS count
+                FROM questions
+                WHERE 1=1
+            """.trimIndent())
+            if (!scope.globalAccess) append(" AND organization_id IN (:orgIds)")
+            if (fromDate != null) append(" AND CAST(created_at AS DATE) >= :fromDate")
+            if (toDate != null) append(" AND CAST(created_at AS DATE) <= :toDate")
+            append(" GROUP BY COALESCE(question_category, '미분류') ORDER BY count DESC")
+        }
+
+        val params = mutableMapOf<String, Any>()
+        if (!scope.globalAccess) params["orgIds"] = scope.organizationIds
+        if (fromDate != null) params["fromDate"] = LocalDate.parse(fromDate)
+        if (toDate != null) params["toDate"] = LocalDate.parse(toDate)
+
+        val rows = jdbcTemplate.queryForList(sql, params)
+        val items = rows.map { row ->
+            CategoryItem(
+                category = row["category"] as String,
+                count = (row["count"] as Number).toInt(),
+            )
+        }
+        val total = items.sumOf { it.count }
+        return CategoryDistributionResponse(items = items, total = total)
+    }
+
+    @GetMapping("/metrics/feedback-trend")
+    fun getFeedbackTrend(
+        @RequestParam("organization_id", required = false) organizationId: String?,
+        @RequestParam("days", defaultValue = "7") days: Int,
+        servletRequest: HttpServletRequest,
+    ): FeedbackTrendResponse {
+        val session = adminRequestSessionResolver.resolve(servletRequest)
+        val scope = session.toScope(organizationId)
+        val fromDate = LocalDate.now().minusDays(days.toLong())
+
+        val sql = buildString {
+            append("""
+                SELECT CAST(submitted_at AS DATE) AS day,
+                       SUM(CASE WHEN rating >= 4 THEN 1 ELSE 0 END) AS positive,
+                       SUM(CASE WHEN rating <= 2 THEN 1 ELSE 0 END) AS negative
+                FROM feedbacks
+                WHERE CAST(submitted_at AS DATE) >= :fromDate
+            """.trimIndent())
+            if (!scope.globalAccess) append(" AND organization_id IN (:orgIds)")
+            append(" GROUP BY CAST(submitted_at AS DATE) ORDER BY day ASC")
+        }
+
+        val params = mutableMapOf<String, Any>("fromDate" to fromDate)
+        if (!scope.globalAccess) params["orgIds"] = scope.organizationIds
+
+        val rows = jdbcTemplate.queryForList(sql, params)
+        val items = rows.map { row ->
+            FeedbackTrendItem(
+                date = row["day"].toString(),
+                positive = (row["positive"] as Number).toInt(),
+                negative = (row["negative"] as Number).toInt(),
+            )
+        }
+        return FeedbackTrendResponse(items = items)
+    }
+
+    @GetMapping("/metrics/duplicate-questions")
+    fun getDuplicateQuestions(
+        @RequestParam("organization_id", required = false) organizationId: String?,
+        @RequestParam("from_date", required = false) fromDate: String?,
+        @RequestParam("to_date", required = false) toDate: String?,
+        @RequestParam("min_count", defaultValue = "2") minCount: Int,
+        @RequestParam("limit", defaultValue = "10") limit: Int,
+        servletRequest: HttpServletRequest,
+    ): DuplicateQuestionsResponse {
+        val session = adminRequestSessionResolver.resolve(servletRequest)
+        val scope = session.toScope(organizationId)
+
+        val sql = buildString {
+            append("""
+                SELECT question_text, COUNT(*) AS count
+                FROM questions
+                WHERE 1=1
+            """.trimIndent())
+            if (!scope.globalAccess) append(" AND organization_id IN (:orgIds)")
+            if (fromDate != null) append(" AND CAST(created_at AS DATE) >= :fromDate")
+            if (toDate != null) append(" AND CAST(created_at AS DATE) <= :toDate")
+            append(" GROUP BY question_text HAVING COUNT(*) >= :minCount ORDER BY count DESC LIMIT :limit")
+        }
+
+        val params = mutableMapOf<String, Any>("minCount" to minCount, "limit" to limit)
+        if (!scope.globalAccess) params["orgIds"] = scope.organizationIds
+        if (fromDate != null) params["fromDate"] = LocalDate.parse(fromDate)
+        if (toDate != null) params["toDate"] = LocalDate.parse(toDate)
+
+        val rows = jdbcTemplate.queryForList(sql, params)
+        val items = rows.map { row ->
+            DuplicateQuestionItem(
+                questionText = row["question_text"] as String,
+                count = (row["count"] as Number).toInt(),
+            )
+        }
+        return DuplicateQuestionsResponse(items = items, total = items.sumOf { it.count })
+    }
+
     @PostMapping("/metrics/aggregate")
     fun triggerAggregation(
         @RequestParam("date", required = false) date: String?,
@@ -59,6 +174,15 @@ class MetricsController(
 }
 
 data class AggregationTriggeredResponse(val targetDate: String)
+
+data class CategoryItem(val category: String, val count: Int)
+data class CategoryDistributionResponse(val items: List<CategoryItem>, val total: Int)
+
+data class FeedbackTrendItem(val date: String, val positive: Int, val negative: Int)
+data class FeedbackTrendResponse(val items: List<FeedbackTrendItem>)
+
+data class DuplicateQuestionItem(val questionText: String, val count: Int)
+data class DuplicateQuestionsResponse(val items: List<DuplicateQuestionItem>, val total: Int)
 
 data class DailyMetricsListResponse(val items: List<DailyMetricsResponse>, val total: Int)
 

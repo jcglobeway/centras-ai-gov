@@ -11,7 +11,7 @@
 - [x] P0-A: `frontend/src/lib/api.ts` — `reviewNote` → `reviewComment` 필드명 수정
 - [x] P0-B: `frontend/src/app/qa/unresolved/page.tsx` — 리뷰 작성 모달 구현 (QA 상태 머신 적용)
 - [x] P0-C: `frontend/src/app/qa/documents/page.tsx` — 버전 이력 모달 구현
-- [ ] P0-D: `frontend/src/app/ops/statistics/page.tsx` — Knowledge Gap Rate → `/ops/unresolved` Link 연결 (IA 1-2 드릴다운)
+- [x] P0-D: `frontend/src/app/ops/statistics/page.tsx` — Knowledge Gap Rate → `/ops/unresolved` Link 연결 (IA 1-2 드릴다운)
 
 ---
 
@@ -36,41 +36,39 @@
 ### P1-C: 카테고리 분포 엔드포인트 (ops/statistics)
 > IA 1-2 서비스 통계 "질의 카테고리 분포 도넛 차트"
 
-- [ ] `GET /admin/metrics/category-distribution` 신규 (question_category groupBy)
-- [ ] `/ops/statistics/page.tsx` MOCK_CATEGORIES → 실API 교체
+- [x] `GET /admin/metrics/category-distribution` 신규 (question_category groupBy)
+- [x] `/ops/statistics/page.tsx` MOCK_CATEGORIES → 실API 교체
 
 ### P1-D: 피드백 추이 엔드포인트 (ops/quality-summary)
 > IA 1-3 품질/보안 요약 "사용자 피드백 주간 추이"
 
-- [ ] `GET /admin/metrics/feedback-trend` 신규 (feedbacks createdAt 기준 7일 groupBy)
-- [ ] `/ops/quality-summary/page.tsx` MOCK_FEEDBACK_TREND → 실API 교체
+- [x] `GET /admin/metrics/feedback-trend` 신규 (feedbacks createdAt 기준 7일 groupBy)
+- [x] `/ops/quality-summary/page.tsx` MOCK_FEEDBACK_TREND → 실API 교체
 
 ### P1-E: 반복 질의 집계 엔드포인트 (ops/anomaly)
 > IA 5-3 이상 징후 감지 "비정상 반복 질의 (DDoS 의심 패턴)"
 
-- [ ] `GET /admin/metrics/duplicate-questions` 신규 (questions 중복 questionText 집계)
-- [ ] `/ops/anomaly/page.tsx` 반복 질의 카드 복구 (실API 연동)
+- [x] `GET /admin/metrics/duplicate-questions` 신규 (questions 중복 questionText 집계)
+- [x] `/ops/anomaly/page.tsx` 반복 질의 카드 복구 (실API 연동)
 
 ### P1-F: 감사 로그 연동 (ops/audit)
 > IA 5-2 보안 감사 로그 — audit_logs 테이블 V003 존재
 
-- [ ] `GET /admin/audit-logs` 엔드포인트 존재 여부 확인 후 구현
-- [ ] `/ops/audit/page.tsx` MOCK_PII_EVENTS, MOCK_ACCESS_LOGS → 실API 교체
-  - PII 감지 이벤트 탭 (action_type 필터)
-  - 관리자 접근 이력 탭 (LOGIN, LOGOUT, RESOURCE_ACCESS 등)
+- [x] `GET /admin/audit-logs` 구현 (LoadAuditLogPort → GetAuditLogsService → AuditLogController)
+- [x] `/ops/audit/page.tsx` 관리자 접근 이력 → 실API 교체 (PII·금칙어는 샘플 유지)
+  - PII 이벤트·금칙어 차단은 샘플 데이터 유지 (분류기 미구현)
 
 ### P1-G: 사용자 목록 연동 (ops/users)
 > IA 7-1 사용자/권한 관리 — admin_users 테이블 V001 존재
 
-- [ ] `GET /admin/users` 엔드포인트 존재 여부 확인 후 구현
-- [ ] `/ops/users/page.tsx` MOCK_USERS → 실API 교체
+- [x] `GET /admin/users` 구현 (LoadAdminUsersPort → GetAdminUsersService → AdminUserController)
+- [x] `/ops/users/page.tsx` MOCK_USERS → 실API 교체 (RBAC 섹션은 샘플 유지)
 
 ### P1-H: 대화 이력 연동 (ops/chat-history)
-> IA 5-1 대화 이력 조회 — questions + chat_sessions 테이블 존재
+> IA 5-1 대화 이력 조회 — questions 테이블 연동
 
-- [ ] `GET /admin/questions?page_size=20` 연동으로 MOCK_SESSIONS 교체
-- [ ] 세션 상세 모달: 질문 내용, 응답, RAG 청크 출처, 유사도 점수
-  (세션 단위 조회 API 없으면 question 단위로 대체)
+- [x] `GET /admin/questions?page_size=30` 연동으로 MOCK_SESSIONS 교체
+  - 세션 단위 대신 질문 단위 표시 (sessions API 미구현 → P4-H로 이관)
 
 ### P1-I: PII 감지 건수 카드 (ops/quality-summary)
 > IA 1-3 품질/보안 요약 "PII 감지 건수 — 이번 달 누적, 마지막 감지 시각 → 5-2 보안 감사 로그 링크"
