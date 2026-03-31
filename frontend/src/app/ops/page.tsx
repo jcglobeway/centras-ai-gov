@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import useSWR from "swr";
 import { fetcher } from "@/lib/api";
-import type { PagedResponse, DailyMetric, Question, UnresolvedQuestion, LlmMetrics, Organization } from "@/lib/types";
+import type { PagedResponse, DailyMetric, UnresolvedQuestion, LlmMetrics, Organization } from "@/lib/types";
 import { KpiCard } from "@/components/charts/KpiCard";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
@@ -117,8 +117,8 @@ export default function OpsDashboardPage() {
     fetcher
   );
 
-  const { data: questionsData } = useSWR<PagedResponse<Question>>(
-    "/api/admin/questions?page_size=30",
+  const { data: questionsData } = useSWR<PagedResponse<UnresolvedQuestion>>(
+    "/api/admin/questions/unresolved?page_size=10",
     fetcher
   );
 
@@ -151,10 +151,7 @@ export default function OpsDashboardPage() {
   const metrics         = data?.items ?? [];
   const latest          = metrics[metrics.length - 1];
   const prev            = metrics.length >= 2 ? metrics[metrics.length - 2] : null;
-  const allQuestions    = questionsData?.items ?? [];
-  const issueQuestions  = allQuestions
-    .filter((q) => ["fallback", "no_answer", "error"].includes(q.answerStatus ?? ""))
-    .slice(0, 10);
+  const issueQuestions = questionsData?.items ?? [];
 
   // orgId → name 맵
   const orgNameMap = new Map<string, string>(
