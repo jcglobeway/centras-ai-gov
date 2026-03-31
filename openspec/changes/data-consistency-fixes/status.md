@@ -1,20 +1,30 @@
 # Status
 
-- 상태: `in_progress`
+- 상태: `completed`
 - 시작일: `2026-03-30`
-- 마지막 업데이트: `2026-03-30`
+- 마지막 업데이트: `2026-03-31`
 
 ## Progress
 
 - [x] P0-A: `api.ts` reviewNote → reviewComment 수정
 - [x] P0-B: `/qa/unresolved` QA 리뷰 작성 모달 구현
 - [x] P0-C: `/qa/documents` 버전 이력 모달 구현
+- [x] P0-D: `/ops/statistics` Knowledge Gap Rate → `/ops/unresolved` Link 연결
+- [x] P1-A: V023 필드 실집계 (`MetricsAggregationScheduler` — 이미 구현되어 있었음)
+- [x] P1-B: lowSatisfactionCount 집계 (이미 구현되어 있었음)
+- [x] P1-C: `GET /admin/metrics/category-distribution` 신규 + `/ops/statistics` 실API 교체
+- [x] P1-D: `GET /admin/metrics/feedback-trend` 신규 + `/ops/quality-summary` 실API 교체
+- [x] P1-E: `GET /admin/metrics/duplicate-questions` 신규 + `/ops/anomaly` 반복 질의 카드 복구
+- [x] P1-F: `GET /admin/audit-logs` 구현 + `/ops/audit` 실API 교체
+- [x] P1-G: `GET /admin/users` 구현 + `/ops/users` 실API 교체
+- [x] P1-H: `/ops/chat-history` MOCK_SESSIONS → 실API 교체
+- [x] P1-I: `GET /admin/metrics/pii-count` 신규 + `/ops/quality-summary` PII 카드 추가
+- [x] P2-A: `/ops/cost` CACHE HIT RATE status="warn" 제거, 샘플 데이터 명시
 - [x] P2-B: `/ops/anomaly` EMBEDDING DRIFT KpiCard 제거
 - [x] P2-C: `/ops/anomaly` 안전성 지표 섹션 제거
 - [x] P2-D: `/ops/quality` 이전 버전(v2.3.9) 비교 탭 제거
 - [x] P2-E: `/ops/redteam` KPI 카드 4개 제거
 - [x] P3-A: `/client` revisitRate 레이블 수정 (재방문율)
-- [ ] P1: 백엔드 집계 로직 (V023, 카테고리, 피드백 추이, 감사로그, 사용자)
 
 ## 제거 항목 및 사유
 
