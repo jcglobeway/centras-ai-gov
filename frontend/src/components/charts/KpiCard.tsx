@@ -8,31 +8,44 @@ interface KpiCardProps {
   trendValue?: string;
   help?: string;
   status?: "ok" | "warn" | "critical";
+  progressValue?: number;
   className?: string;
 }
 
-const stripeColor: Record<string, string> = {
-  ok: "bg-success",
-  warn: "bg-warning",
+const statusColor: Record<string, string> = {
+  ok:       "bg-success",
+  warn:     "bg-warning",
   critical: "bg-error",
 };
 
 const valueColor: Record<string, string> = {
-  ok: "text-success",
-  warn: "text-warning",
+  ok:       "text-success",
+  warn:     "text-warning",
   critical: "text-error",
 };
 
-const badgeStyle: Record<string, string> = {
-  ok: "bg-success/10 text-success border border-success/30",
-  warn: "bg-warning/10 text-warning border border-warning/30",
-  critical: "bg-error/10 text-error border border-error/30",
+const pillStyle: Record<string, string> = {
+  ok:       "bg-success/10 text-success",
+  warn:     "bg-warning/10 text-warning",
+  critical: "bg-error/10 text-error",
 };
 
-const badgeLabel: Record<string, string> = {
-  ok: "정상",
-  warn: "경고",
-  critical: "긴급",
+const pillLabel: Record<string, string> = {
+  ok:       "OPTIMAL",
+  warn:     "WARNING",
+  critical: "CRITICAL",
+};
+
+const trendIcon: Record<string, string> = {
+  up:      "arrow_upward",
+  down:    "arrow_downward",
+  neutral: "remove",
+};
+
+const trendColor: Record<string, string> = {
+  up:      "text-success",
+  down:    "text-error",
+  neutral: "text-text-muted",
 };
 
 export function KpiCard({
@@ -43,73 +56,72 @@ export function KpiCard({
   trendValue,
   help,
   status,
+  progressValue,
   className,
 }: KpiCardProps) {
   return (
     <div
       className={clsx(
-        "bg-bg-surface border border-bg-border rounded-xl overflow-hidden relative cursor-pointer transition-all duration-150 hover:-translate-y-px hover:border-bg-elevated",
+        "bg-bg-elevated border border-white/5 rounded-lg p-5 relative cursor-pointer transition-all duration-150 hover:bg-bg-prominent",
         className
       )}
+      style={{ boxShadow: "var(--shadow-card)" }}
     >
-      {/* 상단 상태 스트라이프 */}
-      {status && (
-        <div className={clsx("absolute top-0 left-0 right-0 h-0.5", stripeColor[status])} />
-      )}
-      <div className="p-4 pt-5">
-        {/* 레이블 + 상태 뱃지 */}
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-1">
-            <span className="font-mono text-[10px] tracking-[0.4px] uppercase text-text-secondary">
-              {label}
-            </span>
-            {help && (
-              <span className="group relative">
-                <span className="text-text-muted text-[10px] cursor-help select-none">ⓘ</span>
-                <span className="absolute top-full left-0 mt-1.5 w-64 rounded-lg bg-bg-elevated border border-bg-border px-3 py-2.5 text-[11px] leading-relaxed text-text-secondary shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-normal">
-                  {help}
-                </span>
+      {/* 레이블 + 상태 pill */}
+      <div className="flex items-start justify-between mb-2">
+        <div className="flex items-center gap-1">
+          <span className="font-mono text-[11px] tracking-tighter uppercase text-text-muted">
+            {label}
+          </span>
+          {help && (
+            <span className="group relative">
+              <span className="text-text-muted text-xs cursor-help select-none">ⓘ</span>
+              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 rounded-lg bg-bg-prominent border border-bg-border px-3 py-2.5 text-xs leading-relaxed text-text-secondary shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-normal">
+                {help}
+                <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-bg-border" />
               </span>
-            )}
-          </div>
-          {status && (
-            <span className={clsx("font-mono text-[10px] px-1.5 py-0.5 rounded-full", badgeStyle[status])}>
-              {badgeLabel[status]}
             </span>
           )}
         </div>
+        {status && (
+          <span className={clsx("font-mono text-[10px] font-bold px-2 py-0.5 rounded-full", pillStyle[status])}>
+            {pillLabel[status]}
+          </span>
+        )}
+      </div>
 
-        {/* 값 */}
-        <p
+      {/* 값 + 단위 (같은 행) */}
+      <div className="flex items-baseline gap-1">
+        <span
           className={clsx(
-            "text-[26px] font-bold tracking-[-1px] leading-none mb-2",
-            status ? valueColor[status] : "text-text-primary"
+            "text-2xl font-bold font-mono tracking-[-1px] leading-none",
+            "text-text-primary"
           )}
         >
           {value}
-          {sub && (
-            <span className="text-[13px] font-normal text-text-secondary ml-1">
-              {sub}
-            </span>
-          )}
-        </p>
-
-        {/* 푸터: 트렌드 */}
-        {trendValue && (
-          <div className="flex items-center justify-between">
-            <span
-              className={clsx("font-mono text-[10px]", {
-                "text-success": trend === "up",
-                "text-error": trend === "down",
-                "text-text-muted": !trend || trend === "neutral",
-              })}
-            >
-              {trend === "up" ? "▲ " : trend === "down" ? "▼ " : ""}
-              {trendValue}
-            </span>
-          </div>
+        </span>
+        {sub && (
+          <span className="text-[11px] font-mono text-text-muted">{sub}</span>
         )}
       </div>
+
+      {/* 트렌드 */}
+      {trend && trendValue && (
+        <p className={clsx("text-xs font-mono mt-2 flex items-center gap-0.5", trendColor[trend])}>
+          <span className="material-symbols-outlined text-[13px] leading-none">{trendIcon[trend]}</span>
+          {trendValue}
+        </p>
+      )}
+
+      {/* progress bar (일반 흐름) */}
+      {status && progressValue !== undefined && (
+        <div className="mt-3 h-1 rounded-full bg-bg-prominent overflow-hidden">
+          <div
+            className={clsx("h-full transition-all", statusColor[status])}
+            style={{ width: `${Math.min(progressValue, 100)}%` }}
+          />
+        </div>
+      )}
     </div>
   );
 }

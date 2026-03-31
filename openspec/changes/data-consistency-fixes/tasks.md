@@ -73,8 +73,8 @@
 ### P1-I: PII 감지 건수 카드 (ops/quality-summary)
 > IA 1-3 품질/보안 요약 "PII 감지 건수 — 이번 달 누적, 마지막 감지 시각 → 5-2 보안 감사 로그 링크"
 
-- [ ] audit_logs에서 PII 감지 건수 월별 집계 (action_type 확인 필요)
-- [ ] `/ops/quality-summary/page.tsx` PII 감지 건수 KpiCard 추가 + 5-2 링크 연결
+- [x] audit_logs에서 PII_DETECTED 이벤트 월별 집계 (`GET /admin/metrics/pii-count`)
+- [x] `/ops/quality-summary/page.tsx` PII 감지 건수 KpiCard 추가 + /ops/audit 링크 연결
 
 ---
 
@@ -114,5 +114,5 @@
 
 ## 마무리
 
-- [ ] 전체 변경 커밋 (한국어 메시지)
-- [ ] status.md 완료 업데이트 후 P1 진행
+- [x] 전체 변경 커밋 (한국어 메시지)
+- [ ] status.md 완료 업데이트

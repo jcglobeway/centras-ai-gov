@@ -161,6 +161,34 @@ class MetricsController(
         return DuplicateQuestionsResponse(items = items, total = items.sumOf { it.count })
     }
 
+    @GetMapping("/metrics/pii-count")
+    fun getPiiCount(
+        @RequestParam("organization_id", required = false) organizationId: String?,
+        servletRequest: HttpServletRequest,
+    ): PiiCountResponse {
+        val session = adminRequestSessionResolver.resolve(servletRequest)
+        val scope = session.toScope(organizationId)
+        val firstOfMonth = LocalDate.now().withDayOfMonth(1)
+
+        val sql = buildString {
+            append("""
+                SELECT COUNT(*) AS count, MAX(created_at) AS last_detected_at
+                FROM audit_logs
+                WHERE action_code = 'PII_DETECTED'
+                AND CAST(created_at AS DATE) >= :fromDate
+            """.trimIndent())
+            if (!scope.globalAccess) append(" AND organization_id IN (:orgIds)")
+        }
+
+        val params = mutableMapOf<String, Any>("fromDate" to firstOfMonth)
+        if (!scope.globalAccess) params["orgIds"] = scope.organizationIds
+
+        val row = jdbcTemplate.queryForMap(sql, params)
+        val count = (row["count"] as Number).toInt()
+        val lastDetectedAt = row["last_detected_at"]?.toString()
+        return PiiCountResponse(count = count, lastDetectedAt = lastDetectedAt)
+    }
+
     @PostMapping("/metrics/aggregate")
     fun triggerAggregation(
         @RequestParam("date", required = false) date: String?,
@@ -183,6 +211,8 @@ data class FeedbackTrendResponse(val items: List<FeedbackTrendItem>)
 
 data class DuplicateQuestionItem(val questionText: String, val count: Int)
 data class DuplicateQuestionsResponse(val items: List<DuplicateQuestionItem>, val total: Int)
+
+data class PiiCountResponse(val count: Int, val lastDetectedAt: String?)
 
 data class DailyMetricsListResponse(val items: List<DailyMetricsResponse>, val total: Int)
 

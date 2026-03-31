@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import useSWR from "swr";
 import { fetcher } from "@/lib/api";
 import type { PagedResponse, RagasEvaluation } from "@/lib/types";
@@ -20,6 +21,8 @@ interface Feedback {
 
 interface FeedbackTrendItem { date: string; positive: number; negative: number; }
 interface FeedbackTrendResponse { items: FeedbackTrendItem[]; }
+
+interface PiiCountResponse { count: number; lastDetectedAt: string | null; }
 
 // ── KPI 상태 계산 헬퍼 ─────────────────────────────────────────────────────────
 
@@ -47,6 +50,11 @@ export default function QualitySummaryPage() {
 
   const { data: trendData } = useSWR<FeedbackTrendResponse>(
     "/api/admin/metrics/feedback-trend?days=7",
+    fetcher
+  );
+
+  const { data: piiData } = useSWR<PiiCountResponse>(
+    "/api/admin/metrics/pii-count",
     fetcher
   );
 
@@ -91,8 +99,8 @@ export default function QualitySummaryPage() {
       />
       <h2 className="text-text-primary font-semibold text-lg">품질/보안 요약</h2>
 
-      {/* KPI 3개 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* KPI 4개 */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         <KpiCard
           label="FAITHFULNESS"
           value={faithfulness != null ? (faithfulness * 100).toFixed(1) + "%" : "-"}
@@ -123,6 +131,20 @@ export default function QualitySummaryPage() {
           progressValue={satisfactionPct ?? undefined}
           help="rating 4 이상(👍) / 전체 평가 비율. 70% 이상이면 정상입니다."
         />
+        <div className="relative">
+          <KpiCard
+            label="PII 감지 건수"
+            value={piiData != null ? piiData.count.toLocaleString() + "건" : "-"}
+            sub="이번 달 누적"
+            status={piiData != null ? (piiData.count === 0 ? "ok" : piiData.count < 5 ? "warn" : "critical") : undefined}
+            help="audit_logs의 PII_DETECTED 이벤트 이번 달 누적 건수. 0건이면 정상입니다."
+          />
+          <div className="px-4 pb-3 -mt-1">
+            <Link href="/ops/audit" className="text-[11px] text-accent hover:underline">
+              감사 로그 바로가기 →
+            </Link>
+          </div>
+        </div>
       </div>
 
       {/* RAGAS 스코어카드 */}

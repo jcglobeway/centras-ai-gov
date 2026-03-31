@@ -13,9 +13,10 @@ export function Card({ children, className }: CardProps) {
   return (
     <div
       className={clsx(
-        "bg-bg-surface border border-bg-border rounded-xl overflow-hidden transition-colors hover:border-bg-elevated",
+        "bg-bg-elevated border border-white/5 rounded-lg overflow-hidden",
         className
       )}
+      style={{ boxShadow: "var(--shadow-card)" }}
     >
       {children}
     </div>
@@ -34,11 +35,11 @@ export function CardTitle({ children, tag, className }: CardTitleProps) {
   return (
     <div className={className}>
       {tag && (
-        <p className="font-mono text-[10px] uppercase tracking-[0.5px] text-text-muted mb-0.5">
+        <p className="font-mono text-[11px] uppercase tracking-[0.5px] text-text-muted mb-0.5">
           {tag}
         </p>
       )}
-      <h3 className="text-text-primary font-semibold text-[12px]">{children}</h3>
+      <h3 className="text-text-primary font-semibold text-[13px]">{children}</h3>
     </div>
   );
 }

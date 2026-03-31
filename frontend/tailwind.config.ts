@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: 'class',
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -8,31 +9,42 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      borderRadius: {
+        'DEFAULT': '0.125rem',
+        'sm':      '0.125rem',
+        'md':      '0.25rem',
+        'lg':      '0.25rem',
+        'xl':      '0.5rem',
+        '2xl':     '0.75rem',
+        'full':    '9999px',
+      },
       colors: {
-        // v3 RAG Admin dark theme
         bg: {
-          base: "#0c0f16",
-          surface: "#13171f",
-          elevated: "#1a1f2a",
-          border: "#222836",
+          base:      'var(--bg-base)',
+          surface:   'var(--bg-surface)',
+          elevated:  'var(--bg-elevated)',
+          prominent: 'var(--bg-prominent)',
+          border:    'var(--bg-border)',
         },
         accent: {
-          DEFAULT: "#4b9eff",
-          hover: "#3a8ef0",
-          muted: "#1d4ed8",
+          DEFAULT: 'var(--accent)',
+          hover:   '#3a8ef0',
+          muted:   '#1d4ed8',
         },
-        success: "#00c47a",
-        warning: "#f5a623",
-        error: "#ff4560",
+        success: 'var(--success)',
+        warning: 'var(--warning)',
+        error:   'var(--error)',
         text: {
-          primary: "#dde2ec",
-          secondary: "#8b93a8",
-          muted: "#505868",
+          primary:   'var(--text-primary)',
+          secondary: 'var(--text-secondary)',
+          muted:     'var(--text-muted)',
         },
       },
       fontFamily: {
-        sans: ["Noto Sans KR", "sans-serif"],
-        mono: ["JetBrains Mono", "monospace"],
+        sans:        ["Noto Sans KR", "sans-serif"],
+        mono:        ["IBM Plex Mono", "monospace"],
+        inter:       ["Inter", "sans-serif"],
+        'plex-mono': ["IBM Plex Mono", "monospace"],
       },
     },
   },

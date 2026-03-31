@@ -1,26 +1,44 @@
-@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Light — Digital Architect */
 :root {
-  --bg-base: #080d17;
-  --bg-surface: #0d1424;
-  --bg-elevated: #131d31;
-  --bg-border: #1e2d45;
-  --accent: #3b82f6;
+  --bg-base:      #f8f9ff;
+  --bg-surface:   #ffffff;
+  --bg-elevated:  #eff4ff;
+  --bg-prominent: #e8edff;
+  --bg-border:    rgba(195, 198, 215, 0.4);
+  --accent:       #004ac6;
+  --text-primary:   #0b1c30;
+  --text-secondary: #434655;
+  --text-muted:     #6b7280;
   --success: #10b981;
   --warning: #f59e0b;
-  --error: #ef4444;
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #475569;
+  --error:   #ef4444;
+  --shadow-card: 0 4px 20px rgba(11, 28, 48, 0.06), 0 2px 8px rgba(11, 28, 48, 0.04);
 }
 
-* {
-  box-sizing: border-box;
+/* Dark — Sovereign AI */
+.dark {
+  --bg-base:      #0b1326;
+  --bg-surface:   #131b2e;
+  --bg-elevated:  #171f33;
+  --bg-prominent: #2d3449;
+  --bg-border:    rgba(255, 255, 255, 0.06);
+  --accent:       #2563eb;
+  --text-primary:   #dae2fd;
+  --text-secondary: #8b93a8;
+  --text-muted:     #505868;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error:   #ef4444;
+  --shadow-card: none;
 }
+
+* { box-sizing: border-box; }
 
 body {
   background-color: var(--bg-base);
@@ -30,17 +48,7 @@ body {
 }
 
 /* scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: var(--bg-surface);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--bg-border);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-surface); }
+::-webkit-scrollbar-thumb { background: var(--bg-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }

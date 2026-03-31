@@ -26,7 +26,7 @@ export function Thead({ children }: { children: React.ReactNode }) {
 
 export function Th({ children, className }: TableProps) {
   return (
-    <th className={clsx("px-3 py-2.5 text-left font-mono text-[10px] uppercase tracking-[0.4px] text-text-muted", className)}>
+    <th className={clsx("px-3 py-2.5 text-left font-mono text-[11px] uppercase tracking-[0.4px] text-text-muted", className)}>
       {children}
     </th>
   );
@@ -57,7 +57,7 @@ export function Tr({
 
 export function Td({ children, className, colSpan }: TableProps) {
   return (
-    <td colSpan={colSpan} className={clsx("px-3 py-2 text-[11px] text-text-secondary", className)}>
+    <td colSpan={colSpan} className={clsx("px-3 py-2.5 text-xs text-text-secondary", className)}>
       {children}
     </td>
   );
