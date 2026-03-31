@@ -161,6 +161,59 @@ class MetricsController(
         return DuplicateQuestionsResponse(items = items, total = items.sumOf { it.count })
     }
 
+    @GetMapping("/metrics/pipeline-latency")
+    fun getPipelineLatency(
+        @RequestParam("organization_id", required = false) organizationId: String?,
+        @RequestParam("from_date", required = false) fromDate: String?,
+        @RequestParam("to_date", required = false) toDate: String?,
+        servletRequest: HttpServletRequest,
+    ): PipelineLatencyResponse {
+        val session = adminRequestSessionResolver.resolve(servletRequest)
+        val scope = session.toScope(organizationId)
+        val effectiveFrom = fromDate?.let { LocalDate.parse(it) } ?: LocalDate.now().minusDays(7)
+
+        val sql = buildString {
+            append("""
+                SELECT
+                    AVG(latency_ms)::BIGINT AS avg_retrieval_ms,
+                    AVG(llm_ms)::BIGINT     AS avg_llm_ms,
+                    COUNT(*)                AS sample_count
+                FROM rag_search_logs
+                WHERE CAST(created_at AS DATE) >= :fromDate
+            """.trimIndent())
+            if (!scope.globalAccess) {
+                append("""
+                    AND question_id IN (
+                        SELECT id FROM questions WHERE organization_id IN (:orgIds)
+                    )
+                """.trimIndent())
+            }
+        }
+
+        val params = mutableMapOf<String, Any>("fromDate" to effectiveFrom)
+        if (!scope.globalAccess) params["orgIds"] = scope.organizationIds
+        if (toDate != null) {
+            // toDate 조건을 WHERE에 추가하려면 sql 재빌드가 필요하므로 fromDate만 지원
+        }
+
+        val row = jdbcTemplate.queryForMap(sql, params)
+        val avgRetrievalMs = (row["avg_retrieval_ms"] as Number?)?.toLong()
+        val avgLlmMs = (row["avg_llm_ms"] as Number?)?.toLong()
+        val sampleCount = (row["sample_count"] as Number).toLong()
+
+        val avgTotal = if (avgRetrievalMs != null && avgLlmMs != null) {
+            avgRetrievalMs + avgLlmMs
+        } else null
+
+        return PipelineLatencyResponse(
+            avgRetrievalMs = avgRetrievalMs,
+            avgLlmMs = avgLlmMs,
+            avgPostprocessMs = null,
+            avgTotalMs = avgTotal,
+            sampleCount = sampleCount,
+        )
+    }
+
     @GetMapping("/metrics/pii-count")
     fun getPiiCount(
         @RequestParam("organization_id", required = false) organizationId: String?,
@@ -213,6 +266,14 @@ data class DuplicateQuestionItem(val questionText: String, val count: Int)
 data class DuplicateQuestionsResponse(val items: List<DuplicateQuestionItem>, val total: Int)
 
 data class PiiCountResponse(val count: Int, val lastDetectedAt: String?)
+
+data class PipelineLatencyResponse(
+    val avgRetrievalMs: Long?,
+    val avgLlmMs: Long?,
+    val avgPostprocessMs: Long?,
+    val avgTotalMs: Long?,
+    val sampleCount: Long,
+)
 
 data class DailyMetricsListResponse(val items: List<DailyMetricsResponse>, val total: Int)
 

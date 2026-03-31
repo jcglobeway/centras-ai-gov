@@ -61,6 +61,7 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
         top_k = int(os.getenv("HYBRID_SEARCH_TOP_K", "10"))
         reranker_enabled = os.getenv("RERANKER_ENABLED", "false").lower() == "true"
 
+        retrieval_start = int(time.time() * 1000)
         search_results = hybrid_search(
             query_text=request.question_text,
             top_k=top_k,
@@ -68,9 +69,16 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
             db_url=db_url,
             reranker_enabled=reranker_enabled,
         )
-
         query_embedding = get_embedding(request.question_text, ollama_url)
-        latency_ms = int(time.time() * 1000) - start_ms
+        latency_ms = int(time.time() * 1000) - retrieval_start
+
+        llm_start = int(time.time() * 1000)
+        llm_result = generate_answer_with_ollama(
+            question=request.question_text,
+            search_results=search_results,
+            ollama_url=ollama_url,
+        )
+        llm_ms = int(time.time() * 1000) - llm_start
 
         # 검색 로그 Admin API 콜백
         _log_search_result(
@@ -78,13 +86,9 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
             query_text=request.question_text,
             search_results=search_results,
             latency_ms=latency_ms,
+            llm_ms=llm_ms,
         )
 
-        llm_result = generate_answer_with_ollama(
-            question=request.question_text,
-            search_results=search_results,
-            ollama_url=ollama_url,
-        )
         answer_text = llm_result["content"]
         model_name = llm_result.get("model")
         input_tokens = llm_result.get("input_tokens")
@@ -250,6 +254,7 @@ def generate_answer_stream(request: GenerateAnswerRequest):
                 "citation_count": 0,
                 "response_time_ms": 0,
                 "confidence_score": 0.0,
+                "retrieved_chunks": [],
             }) + "\n"
         return StreamingResponse(fallback_stream(), media_type="application/x-ndjson")
 
@@ -258,6 +263,7 @@ def generate_answer_stream(request: GenerateAnswerRequest):
     top_k = int(os.getenv("HYBRID_SEARCH_TOP_K", "10"))
     reranker_enabled = os.getenv("RERANKER_ENABLED", "false").lower() == "true"
 
+    retrieval_start = int(time.time() * 1000)
     search_results = hybrid_search(
         query_text=request.question_text,
         top_k=top_k,
@@ -266,13 +272,14 @@ def generate_answer_stream(request: GenerateAnswerRequest):
         reranker_enabled=reranker_enabled,
     )
     get_embedding(request.question_text, ollama_url)
-    latency_ms = int(time.time() * 1000) - start_ms
+    latency_ms = int(time.time() * 1000) - retrieval_start
 
     _log_search_result(
         question_id=request.question_id,
         query_text=request.question_text,
         search_results=search_results,
         latency_ms=latency_ms,
+        llm_ms=None,  # streaming: LLM 소요시간은 done 이벤트 후 알 수 있으므로 별도 추적 불가
     )
 
     citation_count = len(search_results)
@@ -338,6 +345,14 @@ def generate_answer_stream(request: GenerateAnswerRequest):
             "citation_count": citation_count,
             "response_time_ms": response_time_ms,
             "confidence_score": confidence_score,
+            "retrieved_chunks": [
+                {
+                    "filename": r.get("filename", "unknown"),
+                    "preview": r["chunk_text"][:200],
+                    "score": round(1.0 - float(r["distance"]), 3),
+                }
+                for r in search_results
+            ],
         }) + "\n"
 
     return StreamingResponse(token_stream(), media_type="application/x-ndjson")
@@ -348,6 +363,7 @@ def _log_search_result(
     query_text: str,
     search_results: list[dict[str, str]],
     latency_ms: int,
+    llm_ms: int | None = None,
 ) -> None:
     """
     RAG 검색 결과를 Admin API rag-search-log 엔드포인트로 기록한다.
@@ -367,6 +383,7 @@ def _log_search_result(
                 "queryText": query_text,
                 "topK": len(search_results),
                 "latencyMs": latency_ms,
+                "llmMs": llm_ms,
                 "retrievalEngine": "pgvector",
                 "retrievalStatus": retrieval_status,
                 "retrievedChunks": [

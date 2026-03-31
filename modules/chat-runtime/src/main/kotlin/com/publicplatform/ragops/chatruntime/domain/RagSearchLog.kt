@@ -14,6 +14,7 @@ data class CreateRagSearchLogCommand(
     val queryRewriteText: String?,
     val topK: Int?,
     val latencyMs: Int?,
+    val llmMs: Int?,
     val retrievalEngine: String?,
     val retrievalStatus: String,
 )
@@ -35,6 +36,7 @@ data class RagSearchLogSummary(
     val zeroResult: Boolean,
     val topK: Int?,
     val latencyMs: Int?,
+    val llmMs: Int?,
     val retrievalEngine: String?,
     val retrievalStatus: String,
     val createdAt: Instant,
