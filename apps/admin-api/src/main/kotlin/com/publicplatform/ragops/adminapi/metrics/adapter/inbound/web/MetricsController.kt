@@ -175,9 +175,10 @@ class MetricsController(
         val sql = buildString {
             append("""
                 SELECT
-                    AVG(latency_ms)::BIGINT AS avg_retrieval_ms,
-                    AVG(llm_ms)::BIGINT     AS avg_llm_ms,
-                    COUNT(*)                AS sample_count
+                    AVG(latency_ms)::BIGINT      AS avg_retrieval_ms,
+                    AVG(llm_ms)::BIGINT          AS avg_llm_ms,
+                    AVG(postprocess_ms)::BIGINT  AS avg_postprocess_ms,
+                    COUNT(*)                     AS sample_count
                 FROM rag_search_logs
                 WHERE CAST(created_at AS DATE) >= :fromDate
             """.trimIndent())
@@ -199,16 +200,16 @@ class MetricsController(
         val row = jdbcTemplate.queryForMap(sql, params)
         val avgRetrievalMs = (row["avg_retrieval_ms"] as Number?)?.toLong()
         val avgLlmMs = (row["avg_llm_ms"] as Number?)?.toLong()
+        val avgPostprocessMs = (row["avg_postprocess_ms"] as Number?)?.toLong()
         val sampleCount = (row["sample_count"] as Number).toLong()
 
-        val avgTotal = if (avgRetrievalMs != null && avgLlmMs != null) {
-            avgRetrievalMs + avgLlmMs
-        } else null
+        val avgTotal = listOfNotNull(avgRetrievalMs, avgLlmMs, avgPostprocessMs)
+            .takeIf { it.isNotEmpty() }?.sum()
 
         return PipelineLatencyResponse(
             avgRetrievalMs = avgRetrievalMs,
             avgLlmMs = avgLlmMs,
-            avgPostprocessMs = null,
+            avgPostprocessMs = avgPostprocessMs,
             avgTotalMs = avgTotal,
             sampleCount = sampleCount,
         )
@@ -242,6 +243,47 @@ class MetricsController(
         return PiiCountResponse(count = count, lastDetectedAt = lastDetectedAt)
     }
 
+    @GetMapping("/metrics/question-length-distribution")
+    fun getQuestionLengthDistribution(
+        @RequestParam("organization_id", required = false) organizationId: String?,
+        @RequestParam("from_date", required = false) fromDate: String?,
+        @RequestParam("to_date", required = false) toDate: String?,
+        servletRequest: HttpServletRequest,
+    ): QuestionLengthDistributionResponse {
+        val session = adminRequestSessionResolver.resolve(servletRequest)
+        val scope = session.toScope(organizationId)
+
+        val sql = buildString {
+            append("""
+                SELECT
+                    SUM(CASE WHEN LENGTH(question_text) <= 5  THEN 1 ELSE 0 END) AS very_short,
+                    SUM(CASE WHEN LENGTH(question_text) BETWEEN 6 AND 20 THEN 1 ELSE 0 END) AS short_q,
+                    SUM(CASE WHEN LENGTH(question_text) > 20 THEN 1 ELSE 0 END) AS long_q
+                FROM questions
+                WHERE 1=1
+            """.trimIndent())
+            if (!scope.globalAccess) append(" AND organization_id IN (:orgIds)")
+            if (fromDate != null) append(" AND CAST(created_at AS DATE) >= :fromDate")
+            if (toDate != null) append(" AND CAST(created_at AS DATE) <= :toDate")
+        }
+
+        val params = mutableMapOf<String, Any>()
+        if (!scope.globalAccess) params["orgIds"] = scope.organizationIds
+        if (fromDate != null) params["fromDate"] = LocalDate.parse(fromDate)
+        if (toDate != null) params["toDate"] = LocalDate.parse(toDate)
+
+        val row = jdbcTemplate.queryForMap(sql, params)
+        val veryShort = (row["very_short"] as Number?)?.toInt() ?: 0
+        val short = (row["short_q"] as Number?)?.toInt() ?: 0
+        val long = (row["long_q"] as Number?)?.toInt() ?: 0
+        return QuestionLengthDistributionResponse(
+            veryShort = veryShort,
+            short = short,
+            long = long,
+            total = veryShort + short + long,
+        )
+    }
+
     @PostMapping("/metrics/aggregate")
     fun triggerAggregation(
         @RequestParam("date", required = false) date: String?,
@@ -255,6 +297,13 @@ class MetricsController(
 }
 
 data class AggregationTriggeredResponse(val targetDate: String)
+
+data class QuestionLengthDistributionResponse(
+    val veryShort: Int,
+    val short: Int,
+    val long: Int,
+    val total: Int,
+)
 
 data class CategoryItem(val category: String, val count: Int)
 data class CategoryDistributionResponse(val items: List<CategoryItem>, val total: Int)
