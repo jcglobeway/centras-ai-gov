@@ -1,38 +1,48 @@
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Noto+Sans+KR:wght@400;500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Light — Digital Architect */
+/* Light — Linear light neutrals */
 :root {
-  --bg-base:      #f8f9ff;
-  --bg-surface:   #ffffff;
-  --bg-elevated:  #eff4ff;
-  --bg-prominent: #e8edff;
-  --bg-border:    rgba(195, 198, 215, 0.4);
-  --accent:       #004ac6;
-  --text-primary:   #0b1c30;
+  --bg-base:        #f7f8f8;
+  --bg-surface:     #f3f4f5;
+  --bg-elevated:    #ffffff;
+  --bg-prominent:   #e6e6e6;
+  --bg-border:      rgba(0, 0, 0, 0.08);
+  --bg-border-subtle: rgba(0, 0, 0, 0.05);
+  --accent:         #5e6ad2;
+  --accent-hover:   #828fff;
+  --accent-interactive: #7170ff;
+  --accent-muted:   #4a56b8;
+  --text-primary:   #0f1011;
   --text-secondary: #434655;
-  --text-muted:     #6b7280;
+  --text-muted:     #8a8f98;
+  --text-subtle:    #62666d;
   --success: #10b981;
   --warning: #f59e0b;
   --error:   #ef4444;
-  --shadow-card: 0 4px 20px rgba(11, 28, 48, 0.06), 0 2px 8px rgba(11, 28, 48, 0.04);
+  --shadow-card: none;
 }
 
-/* Dark — Sovereign AI */
+/* Dark — Linear dark-mode-native */
 .dark {
-  --bg-base:      #0b1326;
-  --bg-surface:   #131b2e;
-  --bg-elevated:  #171f33;
-  --bg-prominent: #2d3449;
-  --bg-border:    rgba(255, 255, 255, 0.06);
-  --accent:       #2563eb;
-  --text-primary:   #dae2fd;
-  --text-secondary: #8b93a8;
-  --text-muted:     #505868;
-  --success: #10b981;
+  --bg-base:        #08090a;
+  --bg-surface:     #0f1011;
+  --bg-elevated:    #191a1b;
+  --bg-prominent:   #28282c;
+  --bg-border:      rgba(255, 255, 255, 0.08);
+  --bg-border-subtle: rgba(255, 255, 255, 0.05);
+  --accent:         #5e6ad2;
+  --accent-hover:   #828fff;
+  --accent-interactive: #7170ff;
+  --accent-muted:   #4a56b8;
+  --text-primary:   #f7f8f8;
+  --text-secondary: #d0d6e0;
+  --text-muted:     #8a8f98;
+  --text-subtle:    #62666d;
+  --success: #27a644;
   --warning: #f59e0b;
   --error:   #ef4444;
   --shadow-card: none;
@@ -45,6 +55,23 @@ body {
   color: var(--text-primary);
   font-family: "Noto Sans KR", sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Inter Variable — UI chrome (sidebar, header, buttons, labels) */
+.font-inter,
+[class*="font-inter"] {
+  font-family: "Inter", "Noto Sans KR", sans-serif;
+  font-feature-settings: "cv01", "ss03";
+}
+
+/* Card surface — light mode needs a visible tint */
+:root {
+  --card-bg: rgba(0, 0, 0, 0.02);
+  --card-border: rgba(0, 0, 0, 0.08);
+}
+.dark {
+  --card-bg: rgba(255, 255, 255, 0.02);
+  --card-border: rgba(255, 255, 255, 0.08);
 }
 
 /* scrollbar */

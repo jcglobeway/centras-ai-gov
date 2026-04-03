@@ -12,11 +12,11 @@ interface CardTitleProps extends CardProps {
 export function Card({ children, className }: CardProps) {
   return (
     <div
-      className={clsx(
-        "bg-bg-elevated border border-white/5 rounded-lg overflow-hidden",
-        className
-      )}
-      style={{ boxShadow: "var(--shadow-card)" }}
+      className={clsx("rounded-lg", className)}
+      style={{
+        background: "var(--card-bg)",
+        border: "1px solid var(--card-border)",
+      }}
     >
       {children}
     </div>
@@ -25,7 +25,7 @@ export function Card({ children, className }: CardProps) {
 
 export function CardHeader({ children, className }: CardProps) {
   return (
-    <div className={clsx("px-4 pt-4 pb-0 mb-3", className)}>
+    <div className={clsx("px-5 pt-5 pb-0 mb-4", className)}>
       {children}
     </div>
   );
@@ -35,11 +35,11 @@ export function CardTitle({ children, tag, className }: CardTitleProps) {
   return (
     <div className={className}>
       {tag && (
-        <p className="font-mono text-[11px] uppercase tracking-[0.5px] text-text-muted mb-0.5">
+        <p className="font-inter text-[11px] uppercase tracking-[0.1em] text-text-subtle mb-0.5">
           {tag}
         </p>
       )}
-      <h3 className="text-text-primary font-semibold text-[13px]">{children}</h3>
+      <h3 className="font-inter text-text-primary font-[510] text-sm">{children}</h3>
     </div>
   );
 }

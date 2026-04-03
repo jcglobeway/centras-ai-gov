@@ -46,17 +46,17 @@ export function Header({ title }: HeaderProps) {
     : [];
 
   return (
-    <header className="h-16 border-b border-white/5 bg-bg-base/80 backdrop-blur-md flex items-center px-6 gap-4">
-      <h1 className="text-text-primary text-sm font-semibold flex-1">{title}</h1>
+    <header className="h-14 border-b border-[rgba(255,255,255,0.05)] bg-bg-base/80 backdrop-blur-md flex items-center px-6 gap-4">
+      <h1 className="font-inter text-text-primary text-[13px] font-[510] flex-1 tracking-tight">{title}</h1>
 
       {session && (
         <div className="flex items-center gap-2">
           {/* 테마 토글 */}
           <button
             onClick={toggle}
-            className="p-2 rounded-full text-text-secondary hover:text-text-primary transition-colors"
+            className="p-1.5 rounded-md text-text-subtle hover:text-text-secondary hover:bg-[rgba(255,255,255,0.04)] transition-colors"
           >
-            <span className="material-symbols-outlined text-[20px]">
+            <span className="material-symbols-outlined text-[18px]">
               {theme === 'dark' ? 'light_mode' : 'dark_mode'}
             </span>
           </button>
@@ -65,24 +65,24 @@ export function Header({ title }: HeaderProps) {
           <div className="relative" ref={ref}>
             <button
               onClick={() => setOpen((v) => !v)}
-              className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-bg-elevated transition-colors"
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-[rgba(255,255,255,0.04)] transition-colors"
             >
               <div className="text-right">
-                <p className="text-text-primary text-xs font-medium leading-none">
+                <p className="font-inter text-text-primary text-[12px] font-[510] leading-none">
                   {session.displayName}
                 </p>
-                <p className="text-text-muted text-[11px] mt-0.5">
+                <p className="font-inter text-text-subtle text-[11px] mt-0.5">
                   {ROLE_LABEL[session.roleCode] ?? session.roleCode}
                 </p>
               </div>
-              <span className="text-text-muted text-xs">▾</span>
+              <span className="text-text-subtle text-[10px]">▾</span>
             </button>
 
             {open && (
-              <div className="absolute right-0 top-full mt-1 w-44 bg-bg-surface border border-bg-border rounded-xl shadow-lg z-50 overflow-hidden">
-                <div className="px-3 py-2.5 border-b border-bg-border">
-                  <p className="text-text-primary text-xs font-semibold">{session.displayName}</p>
-                  <p className="text-text-muted text-[11px] mt-0.5">{ROLE_LABEL[session.roleCode] ?? session.roleCode}</p>
+              <div className="absolute right-0 top-full mt-1 w-44 bg-bg-surface border border-[rgba(255,255,255,0.08)] rounded-lg shadow-lg z-50 overflow-hidden">
+                <div className="px-3 py-2.5 border-b border-[rgba(255,255,255,0.05)]">
+                  <p className="font-inter text-text-primary text-[12px] font-[510]">{session.displayName}</p>
+                  <p className="font-inter text-text-subtle text-[11px] mt-0.5">{ROLE_LABEL[session.roleCode] ?? session.roleCode}</p>
                 </div>
 
                 {accessiblePortals.length > 1 && (
@@ -93,20 +93,20 @@ export function Header({ title }: HeaderProps) {
                           key={p.key}
                           href={p.basePath}
                           onClick={() => setOpen(false)}
-                          className="block px-3 py-1.5 text-xs text-text-secondary hover:bg-bg-elevated hover:text-text-primary transition-colors"
+                          className="block px-3 py-1.5 font-inter text-[12px] text-text-secondary hover:bg-[rgba(255,255,255,0.04)] hover:text-text-primary transition-colors"
                         >
                           {p.label}
                         </Link>
                       ))}
                     </div>
-                    <div className="border-t border-bg-border" />
+                    <div className="border-t border-[rgba(255,255,255,0.05)]" />
                   </>
                 )}
 
                 <div className="py-1">
                   <button
                     onClick={() => { setOpen(false); logout(); }}
-                    className="w-full text-left px-3 py-1.5 text-xs text-error hover:bg-bg-elevated transition-colors"
+                    className="w-full text-left px-3 py-1.5 font-inter text-[12px] text-error hover:bg-[rgba(255,255,255,0.04)] transition-colors"
                   >
                     로그아웃
                   </button>

@@ -4,6 +4,7 @@ interface TableProps {
   children?: React.ReactNode;
   className?: string;
   colSpan?: number;
+  title?: string;
 }
 
 export function Table({ children, className }: TableProps) {
@@ -26,7 +27,7 @@ export function Thead({ children }: { children: React.ReactNode }) {
 
 export function Th({ children, className }: TableProps) {
   return (
-    <th className={clsx("px-3 py-2.5 text-left font-mono text-[11px] uppercase tracking-[0.4px] text-text-muted", className)}>
+    <th className={clsx("px-4 py-3 text-left font-inter text-[11px] font-[510] uppercase tracking-[0.1em] text-text-subtle", className)}>
       {children}
     </th>
   );
@@ -39,9 +40,11 @@ export function Tbody({ children }: { children: React.ReactNode }) {
 export function Tr({
   children,
   className,
+  onClick,
 }: {
   children: React.ReactNode;
   className?: string;
+  onClick?: () => void;
 }) {
   return (
     <tr
@@ -49,15 +52,16 @@ export function Tr({
         "hover:bg-bg-elevated transition-colors",
         className
       )}
+      onClick={onClick}
     >
       {children}
     </tr>
   );
 }
 
-export function Td({ children, className, colSpan }: TableProps) {
+export function Td({ children, className, colSpan, title }: TableProps) {
   return (
-    <td colSpan={colSpan} className={clsx("px-3 py-2.5 text-xs text-text-secondary", className)}>
+    <td colSpan={colSpan} title={title} className={clsx("px-4 py-3 text-sm text-text-secondary", className)}>
       {children}
     </td>
   );

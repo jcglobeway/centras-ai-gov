@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/api";
 import type { PagedResponse, Organization } from "@/lib/types";
@@ -22,6 +21,14 @@ export function getWeekFrom(): string {
 
 type Preset = "today" | "week" | "month" | "custom";
 
+function derivePreset(from: string, to: string): Preset {
+  const today = getToday();
+  if (from === today && to === today) return "today";
+  if (from === getDaysAgo(6) && to === today) return "week";
+  if (from === getDaysAgo(29) && to === today) return "month";
+  return "custom";
+}
+
 interface PageFiltersProps {
   orgId: string;
   onOrgChange: (id: string) => void;
@@ -32,14 +39,14 @@ interface PageFiltersProps {
 }
 
 const selectClass =
-  "bg-bg-elevated border border-bg-border text-text-secondary text-xs rounded px-2 py-1 focus:outline-none focus:border-accent";
+  "bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] text-text-secondary font-inter text-[12px] font-[510] rounded-md px-2.5 py-1.5 focus:outline-none focus:border-accent transition-colors";
 
 const presetBtnBase =
-  "px-3 py-1 text-xs rounded border transition-colors";
+  "px-3 py-1.5 font-inter text-[12px] font-[510] rounded-md border transition-colors";
 const presetBtnActive =
-  "border-accent text-accent bg-accent/10";
+  "border-accent text-accent-interactive bg-accent/10";
 const presetBtnInactive =
-  "border-bg-border text-text-secondary hover:border-accent/50 hover:text-text-primary";
+  "border-[rgba(255,255,255,0.08)] text-text-muted hover:border-[rgba(255,255,255,0.15)] hover:text-text-secondary";
 
 export function PageFilters({
   orgId,
@@ -49,7 +56,7 @@ export function PageFilters({
   to,
   onToChange,
 }: PageFiltersProps) {
-  const [preset, setPreset] = useState<Preset>("week");
+  const preset = derivePreset(from, to);
 
   const { data } = useSWR<PagedResponse<Organization>>(
     "/api/admin/organizations?page_size=50",
@@ -59,7 +66,6 @@ export function PageFilters({
   const orgs = data?.items ?? [];
 
   function applyPreset(p: Preset) {
-    setPreset(p);
     const today = getToday();
     if (p === "today") {
       onFromChange(today);
@@ -70,8 +76,12 @@ export function PageFilters({
     } else if (p === "month") {
       onFromChange(getDaysAgo(29));
       onToChange(today);
+    } else if (p === "custom") {
+      // 현재 from을 하루 당겨서 preset 매칭을 벗어나게 함 → derivePreset이 "custom" 반환
+      if (derivePreset(from, to) !== "custom") {
+        onFromChange(getDaysAgo(7));
+      }
     }
-    // custom: keep current from/to, just show inputs
   }
 
   const presets: { key: Preset; label: string }[] = [
@@ -118,7 +128,7 @@ export function PageFilters({
             onChange={(e) => onFromChange(e.target.value)}
             className={selectClass}
           />
-          <span className="text-text-muted text-xs">~</span>
+          <span className="text-text-subtle text-xs">~</span>
           <input
             type="date"
             value={to}

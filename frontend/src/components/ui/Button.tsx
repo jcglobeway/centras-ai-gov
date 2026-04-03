@@ -7,10 +7,10 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClass = {
-  primary: "bg-accent hover:bg-accent-hover text-white",
-  secondary: "bg-bg-elevated hover:bg-bg-border text-text-primary border border-bg-border",
-  ghost: "hover:bg-bg-elevated text-text-secondary hover:text-text-primary",
-  danger: "bg-error/10 hover:bg-error/20 text-error",
+  primary:   "bg-accent hover:bg-accent-hover text-white",
+  secondary: "bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.05)] text-text-primary border border-[rgba(255,255,255,0.08)]",
+  ghost:     "hover:bg-[rgba(255,255,255,0.04)] text-text-secondary hover:text-text-primary",
+  danger:    "bg-error/10 hover:bg-error/20 text-error",
 };
 
 const sizeClass = {
@@ -28,7 +28,7 @@ export function Button({
   return (
     <button
       className={clsx(
-        "inline-flex items-center gap-1.5 font-medium rounded-lg transition-colors disabled:opacity-50",
+        "inline-flex items-center gap-1.5 font-inter font-[510] rounded-md transition-colors disabled:opacity-50",
         variantClass[variant],
         sizeClass[size],
         className

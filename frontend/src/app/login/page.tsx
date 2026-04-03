@@ -40,7 +40,7 @@ export default function LoginPage() {
         </div>
 
         {/* card */}
-        <div className="bg-bg-surface border border-bg-border rounded-xl p-6">
+        <div className="rounded-lg p-6" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
           <h1 className="text-text-primary font-semibold text-base mb-6">
             로그인
           </h1>
@@ -57,9 +57,9 @@ export default function LoginPage() {
                 required
                 autoComplete="email"
                 placeholder="admin@example.com"
-                className="w-full bg-bg-elevated border border-bg-border rounded-lg px-3 py-2.5
+                className="w-full bg-bg-surface border border-bg-border rounded-lg px-3 py-2.5
                            text-text-primary text-sm placeholder:text-text-muted
-                           focus:outline-none focus:border-accent transition-colors"
+                           focus:outline-none focus:border-accent transition-colors rounded-md"
               />
             </div>
 
@@ -74,9 +74,9 @@ export default function LoginPage() {
                 required
                 autoComplete="current-password"
                 placeholder="••••••••"
-                className="w-full bg-bg-elevated border border-bg-border rounded-lg px-3 py-2.5
+                className="w-full bg-bg-surface border border-bg-border rounded-lg px-3 py-2.5
                            text-text-primary text-sm placeholder:text-text-muted
-                           focus:outline-none focus:border-accent transition-colors"
+                           focus:outline-none focus:border-accent transition-colors rounded-md"
               />
             </div>
 
@@ -88,7 +88,7 @@ export default function LoginPage() {
               type="submit"
               disabled={loading}
               className="w-full bg-accent hover:bg-accent-hover disabled:opacity-50
-                         text-white font-medium text-sm rounded-lg py-2.5
+                         text-white font-inter font-[510] text-sm rounded-md py-2.5
                          transition-colors"
             >
               {loading ? "로그인 중..." : "로그인"}

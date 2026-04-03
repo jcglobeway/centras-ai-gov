@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import useSWR from "swr";
 import { fetcher } from "@/lib/api";
-import type { PagedResponse, DailyMetric, UnresolvedQuestion, LlmMetrics, Organization } from "@/lib/types";
+import type { PagedResponse, DailyMetric, UnresolvedQuestion, LlmMetrics, Organization, RagasEvaluation, InfraMetrics, RateLimitMetrics } from "@/lib/types";
 import { KpiCard } from "@/components/charts/KpiCard";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
@@ -34,7 +34,7 @@ function getKpiStatus(
 // ── 파이프라인 단계 색상 (실측 데이터 없을 때 fallback 비율) ────────────────
 
 const PIPELINE_COLORS = {
-  retrieval:    "#2563eb",
+  retrieval:    "#5e6ad2",
   llm:          "#10b981",
   postprocess:  "#f59e0b",
 };
@@ -94,6 +94,71 @@ const STATUS_LABEL: Record<SystemStatus, string> = {
   critical: "위험",
 };
 
+// ── 품질/보안 요약 인라인 컴포넌트 ───────────────────────────────────────────
+
+interface PiiCountData {
+  count: number;
+  lastDetectedAt: string | null;
+}
+
+interface FeedbackTrendPoint {
+  date: string;
+  positive: number;
+  negative: number;
+}
+
+interface FeedbackItem {
+  satisfactionScore: number | null;
+}
+
+function MiniSparkline({ values }: { values: number[] }) {
+  if (values.length === 0) return null;
+  const max = Math.max(...values);
+  return (
+    <div className="flex items-end gap-0.5 h-8 mt-2">
+      {values.map((v, i) => (
+        <div
+          key={i}
+          className={clsx(
+            "flex-1 rounded-t-sm",
+            i === values.length - 1 ? "bg-accent" : "bg-accent/40"
+          )}
+          style={{ height: `${max > 0 ? (v / max) * 100 : 0}%`, minHeight: 2 }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function FeedbackBar({ positive, negative }: { positive: number; negative: number }) {
+  const total = positive + negative;
+  const posPct = total > 0 ? (positive / total) * 100 : 0;
+  return (
+    <div className="mt-2">
+      <div className="flex items-center gap-2 text-xs text-text-secondary mb-1">
+        <span className="text-success font-mono">{positive.toLocaleString()} 긍정</span>
+        <span className="text-text-muted">/</span>
+        <span className="text-error font-mono">{negative.toLocaleString()} 부정</span>
+        {total > 0 && (
+          <span className="text-text-muted ml-auto font-mono">
+            {posPct.toFixed(1)}%
+          </span>
+        )}
+      </div>
+      {total > 0 ? (
+        <div className="h-2 w-full rounded-full overflow-hidden bg-error/30">
+          <div
+            className="h-full rounded-full bg-success transition-all"
+            style={{ width: `${posPct}%` }}
+          />
+        </div>
+      ) : (
+        <div className="h-2 w-full rounded-full bg-white/10" />
+      )}
+    </div>
+  );
+}
+
 // ── 메인 컴포넌트 ─────────────────────────────────────────────────────────────
 
 export default function OpsDashboardPage() {
@@ -102,7 +167,7 @@ export default function OpsDashboardPage() {
   const [to, setTo]                     = useState(getToday);
   const [alertDismissed, setAlertDismissed] = useState(false);
 
-  const params = new URLSearchParams({ page_size: "14" });
+  const params = new URLSearchParams({ page_size: "200" });
   if (orgId) params.set("organization_id", orgId);
   if (from)  params.set("from_date", from);
   if (to)    params.set("to_date", to);
@@ -132,6 +197,37 @@ export default function OpsDashboardPage() {
     fetcher
   );
 
+  // 품질/보안 요약 패널용 데이터
+  const { data: ragasData } = useSWR<PagedResponse<RagasEvaluation>>(
+    "/api/admin/ragas-evaluations?page_size=7",
+    fetcher
+  );
+
+  const { data: piiData } = useSWR<PiiCountData>(
+    "/api/admin/metrics/pii-count",
+    fetcher
+  );
+
+  const { data: feedbacksData } = useSWR<PagedResponse<FeedbackItem>>(
+    "/api/admin/feedbacks?page_size=100",
+    fetcher
+  );
+
+  const { data: feedbackTrendData } = useSWR<FeedbackTrendPoint[]>(
+    "/api/admin/metrics/feedback-trend?days=7",
+    fetcher
+  );
+
+  const { data: infraData } = useSWR<InfraMetrics>(
+    "/api/admin/metrics/infra",
+    fetcher
+  );
+
+  const { data: rateLimitData } = useSWR<RateLimitMetrics>(
+    "/api/admin/metrics/rate-limits",
+    fetcher
+  );
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-48">
@@ -148,7 +244,7 @@ export default function OpsDashboardPage() {
     );
   }
 
-  const metrics         = data?.items ?? [];
+  const metrics         = [...(data?.items ?? [])].sort((a, b) => a.metricDate.localeCompare(b.metricDate));
   const latest          = metrics[metrics.length - 1];
   const prev            = metrics.length >= 2 ? metrics[metrics.length - 2] : null;
   const issueQuestions = questionsData?.items ?? [];
@@ -191,20 +287,51 @@ export default function OpsDashboardPage() {
   const orgHealthList = Array.from(orgLatestMap.entries()).map(([oid, m]) => {
     const resolved = m.resolvedRate != null ? Number(m.resolvedRate) : null;
     const fallback = m.fallbackRate != null ? Number(m.fallbackRate) : null;
-    let healthStatus: "ok" | "warn" | "critical" = "ok";
+    const hasData = resolved != null || fallback != null;
+    let healthStatus: "ok" | "warn" | "critical" | "nodata" = hasData ? "ok" : "nodata";
     let issue = "";
-    if      (resolved != null && resolved < 80)   { healthStatus = "critical"; issue = `응답률 ${resolved.toFixed(1)}% (목표 90%)`; }
-    else if (fallback != null && fallback >= 15)   { healthStatus = "critical"; issue = `Fallback율 ${fallback.toFixed(1)}% (임계 15%)`; }
-    else if (resolved != null && resolved < 90)    { healthStatus = "warn";     issue = `응답률 ${resolved.toFixed(1)}% (목표 90%)`; }
-    else if (fallback != null && fallback >= 10)   { healthStatus = "warn";     issue = `Fallback율 ${fallback.toFixed(1)}% (임계 10%)`; }
+    if (hasData) {
+      if      (resolved != null && resolved < 80)   { healthStatus = "critical"; issue = `응답률 ${resolved.toFixed(1)}% (목표 90%)`; }
+      else if (fallback != null && fallback >= 15)   { healthStatus = "critical"; issue = `Fallback율 ${fallback.toFixed(1)}% (임계 15%)`; }
+      else if (resolved != null && resolved < 90)    { healthStatus = "warn";     issue = `응답률 ${resolved.toFixed(1)}% (목표 90%)`; }
+      else if (fallback != null && fallback >= 10)   { healthStatus = "warn";     issue = `Fallback율 ${fallback.toFixed(1)}% (임계 10%)`; }
+    }
     return { orgId: oid, orgName: orgNameMap.get(oid) ?? oid, healthStatus, issue, resolved, fallback };
   });
 
-  const healthColor = { ok: "text-success", warn: "text-warning", critical: "text-error" };
-  const healthLabel = { ok: "정상",         warn: "주의",         critical: "위험" };
-  const healthDot   = { ok: "bg-success",   warn: "bg-warning",   critical: "bg-error" };
+  const healthColor = { ok: "text-success", warn: "text-warning", critical: "text-error", nodata: "text-text-muted" };
+  const healthLabel = { ok: "정상",         warn: "주의",         critical: "위험",       nodata: "데이터 없음" };
+  const healthDot   = { ok: "bg-success",   warn: "bg-warning",   critical: "bg-error",   nodata: "bg-text-muted" };
 
   const systemStatus = calcSystemStatus(latest);
+
+  // 품질/보안 요약 패널 데이터 가공
+  const ragasItems = [...(ragasData?.items ?? [])].sort(
+    (a, b) => a.evaluatedAt.localeCompare(b.evaluatedAt)
+  );
+  const faithfulnessValues = ragasItems
+    .map((r) => r.faithfulness)
+    .filter((v): v is number => v != null);
+  const latestFaithfulness =
+    faithfulnessValues.length > 0
+      ? faithfulnessValues[faithfulnessValues.length - 1]
+      : null;
+  // Hallucination Rate = 1 - Faithfulness
+  const hallucinationValues = faithfulnessValues.map((v) => 1 - v);
+  const latestHallucination =
+    hallucinationValues.length > 0
+      ? hallucinationValues[hallucinationValues.length - 1]
+      : null;
+
+  const feedbackItems = feedbacksData?.items ?? [];
+  const positiveFeedbacks = feedbackItems.filter(
+    (f) => f.satisfactionScore != null && f.satisfactionScore >= 4
+  ).length;
+  const negativeFeedbacks = feedbackItems.filter(
+    (f) => f.satisfactionScore != null && f.satisfactionScore <= 2
+  ).length;
+
+  const trendPoints = feedbackTrendData ?? [];
 
   // 파이프라인 레이턴시 실측 연동
   const isRealLatency =
@@ -212,10 +339,12 @@ export default function OpsDashboardPage() {
     pipelineData.sampleCount > 0 &&
     (pipelineData.avgRetrievalMs != null || pipelineData.avgLlmMs != null);
 
-  const retrievalMs   = isRealLatency ? (pipelineData!.avgRetrievalMs ?? 0) : PIPELINE_SAMPLE.retrievalMs;
-  const llmMs         = isRealLatency ? (pipelineData!.avgLlmMs ?? 0)       : PIPELINE_SAMPLE.llmMs;
+  const retrievalMs   = isRealLatency ? (pipelineData!.avgRetrievalMs   ?? 0) : PIPELINE_SAMPLE.retrievalMs;
+  const llmMs         = isRealLatency ? (pipelineData!.avgLlmMs          ?? 0) : PIPELINE_SAMPLE.llmMs;
   const postprocessMs = isRealLatency
-    ? Math.max(0, (avgRespMsVal ?? 0) - retrievalMs - llmMs)
+    ? (pipelineData!.avgPostprocessMs != null
+        ? pipelineData!.avgPostprocessMs
+        : Math.max(0, (avgRespMsVal ?? 0) - retrievalMs - llmMs))
     : PIPELINE_SAMPLE.postprocessMs;
   const pipelineTotal = retrievalMs + llmMs + postprocessMs || 1;
 
@@ -249,7 +378,7 @@ export default function OpsDashboardPage() {
       )}
 
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <h2 className="text-text-primary font-semibold text-lg">통합 관제</h2>
+        <h2 className="font-inter text-text-primary font-[510] text-[15px] tracking-tight">통합 관제</h2>
         <PageFilters
           orgId={orgId} onOrgChange={setOrgId}
           from={from}   onFromChange={setFrom}
@@ -258,8 +387,8 @@ export default function OpsDashboardPage() {
       </div>
 
       {/* KPI 5개 — 클릭 시 상세 페이지로 이동 */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <Link href="/ops/quality">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 items-stretch">
+        <Link href="/ops/quality" className="block h-full">
           <KpiCard
             label="ANSWER RATE"
             value={resolvedRateVal != null ? resolvedRateVal.toFixed(1) + "%" : "-"}
@@ -267,10 +396,10 @@ export default function OpsDashboardPage() {
             progressValue={resolvedRateVal ?? undefined}
             trend={resolvedTrend?.trend}
             trendValue={resolvedTrend?.trendValue}
-            help="전체 질문 중 정상 답변 비율. 90% 이상 정상. 클릭하면 상세 페이지로 이동합니다."
+            help="RAG 파이프라인(문서 검색 → LLM 생성)이 끝까지 완료된 비율. 답변 내용의 정확도와는 무관하며, 파이프라인이 중단된 경우(Fallback·무응답·오류)만 제외됩니다. 정상 ≥ 90% / 주의 80~90% / 위험 < 80%."
           />
         </Link>
-        <Link href="/ops/anomaly">
+        <Link href="/ops/anomaly" className="block h-full">
           <KpiCard
             label="ERROR RATE"
             value={fallbackRateVal != null ? fallbackRateVal.toFixed(1) + "%" : "-"}
@@ -278,10 +407,10 @@ export default function OpsDashboardPage() {
             progressValue={fallbackRateVal != null ? (fallbackRateVal / 30) * 100 : undefined}
             trend={fallbackTrend?.trend}
             trendValue={fallbackTrend?.trendValue}
-            help="Fallback 처리된 비율. 10% 초과 시 파이프라인 점검 필요. 클릭하면 이상 징후 페이지로 이동합니다."
+            help="answer_status = 'fallback' 건수 ÷ 전체 질문 수. Ollama 미응답·검색 실패 등으로 파이프라인이 중단되어 대체 메시지를 반환한 비율입니다. 답변 내용 없이 '서비스 불가' 응답이 나간 경우만 집계됩니다. 정상 < 10% / 주의 10~15% / 위험 ≥ 15%."
           />
         </Link>
-        <Link href="/ops/anomaly">
+        <Link href="/ops/anomaly" className="block h-full">
           <KpiCard
             label="E2E LATENCY"
             value={avgRespMsVal != null ? avgRespMsVal.toLocaleString() + "ms" : "-"}
@@ -289,10 +418,10 @@ export default function OpsDashboardPage() {
             progressValue={avgRespMsVal != null ? (avgRespMsVal / 5000) * 100 : undefined}
             trend={latencyTrend?.trend}
             trendValue={latencyTrend?.trendValue}
-            help="검색 + LLM 생성 + 후처리 전체 E2E 평균 응답시간. 클릭하면 이상 징후 페이지로 이동합니다."
+            help="answers.response_time_ms 평균. 질문 수신부터 답변 반환까지 전체 소요시간이며, 문서 검색·LLM 생성·후처리를 모두 포함합니다. 답변 품질과는 무관하며 answered 건만 집계됩니다. 정상 < 1,500ms / 주의 1,500~2,500ms / 위험 ≥ 2,500ms."
           />
         </Link>
-        <Link href="/ops/statistics">
+        <Link href="/ops/statistics" className="block h-full">
           <KpiCard
             label="KNOWLEDGE GAP"
             value={zeroResultRateVal != null ? zeroResultRateVal.toFixed(1) + "%" : "-"}
@@ -300,16 +429,16 @@ export default function OpsDashboardPage() {
             progressValue={zeroResultRateVal != null ? (zeroResultRateVal / 20) * 100 : undefined}
             trend={gapTrend?.trend}
             trendValue={gapTrend?.trendValue}
-            help="벡터 검색에서 관련 문서 없음으로 답변 불가한 비율. 클릭하면 서비스 통계 페이지로 이동합니다."
+            help="answer_status = 'no_answer' 건수 ÷ 전체 질문 수. pgvector 검색 결과가 0건이어서 LLM에 전달할 문서가 없었던 경우입니다. 지식베이스에 관련 문서 자체가 없다는 의미이며, 문서 추가·재인덱싱으로 개선할 수 있습니다. 정상 < 5% / 주의 5~8% / 위험 ≥ 8%."
           />
         </Link>
-        <Link href="/ops/cost">
+        <Link href="/ops/cost" className="block h-full">
           <KpiCard
             label="COST / QUERY"
             value={avgCostVal != null ? `$${avgCostVal.toFixed(4)}` : "-"}
             status={getKpiStatus(avgCostVal, { ok: (v) => v < 0.008, warn: (v) => v < 0.012 })}
             progressValue={avgCostVal != null ? (avgCostVal / 0.02) * 100 : undefined}
-            help="질의 1건당 평균 LLM API 비용. $0.008 미만 정상. 클릭하면 비용 분석 페이지로 이동합니다."
+            help="answers.estimated_cost_usd 합계 ÷ answered 건수. LLM 호출 시 추정된 USD 비용 기준이며, 입력·출력 토큰 수와 모델 단가로 계산됩니다. answered가 없으면 표시되지 않습니다. 정상 < $0.008 / 주의 $0.008~0.012 / 위험 ≥ $0.012."
           />
         </Link>
       </div>
@@ -321,10 +450,22 @@ export default function OpsDashboardPage() {
             <CardTitle tag="7-DAY TREND">핵심 지표 추세</CardTitle>
             <div className="flex items-center gap-4">
               {[
-                { key: "pipeline",  label: "RAG 파이프라인" },
-                { key: "knowledge", label: "지식베이스" },
-                { key: "quality",   label: "응답 품질" },
-              ].map(({ key, label }) => {
+                {
+                  key: "pipeline",
+                  label: "RAG 파이프라인",
+                  hint: "기준 지표: Fallback율 (answer_status = 'fallback' ÷ 전체). Ollama 미응답·검색 실패 등 파이프라인이 중단된 비율입니다. 정상 < 10% / 주의 10~15% / 위험 ≥ 15%.",
+                },
+                {
+                  key: "knowledge",
+                  label: "지식베이스",
+                  hint: "기준 지표: 무응답율 (answer_status = 'no_answer' ÷ 전체). pgvector 검색 결과가 0건이어서 LLM에 전달할 문서가 없었던 비율입니다. 정상 < 5% / 주의 5~8% / 위험 ≥ 8%.",
+                },
+                {
+                  key: "quality",
+                  label: "응답 품질",
+                  hint: "기준 지표: 답변완료율 (answer_status = 'answered' ÷ 전체). RAG 파이프라인이 끝까지 완료된 비율이며, 답변 내용의 정확도와는 무관합니다. 정상 ≥ 90% / 주의 80~90% / 위험 < 80%.",
+                },
+              ].map(({ key, label, hint }) => {
                 const st = systemStatus[key] as SystemStatus;
                 return (
                   <div key={key} className="flex items-center gap-1.5">
@@ -336,6 +477,12 @@ export default function OpsDashboardPage() {
                       "text-error":   st === "critical",
                     })}>
                       {STATUS_LABEL[st]}
+                    </span>
+                    <span className="group relative">
+                      <span className="text-text-muted text-xs cursor-help select-none">ⓘ</span>
+                      <span className="absolute top-full right-0 mt-2 w-64 rounded-lg bg-bg-prominent border border-bg-border px-3 py-2.5 text-xs leading-relaxed text-text-secondary shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-normal">
+                        {hint}
+                      </span>
                     </span>
                   </div>
                 );
@@ -394,7 +541,7 @@ export default function OpsDashboardPage() {
               const pct = (stage.ratio * 100).toFixed(1);
               return (
                 <div key={stage.label} className="pl-4 first:pl-0">
-                  <p className="font-mono text-[10px] uppercase tracking-widest text-text-muted mb-1">
+                  <p className="font-inter text-[10px] font-[510] uppercase tracking-[0.1em] text-text-subtle mb-1">
                     {stage.label}
                   </p>
                   <div className="flex items-baseline gap-1">
@@ -420,9 +567,9 @@ export default function OpsDashboardPage() {
       {/* 기관 헬스맵 — 카드 그리드 */}
       {orgHealthList.length > 0 && (
         <div>
-          <h3 className="text-text-primary font-semibold text-sm mb-3 flex items-center gap-2">
+          <h3 className="font-inter text-text-primary font-[510] text-[13px] tracking-tight mb-3 flex items-center gap-2">
             기관 헬스맵
-            <span className="font-mono text-[10px] text-text-muted font-normal">
+            <span className="font-inter text-[10px] text-text-subtle">
               {orgHealthList.filter(o => o.healthStatus !== "ok").length > 0
                 ? `${orgHealthList.filter(o => o.healthStatus !== "ok").length}개 기관 주의`
                 : "전체 정상"}
@@ -433,11 +580,12 @@ export default function OpsDashboardPage() {
               <div
                 key={oid}
                 className={clsx(
-                  "bg-bg-elevated border rounded-lg p-4 transition-colors",
+                  "rounded-lg p-4 transition-colors",
                   healthStatus === "critical" ? "border-error/30" :
                   healthStatus === "warn"     ? "border-warning/30" :
-                                               "border-white/5"
+                  healthStatus === "nodata"   ? "opacity-60" : ""
                 )}
+                style={{ background: "var(--card-bg)", border: healthStatus === "critical" ? "1px solid rgb(239 68 68 / 0.3)" : healthStatus === "warn" ? "1px solid rgb(245 158 11 / 0.3)" : "1px solid var(--card-border)" }}
               >
                 <div className="flex items-center gap-2 mb-2">
                   <div className={clsx("w-2 h-2 rounded-full shrink-0", healthDot[healthStatus],
@@ -451,14 +599,16 @@ export default function OpsDashboardPage() {
                   </span>
                   <span className="font-mono text-[11px] text-text-muted">%</span>
                 </div>
-                <p className="font-mono text-[10px] text-text-muted uppercase tracking-wider mb-2">응답률</p>
+                <p className="font-inter text-[10px] font-[510] text-text-subtle uppercase tracking-[0.1em] mb-2">응답률</p>
                 {issue ? (
                   <p className={clsx("text-[11px]", healthColor[healthStatus])}>{issue}</p>
+                ) : healthStatus === "nodata" ? (
+                  <p className="text-[11px] text-text-muted">데이터 없음</p>
                 ) : (
                   <p className="text-[11px] text-success">정상 운영 중</p>
                 )}
                 {fallback != null && (
-                  <p className="font-mono text-[10px] text-text-muted mt-1">
+                  <p className="font-inter text-[10px] text-text-subtle mt-1">
                     Fallback {Number(fallback).toFixed(1)}%
                   </p>
                 )}
@@ -468,11 +618,281 @@ export default function OpsDashboardPage() {
         </div>
       )}
 
+      {/* 품질/보안 요약 */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-text-primary font-semibold text-sm">품질/보안 요약</h3>
+          <Link
+            href="/ops/quality-summary"
+            className="text-[11px] text-accent hover:underline font-mono"
+          >
+            상세 보기 →
+          </Link>
+        </div>
+
+        {/* Row 1: Faithfulness / Hallucination Rate / Recall@K */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-3">
+
+          {/* Faithfulness */}
+          <Link href="/ops/quality" className="block">
+            <div className="rounded-lg p-4 hover:border-accent/30 transition-colors h-full" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+              <p className="font-inter text-[10px] font-[510] uppercase tracking-[0.1em] text-text-subtle mb-1">
+                Faithfulness
+              </p>
+              {latestFaithfulness != null ? (
+                <>
+                  <div className="flex items-baseline gap-1">
+                    <span className={clsx("text-2xl font-bold font-mono", {
+                      "text-success": latestFaithfulness >= 0.8,
+                      "text-warning": latestFaithfulness >= 0.6 && latestFaithfulness < 0.8,
+                      "text-error":   latestFaithfulness < 0.6,
+                    })}>
+                      {(latestFaithfulness * 100).toFixed(1)}
+                    </span>
+                    <span className="text-[11px] text-text-muted font-mono">%</span>
+                  </div>
+                  <MiniSparkline values={faithfulnessValues.map((v) => v * 100)} />
+                </>
+              ) : (
+                <p className="text-sm text-text-muted mt-1">eval-runner 배치 실행 후 표시</p>
+              )}
+            </div>
+          </Link>
+
+          {/* Hallucination Rate */}
+          <Link href="/ops/quality" className="block">
+            <div className="rounded-lg p-4 hover:border-accent/30 transition-colors h-full" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+              <p className="font-inter text-[10px] font-[510] uppercase tracking-[0.1em] text-text-subtle mb-1">
+                Hallucination Rate
+              </p>
+              {latestHallucination != null ? (
+                <>
+                  <div className="flex items-baseline gap-1">
+                    <span className={clsx("text-2xl font-bold font-mono", {
+                      "text-success": latestHallucination < 0.2,
+                      "text-warning": latestHallucination < 0.4 && latestHallucination >= 0.2,
+                      "text-error":   latestHallucination >= 0.4,
+                    })}>
+                      {(latestHallucination * 100).toFixed(1)}
+                    </span>
+                    <span className="text-[11px] text-text-muted font-mono">%</span>
+                  </div>
+                  <MiniSparkline values={hallucinationValues.map((v) => v * 100)} />
+                </>
+              ) : (
+                <p className="text-sm text-text-muted mt-1">eval-runner 배치 실행 후 표시</p>
+              )}
+            </div>
+          </Link>
+
+          {/* Recall@K — empty state */}
+          <Link href="/ops/quality" className="block">
+            <div className="rounded-lg p-4 hover:border-accent/30 transition-colors h-full" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+              <p className="font-inter text-[10px] font-[510] uppercase tracking-[0.1em] text-text-subtle mb-1">
+                Recall@K
+              </p>
+              <p className="text-sm text-text-muted mt-1">eval-runner 배치 실행 후 표시</p>
+            </div>
+          </Link>
+        </div>
+
+        {/* Row 2: Session Success Rate / PII 감지 건수 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-3">
+
+          {/* Session Success Rate — empty state */}
+          <Link href="/ops/quality" className="block">
+            <div className="rounded-lg p-4 hover:border-accent/30 transition-colors h-full" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+              <p className="font-inter text-[10px] font-[510] uppercase tracking-[0.1em] text-text-subtle mb-1">
+                Session Success Rate
+              </p>
+              <p className="text-sm text-text-muted mt-1">eval-runner 배치 실행 후 표시</p>
+            </div>
+          </Link>
+
+          {/* PII 감지 건수 */}
+          <Link href="/ops/audit" className="block">
+            <div className="rounded-lg p-4 hover:border-accent/30 transition-colors h-full" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+              <p className="font-inter text-[10px] font-[510] uppercase tracking-[0.1em] text-text-subtle mb-1">
+                PII 감지 건수
+              </p>
+              {piiData != null ? (
+                <>
+                  <div className="flex items-baseline gap-1">
+                    <span className={clsx("text-2xl font-bold font-mono", {
+                      "text-success": piiData.count === 0,
+                      "text-warning": piiData.count > 0 && piiData.count <= 5,
+                      "text-error":   piiData.count > 5,
+                    })}>
+                      {piiData.count.toLocaleString()}
+                    </span>
+                    <span className="text-[11px] text-text-muted font-mono">건 (이번 달)</span>
+                  </div>
+                  {piiData.lastDetectedAt != null && (
+                    <p className="text-[11px] text-text-muted mt-1">
+                      마지막 감지:{" "}
+                      {new Date(piiData.lastDetectedAt).toLocaleString("ko-KR", {
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="text-sm text-text-muted mt-1">데이터 없음</p>
+              )}
+            </div>
+          </Link>
+        </div>
+
+        {/* Row 3: 사용자 피드백 (full-width) */}
+        <Link href="/ops/correction" className="block">
+          <div className="rounded-lg p-4 hover:border-accent/30 transition-colors" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+            <p className="font-inter text-[10px] font-[510] uppercase tracking-[0.1em] text-text-subtle mb-2">
+              사용자 피드백
+            </p>
+            {feedbackItems.length > 0 ? (
+              <>
+                <FeedbackBar positive={positiveFeedbacks} negative={negativeFeedbacks} />
+                {trendPoints.length > 0 && (
+                  <div className="mt-4">
+                    <p className="text-[10px] text-text-muted font-mono mb-1">주간 추이</p>
+                    <div className="grid gap-0.5" style={{ gridTemplateColumns: `repeat(${trendPoints.length}, 1fr)` }}>
+                      {trendPoints.map((pt) => {
+                        const total = pt.positive + pt.negative;
+                        const posPct = total > 0 ? (pt.positive / total) * 100 : 0;
+                        return (
+                          <div key={pt.date} className="flex flex-col items-center gap-0.5">
+                            <div className="w-full h-12 relative bg-white/5 rounded-sm overflow-hidden">
+                              <div
+                                className="absolute bottom-0 w-full bg-success/50 rounded-sm"
+                                style={{ height: `${posPct}%` }}
+                              />
+                            </div>
+                            <span className="text-[9px] text-text-muted font-mono">
+                              {new Date(pt.date).toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" })}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="text-sm text-text-muted">데이터 없음</p>
+            )}
+          </div>
+        </Link>
+      </div>
+
+      {/* 인프라 & Rate Limit */}
+      <div>
+        <h3 className="font-inter text-text-primary font-[510] text-[13px] tracking-tight mb-3">인프라 & Rate Limit</h3>
+
+        {/* Row 1: CPU / Memory */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-3">
+          {(
+            [
+              { key: "cpuUsagePercent", label: "CPU 사용률", warn: 80, critical: 90 },
+              { key: "memoryUsagePercent", label: "Memory 사용률", warn: 80, critical: 90 },
+            ] as const
+          ).map(({ key, label, warn, critical }) => {
+            const val = infraData?.[key] ?? null;
+            const st =
+              val == null ? undefined
+              : val >= critical ? "critical"
+              : val >= warn    ? "warn"
+              : "ok";
+            const stColor = { ok: "text-success", warn: "text-warning", critical: "text-error" };
+            return (
+              <div key={key} className="rounded-lg p-4" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+                <p className="font-inter text-[10px] font-[510] uppercase tracking-[0.1em] text-text-subtle mb-1">{label}</p>
+                {val != null ? (
+                  <>
+                    <div className="flex items-baseline gap-1">
+                      <span className={clsx("text-2xl font-bold font-mono", st ? stColor[st] : "text-text-primary")}>
+                        {val.toFixed(1)}
+                      </span>
+                      <span className="text-[11px] text-text-muted font-mono">%</span>
+                    </div>
+                    <div className="mt-2 h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+                      <div
+                        className={clsx("h-full rounded-full transition-all", {
+                          "bg-success": st === "ok",
+                          "bg-warning": st === "warn",
+                          "bg-error":   st === "critical",
+                        })}
+                        style={{ width: `${Math.min(val, 100)}%` }}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-sm text-text-muted mt-1">rag-orchestrator 미실행</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Row 2: LLM Rate Limit / Embedding Rate Limit */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          {(
+            [
+              { rateKey: "llmRateLimitRate", hitsKey: "llmRateLimitHits", totalKey: "llmCallsTotal", label: "LLM Rate Limit 히트율" },
+              { rateKey: "embeddingRateLimitRate", hitsKey: "embeddingRateLimitHits", totalKey: "embeddingCallsTotal", label: "Embedding Rate Limit 히트율" },
+            ] as const
+          ).map(({ rateKey, hitsKey, totalKey, label }) => {
+            const rate  = rateLimitData?.[rateKey]  ?? null;
+            const hits  = rateLimitData?.[hitsKey]  ?? null;
+            const total = rateLimitData?.[totalKey] ?? null;
+            const st =
+              rate == null ? undefined
+              : rate >= 2  ? "critical"
+              : rate >= 0.5 ? "warn"
+              : "ok";
+            const stColor = { ok: "text-success", warn: "text-warning", critical: "text-error" };
+            return (
+              <div key={rateKey} className="rounded-lg p-4" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+                <p className="font-inter text-[10px] font-[510] uppercase tracking-[0.1em] text-text-subtle mb-1">{label}</p>
+                {rate != null ? (
+                  <>
+                    <div className="flex items-baseline gap-1">
+                      <span className={clsx("text-2xl font-bold font-mono", st ? stColor[st] : "text-text-primary")}>
+                        {rate.toFixed(2)}
+                      </span>
+                      <span className="text-[11px] text-text-muted font-mono">%</span>
+                    </div>
+                    <p className="font-inter text-[10px] text-text-subtle mt-1">
+                      {hits?.toLocaleString() ?? 0}건 / {total?.toLocaleString() ?? 0}건
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-sm text-text-muted mt-1">rag-orchestrator 미실행</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* 이슈 알림 로그 */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle tag="ALERT LOG">이슈 질문</CardTitle>
+            <div className="flex items-center gap-1.5">
+              <CardTitle tag="ALERT LOG">이슈 질문</CardTitle>
+              <span className="group relative mt-3">
+                <span className="text-text-muted text-xs cursor-help select-none">ⓘ</span>
+                <span className="absolute top-full left-0 mt-2 w-72 rounded-lg bg-bg-prominent border border-bg-border px-3 py-2.5 text-xs leading-relaxed text-text-secondary shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-normal">
+                  다음 조건 중 하나에 해당하는 질문을 표시합니다.<br />
+                  • answer_status가 fallback·no_answer·error인 경우<br />
+                  • QA 리뷰 상태가 confirmed_issue인 경우<br />
+                  QA에서 resolved 또는 false_alarm 처리된 건은 제외됩니다.
+                </span>
+              </span>
+            </div>
             {issueQuestions.length > 0 && (
               <Link href="/ops/unresolved" className="text-[11px] text-accent hover:underline font-mono">
                 전체 보기 →
@@ -486,6 +906,7 @@ export default function OpsDashboardPage() {
               <Th>시각</Th>
               <Th>질문 내용</Th>
               <Th>유형</Th>
+              <Th>기관</Th>
               <Th>카테고리</Th>
             </Thead>
             <Tbody>
@@ -502,12 +923,15 @@ export default function OpsDashboardPage() {
                        q.answerStatus === "error"     ? "오류"      : q.answerStatus ?? "-"}
                     </Badge>
                   </Td>
+                  <Td className="text-xs text-text-secondary whitespace-nowrap">
+                    {orgNameMap.get(q.organizationId) ?? q.organizationId}
+                  </Td>
                   <Td className="text-xs text-text-secondary">{q.questionCategory ?? "-"}</Td>
                 </Tr>
               ))}
               {issueQuestions.length === 0 && (
                 <Tr>
-                  <Td colSpan={4} className="text-center py-8">
+                  <Td colSpan={5} className="text-center py-8">
                     <div className="flex flex-col items-center gap-2">
                       <span className="material-symbols-outlined text-success text-2xl">check_circle</span>
                       <span className="text-text-muted text-sm">현재 이슈 질문이 없습니다.</span>
