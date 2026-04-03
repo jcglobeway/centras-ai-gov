@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
+import { SWRConfig } from "swr";
 import type { SessionInfo, RoleCode } from "./types";
 import { authApi } from "./api";
 
@@ -89,9 +90,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [router]);
 
   return (
-    <AuthContext.Provider value={{ session, loading, login, logout }}>
-      {children}
-    </AuthContext.Provider>
+    <SWRConfig value={{ keepPreviousData: true, revalidateOnFocus: false }}>
+      <AuthContext.Provider value={{ session, loading, login, logout }}>
+        {children}
+      </AuthContext.Provider>
+    </SWRConfig>
   );
 }
 
