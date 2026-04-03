@@ -1,0 +1,1 @@
+ALTER TABLE rag_search_logs ADD COLUMN cache_hit BOOLEAN NOT NULL DEFAULT FALSE;

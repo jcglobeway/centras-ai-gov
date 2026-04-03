@@ -3,7 +3,7 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/api";
-import type { PagedResponse, DailyMetric, LlmMetrics, UnresolvedQuestion } from "@/lib/types";
+import type { PagedResponse, DailyMetric, LlmMetrics, UnresolvedQuestion, CacheHitTrendResponse } from "@/lib/types";
 import { KpiCard } from "@/components/charts/KpiCard";
 import { MetricsLineChart } from "@/components/charts/MetricsLineChart";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -11,6 +11,7 @@ import { Spinner } from "@/components/ui/Spinner";
 import { PageFilters, getWeekFrom, getToday } from "@/components/ui/PageFilters";
 import { Table, Thead, Th, Tbody, Tr, Td } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/Badge";
+import { PageGuide } from "@/components/ui/PageGuide";
 
 function getKpiStatus(
   value: number | null,
@@ -52,6 +53,12 @@ export default function CostHealthPage() {
     fetcher
   );
 
+  const { data: cacheData } = useSWR<CacheHitTrendResponse>(
+    `/api/admin/metrics/cache-hit-trend?days=7${orgId ? `&organization_id=${orgId}` : ""}`,
+    fetcher
+  );
+  const cacheHitRate = cacheData?.items?.at(-1)?.hitRate ?? null;
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-48">
@@ -76,6 +83,14 @@ export default function CostHealthPage() {
 
   return (
     <div className="space-y-6">
+      <PageGuide
+        description="LLM API 비용과 토큰 사용량을 추적해 운영 효율을 관리하는 화면입니다."
+        tips={[
+          "COST/QUERY가 $0.008을 초과하면 Top-K를 줄이거나 더 저렴한 모델로 전환을 검토하세요.",
+          "Cache Hit Rate가 30% 미만이면 RAG 파라미터 튜닝으로 캐시 활용률을 높일 수 있습니다.",
+          "입력 토큰이 급증했다면 시스템 프롬프트가 너무 길거나 Top-K가 과도하게 높은 경우입니다.",
+        ]}
+      />
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-text-primary font-semibold text-lg">비용 & 건강도</h2>
         <PageFilters
@@ -116,6 +131,15 @@ export default function CostHealthPage() {
           sub="out/in"
           help="출력 토큰 / 입력 토큰 비율. 값이 높을수록 컨텍스트 대비 응답이 길어짐을 의미합니다."
         />
+        <KpiCard
+          label="CACHE HIT RATE"
+          value={cacheHitRate != null ? `${cacheHitRate.toFixed(1)}%` : "-"}
+          status={getKpiStatus(cacheHitRate, {
+            ok: (v) => v >= 20,
+            warn: (v) => v >= 15,
+          })}
+          help="Redis 캐시 히트율. 동일 질문 재입력 시 pgvector 검색을 생략합니다. 목표 > 20%."
+        />
       </div>
 
       {/* LLM 비용 요약 */}
@@ -132,7 +156,7 @@ export default function CostHealthPage() {
                 { label: "평균 입력 토큰", value: avgInputTokens != null ? avgInputTokens.toFixed(0) : "-" },
                 { label: "평균 출력 토큰", value: avgOutputTokens != null ? avgOutputTokens.toFixed(0) : "-" },
               ].map((item) => (
-                <div key={item.label} className="bg-bg-elevated rounded p-3">
+                <div key={item.label} className="bg-bg-prominent rounded p-3">
                   <p className="font-mono text-[10px] uppercase tracking-[0.4px] text-text-muted mb-1">{item.label}</p>
                   <p className="font-mono text-[18px] font-bold text-text-primary">{item.value}</p>
                 </div>
@@ -188,6 +212,18 @@ export default function CostHealthPage() {
           <MetricsLineChart
             data={metrics}
             metrics={["zeroResultRate", "fallbackRate"]}
+          />
+        </Card>
+      )}
+
+      {cacheData && cacheData.items.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle tag="CACHE">캐시 히트율 추이</CardTitle>
+          </CardHeader>
+          <MetricsLineChart
+            data={cacheData.items.map(i => ({ metricDate: i.date, cacheHitRate: i.hitRate }))}
+            metrics={["cacheHitRate"]}
           />
         </Card>
       )}

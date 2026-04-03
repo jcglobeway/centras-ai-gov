@@ -362,6 +362,17 @@ export interface ModelInfo {
 
 // ── 메트릭 ────────────────────────────────────────────────────────────────────
 
+export interface CacheHitTrendItem {
+  date: string;
+  hits: number;
+  total: number;
+  hitRate: number;
+}
+
+export interface CacheHitTrendResponse {
+  items: CacheHitTrendItem[];
+}
+
 export interface DailyMetric {
   id: string;
   organizationId: string;

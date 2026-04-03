@@ -1,13 +1,17 @@
 package com.publicplatform.ragops.adminapi.chatruntime.adapter.inbound.web
 
+import com.publicplatform.ragops.chatruntime.application.port.`in`.GetRagSearchLogStatsUseCase
 import com.publicplatform.ragops.chatruntime.application.port.`in`.SaveRagSearchLogUseCase
 import com.publicplatform.ragops.chatruntime.domain.CreateRagRetrievedDocumentCommand
 import com.publicplatform.ragops.chatruntime.domain.CreateRagSearchLogCommand
+import com.publicplatform.ragops.chatruntime.domain.RagSearchLogStats
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
@@ -21,7 +25,16 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/admin")
 class RagSearchLogController(
     private val saveRagSearchLogUseCase: SaveRagSearchLogUseCase,
+    private val getRagSearchLogStatsUseCase: GetRagSearchLogStatsUseCase,
 ) {
+
+    @GetMapping("/rag-search-logs")
+    fun getRagSearchLogStats(
+        @RequestParam("organization_id", required = false) organizationId: String?,
+        @RequestParam("from_date", required = false) fromDate: String?,
+        @RequestParam("to_date", required = false) toDate: String?,
+        servletRequest: HttpServletRequest,
+    ): RagSearchLogStats = getRagSearchLogStatsUseCase.getStats(organizationId, fromDate, toDate)
 
     @PostMapping("/rag-search-logs")
     @ResponseStatus(HttpStatus.CREATED)
@@ -37,8 +50,10 @@ class RagSearchLogController(
                 topK = request.topK,
                 latencyMs = request.latencyMs,
                 llmMs = request.llmMs,
+                postprocessMs = request.postprocessMs,
                 retrievalEngine = request.retrievalEngine,
                 retrievalStatus = request.retrievalStatus,
+                cacheHit = request.cacheHit,
             ),
         )
 
@@ -65,9 +80,11 @@ data class CreateRagSearchLogRequest(
     val topK: Int?,
     val latencyMs: Int?,
     val llmMs: Int?,
+    val postprocessMs: Int?,
     val retrievalEngine: String?,
     val retrievalStatus: String,
     val retrievedChunks: List<RetrievedChunkRequest> = emptyList(),
+    val cacheHit: Boolean = false,
 )
 
 data class RetrievedChunkRequest(

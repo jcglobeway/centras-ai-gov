@@ -24,14 +24,17 @@ class RagSearchLogEntity(
     @Column(name = "top_k") val topK: Int?,
     @Column(name = "latency_ms") val latencyMs: Int?,
     @Column(name = "llm_ms") val llmMs: Int?,
+    @Column(name = "postprocess_ms") val postprocessMs: Int?,
     @Column(name = "retrieval_engine", length = 50) val retrievalEngine: String?,
     @Column(name = "retrieval_status", nullable = false, length = 50) val retrievalStatus: String,
     @Column(name = "created_at", nullable = false) val createdAt: Instant = Instant.now(),
+    @Column(name = "cache_hit", nullable = false) val cacheHit: Boolean = false,
 )
 
 fun RagSearchLogEntity.toSummary(): RagSearchLogSummary =
     RagSearchLogSummary(
         id = id, questionId = questionId, queryText = queryText, queryRewriteText = queryRewriteText,
-        zeroResult = zeroResult, topK = topK, latencyMs = latencyMs, llmMs = llmMs,
+        zeroResult = zeroResult, topK = topK, latencyMs = latencyMs, llmMs = llmMs, postprocessMs = postprocessMs,
         retrievalEngine = retrievalEngine, retrievalStatus = retrievalStatus, createdAt = createdAt,
+        cacheHit = cacheHit,
     )

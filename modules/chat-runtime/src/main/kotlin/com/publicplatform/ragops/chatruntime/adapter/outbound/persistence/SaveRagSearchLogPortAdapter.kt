@@ -24,7 +24,9 @@ open class SaveRagSearchLogPortAdapter(
             queryRewriteText = command.queryRewriteText,
             zeroResult = command.topK == null || command.topK == 0,
             topK = command.topK, latencyMs = command.latencyMs, llmMs = command.llmMs,
+            postprocessMs = command.postprocessMs,
             retrievalEngine = command.retrievalEngine, retrievalStatus = command.retrievalStatus,
+            cacheHit = command.cacheHit,
         )
         return jpaSearchLogRepository.save(entity).toSummary()
     }

@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import os
+import re
 import time
 from typing import List, Optional
 
@@ -10,11 +13,17 @@ from pydantic import BaseModel
 app = FastAPI(title="rag-orchestrator")
 
 
+class ConversationMessage(BaseModel):
+    role: str
+    content: str
+
+
 class GenerateAnswerRequest(BaseModel):
     question_id: str
     question_text: str
     organization_id: str
     service_id: str
+    conversation_history: List[ConversationMessage] = []
 
 
 class GenerateAnswerResponse(BaseModel):
@@ -35,6 +44,11 @@ class GenerateAnswerResponse(BaseModel):
     total_tokens: Optional[int] = None
 
 
+def _cache_key(question_text: str, org_id: str) -> str:
+    normalized = " ".join(question_text.strip().lower().split())
+    return f"rag:cache:{org_id}:{hashlib.sha256(normalized.encode()).hexdigest()}"
+
+
 @app.get("/healthz")
 def healthz() -> dict[str, str]:
     return {"status": "ok", "service": "rag-orchestrator"}
@@ -52,14 +66,43 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
     """
     ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
     db_url = os.getenv("DATABASE_URL")
+    admin_api_url = os.getenv("ADMIN_API_BASE_URL", "http://localhost:8081")
     use_ollama = check_ollama_available(ollama_url)
+
+    from .config_client import fetch_rag_config
+    rag_config = fetch_rag_config(request.organization_id, admin_api_url)
+
+    # Redis 캐시 조회
+    redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+    cache_ttl = int(os.getenv("RAG_CACHE_TTL_SEC", "86400"))
+    _redis_client = None
+    _cached_answer = None
+    try:
+        import redis as redis_lib
+        _redis_client = redis_lib.from_url(redis_url, decode_responses=True, socket_connect_timeout=1)
+        _cache_key_str = _cache_key(request.question_text, request.organization_id)
+        _cached_raw = _redis_client.get(_cache_key_str)
+        if _cached_raw:
+            _cached_answer = json.loads(_cached_raw)
+    except Exception:
+        pass
+
+    if _cached_answer:
+        _log_search_result(
+            question_id=request.question_id,
+            query_text=request.question_text,
+            search_results=[],
+            latency_ms=0,
+            cache_hit=True,
+        )
+        return GenerateAnswerResponse(**_cached_answer)
 
     if use_ollama:
         start_ms = int(time.time() * 1000)
 
         from .retrieval import get_embedding, hybrid_search
-        top_k = int(os.getenv("HYBRID_SEARCH_TOP_K", "10"))
-        reranker_enabled = os.getenv("RERANKER_ENABLED", "false").lower() == "true"
+        top_k = rag_config.get("topK", int(os.getenv("HYBRID_SEARCH_TOP_K", "10")))
+        reranker_enabled = rag_config.get("rerankerEnabled", os.getenv("RERANKER_ENABLED", "false").lower() == "true")
 
         retrieval_start = int(time.time() * 1000)
         search_results = hybrid_search(
@@ -77,18 +120,11 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
             question=request.question_text,
             search_results=search_results,
             ollama_url=ollama_url,
+            rag_config=rag_config,
         )
         llm_ms = int(time.time() * 1000) - llm_start
 
-        # 검색 로그 Admin API 콜백
-        _log_search_result(
-            question_id=request.question_id,
-            query_text=request.question_text,
-            search_results=search_results,
-            latency_ms=latency_ms,
-            llm_ms=llm_ms,
-        )
-
+        postprocess_start = int(time.time() * 1000)
         answer_text = llm_result["content"]
         model_name = llm_result.get("model")
         input_tokens = llm_result.get("input_tokens")
@@ -114,6 +150,18 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
             confidence_score = 0.0
             question_failure_reason_code = "A04"
             is_escalated = True
+        postprocess_ms = int(time.time() * 1000) - postprocess_start
+
+        # 검색 로그 Admin API 콜백
+        _log_search_result(
+            question_id=request.question_id,
+            query_text=request.question_text,
+            search_results=search_results,
+            latency_ms=latency_ms,
+            llm_ms=llm_ms,
+            postprocess_ms=postprocess_ms,
+            cache_hit=False,
+        )
     else:
         answer_text = f"[DEV MODE] Ollama not available. Stub answer for: {request.question_text}"
         answer_status = "fallback"
@@ -128,6 +176,30 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
         input_tokens = None
         output_tokens = None
         total_tokens = None
+
+    # 캐시 저장 (MISS 경로)
+    if _redis_client:
+        try:
+            _resp_dict = {
+                "question_id": request.question_id,
+                "answer_text": answer_text,
+                "answer_status": answer_status,
+                "citation_count": citation_count,
+                "response_time_ms": response_time_ms,
+                "fallback_reason_code": fallback_reason,
+                "confidence_score": confidence_score,
+                "question_failure_reason_code": question_failure_reason_code,
+                "is_escalated": is_escalated,
+                "query_embedding": None,
+                "model_name": model_name,
+                "provider_name": "ollama",
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "total_tokens": total_tokens,
+            }
+            _redis_client.setex(_cache_key_str, cache_ttl, json.dumps(_resp_dict))
+        except Exception:
+            pass
 
     return GenerateAnswerResponse(
         question_id=request.question_id,
@@ -163,6 +235,7 @@ def generate_answer_with_ollama(
     question: str,
     search_results: list[dict[str, str]],
     ollama_url: str,
+    rag_config: dict | None = None,
 ) -> dict:
     """
     Ollama API를 사용해 검색된 컨텍스트 기반 답변을 생성한다.
@@ -181,7 +254,8 @@ def generate_answer_with_ollama(
     else:
         retrieval_context = "관련 문서를 찾지 못했습니다. 일반적인 정보로 답변드립니다."
 
-    system_prompt = (
+    cfg = rag_config or {}
+    system_prompt = cfg.get("systemPrompt") or (
         "당신은 공공기관 민원 안내 챗봇입니다. "
         "제공된 문서를 기반으로 정확하고 친절하게 답변하세요. "
         "답변을 찾을 수 없으면 모른다고 말하세요."
@@ -193,7 +267,9 @@ def generate_answer_with_ollama(
 
 위 문서를 참고하여 질문에 답변해주세요."""
 
-    model = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
+    model = cfg.get("llmModel") or os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
+    temperature = float(cfg.get("llmTemperature", 0.3))
+    num_predict = int(cfg.get("llmMaxTokens", 500))
 
     try:
         response = httpx.post(
@@ -205,15 +281,19 @@ def generate_answer_with_ollama(
                     {"role": "user", "content": user_prompt},
                 ],
                 "stream": False,
-                "options": {"temperature": 0.3, "num_predict": 500},
+                "options": {"temperature": temperature, "num_predict": num_predict},
             },
             timeout=30.0,
         )
 
         if response.status_code == 200:
             result = response.json()
+            raw_content = result.get("message", {}).get("content", "[답변 생성 실패]")
+            # 유효하지 않은 JSON escape 시퀀스 제거 (예: \! → !)
+            # Jackson이 \! 를 포함한 JSON을 파싱할 때 JsonParseException 발생 방지
+            content = re.sub(r'\\([^"\\/bfnrtu\n\r\t])', r'\1', raw_content)
             return {
-                "content": result.get("message", {}).get("content", "[답변 생성 실패]"),
+                "content": content,
                 "model": result.get("model", model),
                 "input_tokens": result.get("prompt_eval_count"),
                 "output_tokens": result.get("eval_count"),
@@ -242,7 +322,11 @@ def generate_answer_stream(request: GenerateAnswerRequest):
 
     ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
     db_url = os.getenv("DATABASE_URL")
+    admin_api_url = os.getenv("ADMIN_API_BASE_URL", "http://localhost:8081")
     use_ollama = check_ollama_available(ollama_url)
+
+    from .config_client import fetch_rag_config
+    rag_config = fetch_rag_config(request.organization_id, admin_api_url)
 
     if not use_ollama:
         def fallback_stream():
@@ -260,8 +344,8 @@ def generate_answer_stream(request: GenerateAnswerRequest):
 
     from .retrieval import get_embedding, hybrid_search
     start_ms = int(time.time() * 1000)
-    top_k = int(os.getenv("HYBRID_SEARCH_TOP_K", "10"))
-    reranker_enabled = os.getenv("RERANKER_ENABLED", "false").lower() == "true"
+    top_k = rag_config.get("topK", int(os.getenv("HYBRID_SEARCH_TOP_K", "10")))
+    reranker_enabled = rag_config.get("rerankerEnabled", os.getenv("RERANKER_ENABLED", "false").lower() == "true")
 
     retrieval_start = int(time.time() * 1000)
     search_results = hybrid_search(
@@ -280,6 +364,7 @@ def generate_answer_stream(request: GenerateAnswerRequest):
         search_results=search_results,
         latency_ms=latency_ms,
         llm_ms=None,  # streaming: LLM 소요시간은 done 이벤트 후 알 수 있으므로 별도 추적 불가
+        cache_hit=False,
     )
 
     citation_count = len(search_results)
@@ -299,7 +384,7 @@ def generate_answer_stream(request: GenerateAnswerRequest):
     else:
         retrieval_context = "관련 문서를 찾지 못했습니다. 일반적인 정보로 답변드립니다."
 
-    system_prompt = (
+    system_prompt = rag_config.get("systemPrompt") or (
         "당신은 공공기관 민원 안내 챗봇입니다. "
         "제공된 문서를 기반으로 정확하고 친절하게 답변하세요. "
         "답변을 찾을 수 없으면 모른다고 말하세요."
@@ -310,7 +395,15 @@ def generate_answer_stream(request: GenerateAnswerRequest):
 질문: {request.question_text}
 
 위 문서를 참고하여 질문에 답변해주세요."""
-    model = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
+    model = rag_config.get("llmModel") or os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
+    temperature = float(rag_config.get("llmTemperature", 0.3))
+    num_predict = int(rag_config.get("llmMaxTokens", 500))
+
+    # 시스템 프롬프트 + 이전 대화 히스토리 + 현재 질문(+컨텍스트)
+    ollama_messages = [{"role": "system", "content": system_prompt}]
+    for h in request.conversation_history:
+        ollama_messages.append({"role": h.role, "content": h.content})
+    ollama_messages.append({"role": "user", "content": user_prompt})
 
     def token_stream():
         import httpx
@@ -319,12 +412,9 @@ def generate_answer_stream(request: GenerateAnswerRequest):
             f"{ollama_url}/api/chat",
             json={
                 "model": model,
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
+                "messages": ollama_messages,
                 "stream": True,
-                "options": {"temperature": 0.3, "num_predict": 500},
+                "options": {"temperature": temperature, "num_predict": num_predict},
             },
             timeout=60.0,
         ) as r:
@@ -364,6 +454,8 @@ def _log_search_result(
     search_results: list[dict[str, str]],
     latency_ms: int,
     llm_ms: int | None = None,
+    postprocess_ms: int | None = None,
+    cache_hit: bool = False,
 ) -> None:
     """
     RAG 검색 결과를 Admin API rag-search-log 엔드포인트로 기록한다.
@@ -384,8 +476,10 @@ def _log_search_result(
                 "topK": len(search_results),
                 "latencyMs": latency_ms,
                 "llmMs": llm_ms,
+                "postprocessMs": postprocess_ms,
                 "retrievalEngine": "pgvector",
                 "retrievalStatus": retrieval_status,
+                "cacheHit": cache_hit,
                 "retrievedChunks": [
                     {
                         "chunkId": r["chunk_id"],
