@@ -16,4 +16,4 @@
 - [x] Frontend: `types.ts` RagasEvaluation + RagasEvaluationPeriodSummary 확장
 - [x] Frontend: `/ops/quality/page.tsx` 스코어카드 + targetRows 확장
 - [x] Frontend: `/ops/quality-summary/page.tsx` 레이더 6각형 + deltaRows 확장
-- [ ] 커밋
+- [x] 커밋

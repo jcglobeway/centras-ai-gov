@@ -5,107 +5,51 @@
 
 ---
 
-## 1. question-embedding — FAQ 후보 E2E 검증
+## 진행 중
 
-**Change**: `openspec/archive/question-embedding/`
-**상태**: 구현 완료, PostgreSQL 환경에서 E2E 검증 미완
+### eval-bulk-ragas — 대량 평가 데이터 배치 RAGAS 재실행
 
-### 미결 항목
+**Change**: `openspec/changes/eval-bulk-ragas/`
+**상태**: `in-progress` — 2026-04-02 시작
 
-- [ ] `GET /admin/faq-candidates?organization_id=org_acc&threshold=0.85` 응답 확인
-  - 전제조건: query-runner로 충분한 질문 임베딩이 쌓인 후 실행
-  - 검증: 유사 질문 쌍이 `items` 배열에 반환되는지 확인
-  ```bash
-  curl "http://localhost:8080/admin/faq-candidates?organization_id=org_acc&threshold=0.85" \
-    -H "X-Admin-Session-Id: <session>"
-  ```
+- [x] Phase 1 — `export_db_eval_data.py` 구현 + `ragas_batch.py --from-eval-results` 추가
+- [ ] Phase 2 — 실행: `eval-runner --from-eval-results eval_results.json`
+- [ ] Phase 3 — 검증: DB에 RAGAS 지표 정상 저장 확인
 
 ---
 
-## 2. dashboard-sync — 대시보드 PRD 정렬
+## 예정 (planned)
 
-**Change**: `openspec/changes/dashboard-sync/`
-**상태**: `in_progress` — Phase 1~7 전부 미구현
+### enhance-audit-log — 감사 로그 강화 (PII 감지·CSV export)
 
-### Phase 1 — QuestionResponse 확장 (백엔드)
+**Change**: `openspec/changes/enhance-audit-log/`
+**상태**: `planned`
 
-- [ ] `QuestionResponse`에 `failureReasonCode`, `questionCategory`, `isEscalated`, `answerConfidence` 추가
-- [ ] `toResponse()` 매핑 4개 필드 추가
-- [ ] 테스트: GET /admin/questions 응답 검증
+- PII 자동 감지 (Presidio) + 감사 로그 기록
+- CSV export API
+- 리스크: 한국어 PII 인식률 검증 필요
 
-### Phase 2 — 미결질문 answerStatus + latestReviewStatus (백엔드)
+### enhance-anomaly-detection — 이상 탐지 알림
 
-- [ ] `UnresolvedRow` projection + `findUnresolvedWithStatus()` native query 추가
-- [ ] `UnresolvedQuestionSummary` 도메인 모델 추가
-- [ ] `LoadQuestionPort` / `ListQuestionsUseCase` / `ListQuestionsService` / `LoadQuestionPortAdapter` 반환 타입 변경
-- [ ] `UnresolvedQuestionResponse` DTO 신규 + `QuestionController.listUnresolvedQuestions()` 교체
-- [ ] 테스트 50개 통과 확인
+**Change**: `openspec/changes/enhance-anomaly-detection/`
+**상태**: `planned`
 
-### Phase 3 — 프론트엔드 타입 동기화
-
-- [ ] `types.ts` `Question` 인터페이스 필드명 백엔드 일치
-  - `sessionId` → `chatSessionId`
-  - `failureCode` → `failureReasonCode`
-  - `wasTransferred` → `isEscalated`
-  - `categoryL1/L2` → `questionCategory`
-- [ ] `types.ts` `UnresolvedQuestion` 인터페이스 추가 (`answerStatus`, `latestReviewStatus` 포함)
-- [ ] `types.ts` `DailyMetric` V023 7개 필드 추가
-
-### Phase 4 — 프론트엔드 페이지 필드명 수정
-
-- [ ] `client/failure/page.tsx`: `q.failureCode` → `q.failureReasonCode`
-- [ ] `qa/page.tsx`: `q.failureCode` → `q.failureReasonCode`
-- [ ] `qa/unresolved/page.tsx`: `UnresolvedQuestion` 타입 사용
-- [ ] `ops/page.tsx`: answerStatus 없는 Question 타입 처리 수정
-
-### Phase 5 — QA Review review_status 필터 + confirmedCount 수정
-
-- [ ] `JpaQAReviewRepository.findByReviewStatus()` 추가
-- [ ] `LoadQAReviewPort.listByStatus()` 추가 (UseCase/Service/Adapter 포함)
-- [ ] `QAReviewController.listQAReviews()` `review_status` 파라미터 추가
-- [ ] `qa/page.tsx` confirmedCount를 `total` 기반으로 수정
-
-### Phase 6 — V023 온디맨드 집계
-
-- [ ] `DailyMetricsSummary` V023 7개 필드 추가
-- [ ] `LoadDailyMetricsPortAdapter.aggregateFromRawData()` native SQL 집계 구현
-- [ ] `DailyMetricsResponse` V023 필드 추가 + `toResponse()` 매핑
-- [ ] `client/page.tsx` V023 필드 사용 (autoResolutionRate, escalationRate 등)
-
-### Phase 7 — client/performance/page.tsx 교체
-
-- [ ] `/admin/questions` API 사용으로 변경
-- [ ] 제목 "최근 응대 현황"으로 변경
-- [ ] answerStatus Badge 표시
+- 지표 임계값 초과 시 이상 탐지 이벤트 생성
+- AnomalyAlertScheduler + drift 요약 API
 
 ---
 
-## 3. introduce-domain-events — Spring Application Event 도입
+## 최근 완료 아카이브 현황
 
-**Change**: `openspec/changes/introduce-domain-events/`
-**상태**: `planned` — 미시작
+| Change ID | 완료일 | 요약 |
+|-----------|--------|------|
+| `org-rag-config` | 2026-04-03 | 기관별 RAG config 관리 (GET/PUT/rollback), rag-orchestrator 동적 로딩, 프론트 연동 |
+| `eval-batch-restore` | 2026-04-03 | eval-runner PATCH 전략으로 ragas_evaluations 중복 행 방지 |
+| `testcontainers-migration` | 2026-04-03 | H2 → Testcontainers(pgvector/pgvector:pg16) 전환, flyway.target "38" 적용 |
+| `citation-metrics` | 2026-04-03 | Citation Coverage·Correctness 지표 추가 (DB V042, 백엔드, eval-runner, 프론트) |
+| `bulk-injection-rag-quality` | 2026-04-01 | 하이브리드 RAG 파이프라인 (vector+BM25+RRF+FlashRank), 405건 대량 투입 |
+| `statistics-dashboard-insight` | 2026-04-03 | 질문 길이 분포 API + RAG 개선 인사이트 대시보드 |
+| `ragas-realtime-eval` | 2026-04-03 | Redis BRPOP 기반 실시간 RAGAS 평가 |
+| `semantic-question-analysis` | 2026-04-03 | 질문 키워드·유사도·유형 분석 |
 
-### P1: 이벤트 클래스 생성
-
-- [ ] `modules/chat-runtime/.../domain/QuestionAnsweredEvent.kt`
-- [ ] `modules/ingestion-ops/.../domain/IngestionJobCompletedEvent.kt`
-- [ ] `modules/qa-review/.../domain/QAReviewResolvedEvent.kt`
-
-### P2: 서비스에 이벤트 발행 추가
-
-- [ ] `CreateQuestionService` — 답변 저장 후 `QuestionAnsweredEvent` 발행
-- [ ] `TransitionJobService` — success/failed 전이 후 `IngestionJobCompletedEvent` 발행
-- [ ] `CreateQAReviewService` — resolved/false_alarm 시 `QAReviewResolvedEvent` 발행
-- [ ] `ServiceConfiguration` — 각 서비스에 `ApplicationEventPublisher` 주입 추가
-
-### P3: 이벤트 핸들러 생성
-
-- [ ] `QuestionAnsweredEventHandler.kt` (qa-review 모듈)
-- [ ] `IngestionJobCompletedEventHandler.kt` (metrics-reporting 모듈)
-- [ ] `QAReviewResolvedEventHandler.kt` (metrics-reporting 모듈)
-- [ ] `RepositoryConfiguration` — 핸들러 빈 등록
-
-### P4: 검증
-
-- [ ] 기존 50개 테스트 통과 확인
-- [ ] ArchUnit 8개 규칙 통과 확인
+→ 전체 아카이브: `openspec/archive/`
