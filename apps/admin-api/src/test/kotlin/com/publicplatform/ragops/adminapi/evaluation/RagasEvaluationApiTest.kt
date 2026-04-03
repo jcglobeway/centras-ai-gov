@@ -3,6 +3,8 @@ package com.publicplatform.ragops.adminapi.evaluation
 import com.publicplatform.ragops.adminapi.BaseApiTest
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
+import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.patch
 import org.springframework.test.web.servlet.post
 
 class RagasEvaluationApiTest : BaseApiTest() {
@@ -72,5 +74,62 @@ class RagasEvaluationApiTest : BaseApiTest() {
 
         val id = response.response.contentAsString.contentAsJson().path("id").asText()
         assert(id.startsWith("ragas_")) { "ID should start with 'ragas_' but was: $id" }
+    }
+
+    @Test
+    fun `GET by-question returns 200 when evaluation exists`() {
+        mockMvc.post("/admin/ragas-evaluations") {
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"questionId": "question_get_01", "faithfulness": 0.80}"""
+        }.andExpect { status { isCreated() } }
+
+        mockMvc.get("/admin/ragas-evaluations/by-question/question_get_01")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.questionId") { value("question_get_01") }
+                jsonPath("$.faithfulness") { value(0.80) }
+            }
+    }
+
+    @Test
+    fun `GET by-question returns 404 when evaluation does not exist`() {
+        mockMvc.get("/admin/ragas-evaluations/by-question/question_nonexistent_xyz")
+            .andExpect { status { isNotFound() } }
+    }
+
+    @Test
+    fun `PATCH by-question fills null fields and preserves existing values`() {
+        mockMvc.post("/admin/ragas-evaluations") {
+            contentType = MediaType.APPLICATION_JSON
+            content = """
+                {
+                  "questionId": "question_patch_01",
+                  "faithfulness": 0.90,
+                  "answerRelevancy": null,
+                  "contextPrecision": null
+                }
+            """.trimIndent()
+        }.andExpect { status { isCreated() } }
+
+        mockMvc.patch("/admin/ragas-evaluations/by-question/question_patch_01") {
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"answerRelevancy": 0.75, "contextPrecision": 0.65}"""
+        }.andExpect { status { isOk() } }
+
+        mockMvc.get("/admin/ragas-evaluations/by-question/question_patch_01")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.faithfulness") { value(0.90) }
+                jsonPath("$.answerRelevancy") { value(0.75) }
+                jsonPath("$.contextPrecision") { value(0.65) }
+            }
+    }
+
+    @Test
+    fun `PATCH by-question returns 404 when evaluation does not exist`() {
+        mockMvc.patch("/admin/ragas-evaluations/by-question/question_nonexistent_patch") {
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"faithfulness": 0.5}"""
+        }.andExpect { status { isNotFound() } }
     }
 }

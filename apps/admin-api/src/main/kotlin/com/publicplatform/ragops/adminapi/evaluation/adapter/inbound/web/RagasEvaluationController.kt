@@ -4,10 +4,14 @@ import com.publicplatform.ragops.adminapi.evaluation.application.port.`in`.GetRa
 import com.publicplatform.ragops.adminapi.evaluation.application.port.`in`.GetRagasEvaluationSummaryUseCase
 import com.publicplatform.ragops.adminapi.evaluation.application.port.`in`.ListRagasEvaluationsQuery
 import com.publicplatform.ragops.adminapi.evaluation.application.port.`in`.ListRagasEvaluationsUseCase
+import com.publicplatform.ragops.adminapi.evaluation.application.port.`in`.PatchRagasEvaluationCommand
+import com.publicplatform.ragops.adminapi.evaluation.application.port.`in`.PatchRagasEvaluationUseCase
 import com.publicplatform.ragops.adminapi.evaluation.application.port.`in`.RecordRagasEvaluationCommand
 import com.publicplatform.ragops.adminapi.evaluation.application.port.`in`.RecordRagasEvaluationUseCase
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -22,6 +26,7 @@ class RagasEvaluationController(
     private val recordRagasEvaluationUseCase: RecordRagasEvaluationUseCase,
     private val listRagasEvaluationsUseCase: ListRagasEvaluationsUseCase,
     private val getRagasEvaluationSummaryUseCase: GetRagasEvaluationSummaryUseCase,
+    private val patchRagasEvaluationUseCase: PatchRagasEvaluationUseCase,
 ) {
     @GetMapping
     fun list(
@@ -95,6 +100,49 @@ class RagasEvaluationController(
                 generatedAt = Instant.now().toString(),
             )
         )
+    }
+
+    @GetMapping("/by-question/{questionId}")
+    fun getByQuestion(@PathVariable questionId: String): ResponseEntity<RagasEvaluationResponse> {
+        val result = listRagasEvaluationsUseCase.listEvaluations(
+            ListRagasEvaluationsQuery(questionId = questionId, page = 1, pageSize = 1)
+        )
+        val item = result.items.firstOrNull()
+            ?: return ResponseEntity.notFound().build()
+        return ResponseEntity.ok(
+            RagasEvaluationResponse(
+                id = item.id,
+                questionId = item.questionId,
+                faithfulness = item.faithfulness,
+                answerRelevancy = item.answerRelevancy,
+                contextPrecision = item.contextPrecision,
+                contextRecall = item.contextRecall,
+                citationCoverage = item.citationCoverage,
+                citationCorrectness = item.citationCorrectness,
+                evaluatedAt = item.evaluatedAt.toString(),
+                judgeProvider = item.judgeProvider,
+                judgeModel = item.judgeModel,
+            )
+        )
+    }
+
+    @PatchMapping("/by-question/{questionId}")
+    fun patchByQuestion(
+        @PathVariable questionId: String,
+        @RequestBody request: PatchRagasEvaluationRequest,
+    ): ResponseEntity<Void> {
+        val updated = patchRagasEvaluationUseCase.patch(
+            PatchRagasEvaluationCommand(
+                questionId = questionId,
+                faithfulness = request.faithfulness,
+                answerRelevancy = request.answerRelevancy,
+                contextPrecision = request.contextPrecision,
+                contextRecall = request.contextRecall,
+                citationCoverage = request.citationCoverage,
+                citationCorrectness = request.citationCorrectness,
+            )
+        )
+        return if (updated) ResponseEntity.ok().build() else ResponseEntity.notFound().build()
     }
 
     @PostMapping
@@ -182,4 +230,13 @@ data class RagasEvaluationSummaryResponse(
     val current: RagasEvaluationPeriodResponse,
     val previous: RagasEvaluationPeriodResponse,
     val generatedAt: String,
+)
+
+data class PatchRagasEvaluationRequest(
+    val faithfulness: Double? = null,
+    val answerRelevancy: Double? = null,
+    val contextPrecision: Double? = null,
+    val contextRecall: Double? = null,
+    val citationCoverage: Double? = null,
+    val citationCorrectness: Double? = null,
 )

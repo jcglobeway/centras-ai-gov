@@ -5,6 +5,7 @@ admin-api에서 질문/답변 데이터를 조회한 뒤 RAGAS 지표(Faithfulne
 AnswerRelevancy, ContextPrecision, ContextRecall)를 계산하고
 결과를 admin-api /admin/ragas-evaluations로 전송한다.
 
+기존 평가 행이 있으면 null 필드만 선택적으로 PATCH 하여 중복 행을 방지한다.
 ContextPrecision·ContextRecall은 eval_results.json(query_runner 출력)의
 contexts와 ground_truth를 사용한다.
 
@@ -106,13 +107,7 @@ def run(
             merged_lookup[qtext] = eval_lookup[qtext]
 
     typer.echo(f"[eval-runner] 평가 대상: {len(questions)}건 (eval_results 매핑: {len(merged_lookup)}건)")
-    results = evaluate_batch(questions, merged_lookup)
-
-    for result in results:
-        if dry_run:
-            typer.echo(f"[DRY-RUN] {result}")
-        else:
-            client.post_evaluation(result)
+    results = evaluate_batch(questions, merged_lookup, client=client, dry_run=dry_run)
 
     typer.echo(f"[eval-runner] 완료 — {len(results)}건 처리")
 
@@ -153,6 +148,29 @@ class AdminApiClient:
             )
         except Exception as e:
             typer.echo(f"[eval-runner] 평가 결과 전송 실패: {e}", err=True)
+
+    def get_evaluation(self, question_id: str) -> "dict | None":
+        try:
+            response = httpx.get(
+                f"{self.base_url}/admin/ragas-evaluations/by-question/{question_id}",
+                headers=self.headers, timeout=5.0,
+            )
+            if response.status_code == 404:
+                return None
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            typer.echo(f"[eval-runner] 평가 조회 실패 ({question_id}): {e}", err=True)
+            return None
+
+    def patch_evaluation(self, question_id: str, metrics: dict) -> None:
+        try:
+            httpx.patch(
+                f"{self.base_url}/admin/ragas-evaluations/by-question/{question_id}",
+                json=metrics, headers=self.headers, timeout=5.0,
+            )
+        except Exception as e:
+            typer.echo(f"[eval-runner] 평가 PATCH 실패 ({question_id}): {e}", err=True)
 
 
 # ── RAGAS 평가 로직 ───────────────────────────────────────────────────────────
@@ -220,18 +238,155 @@ def fetch_questions_from_db(
         return []
 
 
-def evaluate_batch(questions: list[dict], eval_lookup: dict[str, dict] | None = None) -> list[dict]:
+def evaluate_batch(
+    questions: list[dict],
+    eval_lookup: dict[str, dict] | None = None,
+    client: "AdminApiClient | None" = None,
+    dry_run: bool = False,
+) -> list[dict]:
     lookup = eval_lookup or {}
-    return [
-        _compute_metrics(
-            question_id=q.get("questionId", ""),
-            question_text=q.get("questionText", ""),
-            answer_text=q.get("answerText", ""),
-            contexts=lookup.get(q.get("questionText", ""), {}).get("contexts") or [""],
-            ground_truth=lookup.get(q.get("questionText", ""), {}).get("ground_truth"),
-        )
-        for q in questions
-    ]
+    results: list[dict] = []
+
+    for q in questions:
+        question_id = q.get("questionId", "")
+        question_text = q.get("questionText", "")
+        answer_text = q.get("answerText", "")
+        eval_item = lookup.get(question_text, {})
+        contexts = eval_item.get("contexts") or [""]
+        ground_truth = eval_item.get("ground_truth")
+
+        existing = client.get_evaluation(question_id) if client else None
+
+        if existing is None:
+            result = _compute_metrics(
+                question_id=question_id,
+                question_text=question_text,
+                answer_text=answer_text,
+                contexts=contexts,
+                ground_truth=ground_truth,
+            )
+            results.append(result)
+            if not dry_run and client:
+                client.post_evaluation(result)
+            else:
+                typer.echo(f"[DRY-RUN] POST {result}")
+        else:
+            patch_payload = _compute_missing_metrics(
+                existing=existing,
+                question_id=question_id,
+                question_text=question_text,
+                answer_text=answer_text,
+                contexts=contexts,
+                ground_truth=ground_truth,
+            )
+            results.append(patch_payload)
+            if not dry_run and client:
+                client.patch_evaluation(question_id, patch_payload)
+            else:
+                typer.echo(f"[DRY-RUN] PATCH {question_id}: {patch_payload}")
+
+    return results
+
+
+def _compute_missing_metrics(
+    existing: dict,
+    question_id: str,
+    question_text: str,
+    answer_text: str,
+    contexts: list[str],
+    ground_truth: "str | None",
+) -> dict:
+    """existing 행에서 None인 필드만 계산하여 PATCH payload를 반환한다.
+    컨텍스트가 없으면 RAGAS 지표는 계산 불가 → None 유지 (COALESCE가 기존 null 보존).
+    """
+    need_faithfulness = existing.get("faithfulness") is None
+    need_answer_relevancy = existing.get("answerRelevancy") is None
+    need_context_precision = existing.get("contextPrecision") is None
+    need_context_recall = existing.get("contextRecall") is None
+    need_citation_coverage = existing.get("citationCoverage") is None
+    need_citation_correctness = existing.get("citationCorrectness") is None
+
+    has_contexts = bool(contexts and contexts != [""])
+    judge_model = os.getenv("RAGAS_OLLAMA_MODEL", "qwen2.5:7b")
+    ollama_url = os.getenv("OLLAMA_URL", "http://jcg-office.tailedf4dc.ts.net:11434")
+
+    patch: dict = {}
+
+    try:
+        llm = None
+        emb = None
+
+        if (need_faithfulness or need_answer_relevancy) and has_contexts:
+            from ragas.metrics import faithfulness, answer_relevancy
+            from ragas import evaluate
+            from ragas.llms import LangchainLLMWrapper
+            from ragas.embeddings import LangchainEmbeddingsWrapper
+            from langchain_ollama import ChatOllama, OllamaEmbeddings
+            from datasets import Dataset
+
+            llm = LangchainLLMWrapper(ChatOllama(base_url=ollama_url, model=judge_model))
+            emb = LangchainEmbeddingsWrapper(OllamaEmbeddings(base_url=ollama_url, model="bge-m3"))
+            faithfulness.llm = llm
+            answer_relevancy.llm = llm
+            answer_relevancy.embeddings = emb
+
+            data = {
+                "question": [question_text],
+                "answer": [answer_text],
+                "contexts": [contexts],
+            }
+            dataset = Dataset.from_dict(data)
+            result = evaluate(dataset, metrics=[faithfulness, answer_relevancy])
+            scores = result.to_pandas().iloc[0].to_dict()
+
+            if need_faithfulness:
+                patch["faithfulness"] = _safe(scores.get("faithfulness"))
+            if need_answer_relevancy:
+                patch["answerRelevancy"] = _safe(scores.get("answer_relevancy"))
+
+        if (need_context_precision or need_context_recall) and has_contexts and ground_truth:
+            from ragas.metrics import context_precision, context_recall
+            from ragas import evaluate
+            from ragas.llms import LangchainLLMWrapper
+            from langchain_ollama import ChatOllama
+            from datasets import Dataset
+
+            if llm is None:
+                llm = LangchainLLMWrapper(ChatOllama(base_url=ollama_url, model=judge_model))
+            context_precision.llm = llm
+            context_recall.llm = llm
+
+            data_gt = {
+                "question": [question_text],
+                "answer": [answer_text],
+                "contexts": [contexts],
+                "ground_truth": [ground_truth],
+            }
+            ds_gt = Dataset.from_dict(data_gt)
+            result_gt = evaluate(ds_gt, metrics=[context_precision, context_recall])
+            gt_scores = result_gt.to_pandas().iloc[0].to_dict()
+
+            if need_context_precision:
+                patch["contextPrecision"] = _safe(gt_scores.get("context_precision"))
+            if need_context_recall:
+                patch["contextRecall"] = _safe(gt_scores.get("context_recall"))
+
+        if (need_citation_coverage or need_citation_correctness) and has_contexts:
+            from ragas.llms import LangchainLLMWrapper
+            from langchain_ollama import ChatOllama
+
+            if llm is None:
+                llm = LangchainLLMWrapper(ChatOllama(base_url=ollama_url, model=judge_model))
+
+            if need_citation_coverage:
+                patch["citationCoverage"] = _compute_citation_coverage(llm, question_text, answer_text, contexts)
+            if need_citation_correctness:
+                patch["citationCorrectness"] = _compute_citation_correctness(llm, answer_text, contexts)
+
+    except Exception as e:
+        typer.echo(f"[eval-runner] missing metrics 계산 실패 ({question_id}): {e}", err=True)
+
+    return patch
 
 
 def _compute_metrics(

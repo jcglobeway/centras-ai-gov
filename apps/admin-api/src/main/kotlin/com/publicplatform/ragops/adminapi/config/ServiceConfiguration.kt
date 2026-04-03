@@ -1,5 +1,6 @@
 package com.publicplatform.ragops.adminapi.config
 
+import com.publicplatform.ragops.chatruntime.application.port.out.LoadRagSearchLogPort
 import com.publicplatform.ragops.chatruntime.application.port.out.RecordAnswerPort
 import com.publicplatform.ragops.chatruntime.application.port.out.LoadFeedbackPort
 import com.publicplatform.ragops.chatruntime.application.port.out.RecordFeedbackPort
@@ -10,12 +11,17 @@ import com.publicplatform.ragops.chatruntime.application.port.out.RagOrchestrati
 import com.publicplatform.ragops.chatruntime.application.port.out.SaveRagSearchLogPort
 import com.publicplatform.ragops.chatruntime.application.port.out.UpdateQuestionPort
 import com.publicplatform.ragops.chatruntime.application.port.out.UpdateChatSessionPort
+import com.publicplatform.ragops.chatruntime.application.port.out.LoadChatSessionPort
 import com.publicplatform.ragops.chatruntime.application.port.out.LoadFaqCandidatesPort
+import com.publicplatform.ragops.chatruntime.application.port.`in`.ListChatSessionsUseCase
+import com.publicplatform.ragops.chatruntime.application.service.ListChatSessionsService
 import com.publicplatform.ragops.chatruntime.application.port.`in`.GetLlmMetricsUseCase
 import com.publicplatform.ragops.chatruntime.application.port.`in`.ListFaqCandidatesUseCase
 import com.publicplatform.ragops.chatruntime.application.service.CreateAnswerService
 import com.publicplatform.ragops.chatruntime.application.service.CreateQuestionService
 import com.publicplatform.ragops.chatruntime.application.service.GetLlmMetricsService
+import com.publicplatform.ragops.chatruntime.application.service.GetQuestionContextService
+import com.publicplatform.ragops.chatruntime.application.service.GetRagSearchLogStatsService
 import com.publicplatform.ragops.chatruntime.application.service.ListFaqCandidatesService
 import com.publicplatform.ragops.chatruntime.application.service.ListQuestionsService
 import com.publicplatform.ragops.chatruntime.application.service.ManageFeedbackService
@@ -38,13 +44,22 @@ import com.publicplatform.ragops.metricsreporting.application.port.out.LoadMetri
 import com.publicplatform.ragops.metricsreporting.application.port.out.SaveMetricsPort
 import com.publicplatform.ragops.metricsreporting.application.service.ListMetricsService
 import com.publicplatform.ragops.metricsreporting.application.service.UpsertDailyMetricsService
+import com.publicplatform.ragops.adminapi.evaluation.application.port.`in`.GetRagasEvaluationSummaryUseCase
 import com.publicplatform.ragops.adminapi.evaluation.application.port.`in`.ListRagasEvaluationsUseCase
+import com.publicplatform.ragops.adminapi.evaluation.application.port.`in`.PatchRagasEvaluationUseCase
 import com.publicplatform.ragops.adminapi.evaluation.application.port.`in`.RecordRagasEvaluationUseCase
 import com.publicplatform.ragops.adminapi.evaluation.application.port.out.LoadRagasEvaluationsPort
+import com.publicplatform.ragops.adminapi.evaluation.application.port.out.LoadRagasEvaluationSummaryPort
+import com.publicplatform.ragops.adminapi.evaluation.application.port.out.PatchRagasEvaluationPort
 import com.publicplatform.ragops.adminapi.evaluation.application.port.out.SaveRagasEvaluationPort
+import com.publicplatform.ragops.adminapi.evaluation.application.service.GetRagasEvaluationSummaryService
 import com.publicplatform.ragops.adminapi.evaluation.application.service.ListRagasEvaluationsService
+import com.publicplatform.ragops.adminapi.evaluation.application.service.PatchRagasEvaluationService
 import com.publicplatform.ragops.adminapi.evaluation.application.service.RagasEvaluationService
 import com.publicplatform.ragops.adminapi.chatruntime.adapter.outbound.http.RagOrchestratorClient
+import com.publicplatform.ragops.adminapi.metrics.adapter.inbound.scheduler.MetricsAggregationScheduler
+import com.publicplatform.ragops.adminapi.metrics.application.port.`in`.TriggerMetricsAggregationUseCase
+import com.publicplatform.ragops.adminapi.metrics.application.service.TriggerMetricsAggregationService
 import org.springframework.boot.web.client.RestTemplateBuilder
 import com.publicplatform.ragops.identityaccess.application.port.`in`.AdminAuthUseCase
 import com.publicplatform.ragops.identityaccess.application.port.`in`.GetAuditLogsUseCase
@@ -60,6 +75,12 @@ import com.publicplatform.ragops.adminapi.auth.DevelopmentAdminSessionService
 import com.publicplatform.ragops.adminapi.auth.DevelopmentRestoreSessionPort
 import com.publicplatform.ragops.organizationdirectory.application.port.out.LoadOrganizationPort
 import com.publicplatform.ragops.organizationdirectory.application.service.GetOrganizationsService
+import com.publicplatform.ragops.organizationdirectory.ragconfig.application.port.`in`.GetRagConfigUseCase
+import com.publicplatform.ragops.organizationdirectory.ragconfig.application.port.`in`.SaveRagConfigUseCase
+import com.publicplatform.ragops.organizationdirectory.ragconfig.application.port.out.LoadRagConfigPort
+import com.publicplatform.ragops.organizationdirectory.ragconfig.application.port.out.RecordRagConfigPort
+import com.publicplatform.ragops.organizationdirectory.ragconfig.application.service.GetRagConfigService
+import com.publicplatform.ragops.organizationdirectory.ragconfig.application.service.SaveRagConfigService
 import com.publicplatform.ragops.qareview.application.port.out.LoadQAReviewPort
 import com.publicplatform.ragops.qareview.application.port.out.RecordQAReviewPort
 import com.publicplatform.ragops.qareview.application.service.CreateQAReviewService
@@ -111,6 +132,10 @@ class ServiceConfiguration {
         ListQuestionsService(questionReader)
 
     @Bean
+    fun listChatSessionsUseCase(loadChatSessionPort: LoadChatSessionPort): ListChatSessionsUseCase =
+        ListChatSessionsService(loadChatSessionPort)
+
+    @Bean
     fun createAnswerService(answerWriter: RecordAnswerPort): CreateAnswerService =
         CreateAnswerService(answerWriter)
 
@@ -123,6 +148,14 @@ class ServiceConfiguration {
     @Bean
     fun saveRagSearchLogService(ragSearchLogWriter: SaveRagSearchLogPort): SaveRagSearchLogService =
         SaveRagSearchLogService(ragSearchLogWriter)
+
+    @Bean
+    fun getRagSearchLogStatsUseCase(loadRagSearchLogPort: LoadRagSearchLogPort): GetRagSearchLogStatsService =
+        GetRagSearchLogStatsService(loadRagSearchLogPort)
+
+    @Bean
+    fun getQuestionContextUseCase(loadRagSearchLogPort: LoadRagSearchLogPort): GetQuestionContextService =
+        GetQuestionContextService(loadRagSearchLogPort)
 
     @Bean
     fun getOrganizationsService(organizationDirectoryReader: LoadOrganizationPort): GetOrganizationsService =
@@ -187,12 +220,36 @@ class ServiceConfiguration {
         ListRagasEvaluationsService(loadRagasEvaluationsPort)
 
     @Bean
+    fun getRagasEvaluationSummaryUseCase(loadRagasEvaluationSummaryPort: LoadRagasEvaluationSummaryPort): GetRagasEvaluationSummaryUseCase =
+        GetRagasEvaluationSummaryService(loadRagasEvaluationSummaryPort)
+
+    @Bean
+    fun patchRagasEvaluationUseCase(patchRagasEvaluationPort: PatchRagasEvaluationPort): PatchRagasEvaluationUseCase =
+        PatchRagasEvaluationService(patchRagasEvaluationPort)
+
+    @Bean
     fun getLlmMetricsUseCase(loadLlmMetricsPort: LoadLlmMetricsPort): GetLlmMetricsUseCase =
         GetLlmMetricsService(loadLlmMetricsPort)
 
     @Bean
     fun listFaqCandidatesUseCase(loadFaqCandidatesPort: LoadFaqCandidatesPort): ListFaqCandidatesUseCase =
         ListFaqCandidatesService(loadFaqCandidatesPort)
+
+    @Bean
+    fun triggerMetricsAggregationUseCase(
+        metricsAggregationScheduler: MetricsAggregationScheduler,
+    ): TriggerMetricsAggregationUseCase =
+        TriggerMetricsAggregationService(metricsAggregationScheduler)
+
+    @Bean
+    fun getRagConfigUseCase(loadRagConfigPort: LoadRagConfigPort): GetRagConfigUseCase =
+        GetRagConfigService(loadRagConfigPort)
+
+    @Bean
+    fun saveRagConfigUseCase(
+        loadRagConfigPort: LoadRagConfigPort,
+        recordRagConfigPort: RecordRagConfigPort,
+    ): SaveRagConfigUseCase = SaveRagConfigService(loadRagConfigPort, recordRagConfigPort)
 
     @Bean
     fun ragOrchestrationPort(

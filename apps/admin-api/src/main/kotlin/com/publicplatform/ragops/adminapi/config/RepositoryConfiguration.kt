@@ -4,6 +4,12 @@ import com.publicplatform.ragops.identityaccess.adapter.outbound.persistence.*
 import com.publicplatform.ragops.identityaccess.application.port.out.*
 import com.publicplatform.ragops.organizationdirectory.adapter.outbound.persistence.*
 import com.publicplatform.ragops.organizationdirectory.application.port.out.*
+import com.publicplatform.ragops.organizationdirectory.ragconfig.adapter.outbound.persistence.JpaRagConfigRepository
+import com.publicplatform.ragops.organizationdirectory.ragconfig.adapter.outbound.persistence.JpaRagConfigVersionRepository
+import com.publicplatform.ragops.organizationdirectory.ragconfig.adapter.outbound.persistence.LoadRagConfigPortAdapter
+import com.publicplatform.ragops.organizationdirectory.ragconfig.adapter.outbound.persistence.RecordRagConfigPortAdapter
+import com.publicplatform.ragops.organizationdirectory.ragconfig.application.port.out.LoadRagConfigPort
+import com.publicplatform.ragops.organizationdirectory.ragconfig.application.port.out.RecordRagConfigPort
 import com.publicplatform.ragops.ingestionops.adapter.outbound.persistence.*
 import com.publicplatform.ragops.ingestionops.application.port.out.*
 import com.publicplatform.ragops.qareview.adapter.outbound.persistence.*
@@ -14,11 +20,20 @@ import com.publicplatform.ragops.documentregistry.adapter.outbound.persistence.*
 import com.publicplatform.ragops.documentregistry.application.port.out.*
 import com.publicplatform.ragops.metricsreporting.adapter.outbound.persistence.*
 import com.publicplatform.ragops.metricsreporting.application.port.out.*
+import com.publicplatform.ragops.adminapi.evaluation.adapter.inbound.event.RagasEvalQueuePublisher
 import com.publicplatform.ragops.adminapi.evaluation.adapter.outbound.persistence.JpaRagasEvaluationRepository
 import com.publicplatform.ragops.adminapi.evaluation.adapter.outbound.persistence.LoadRagasEvaluationsPortAdapter
+import com.publicplatform.ragops.adminapi.evaluation.adapter.outbound.persistence.LoadRagasEvaluationSummaryPortAdapter
+import com.publicplatform.ragops.adminapi.evaluation.adapter.outbound.persistence.PatchRagasEvaluationPortAdapter
 import com.publicplatform.ragops.adminapi.evaluation.adapter.outbound.persistence.SaveRagasEvaluationPortAdapter
 import com.publicplatform.ragops.adminapi.evaluation.application.port.out.LoadRagasEvaluationsPort
+import com.publicplatform.ragops.adminapi.evaluation.application.port.out.LoadRagasEvaluationSummaryPort
+import com.publicplatform.ragops.adminapi.evaluation.application.port.out.PatchRagasEvaluationPort
 import com.publicplatform.ragops.adminapi.evaluation.application.port.out.SaveRagasEvaluationPort
+import com.fasterxml.jackson.databind.ObjectMapper
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.jdbc.core.JdbcTemplate
 import com.publicplatform.ragops.qareview.adapter.inbound.event.QuestionAnsweredEventHandler
 import com.publicplatform.ragops.qareview.application.port.`in`.CreateQAReviewUseCase
 import org.springframework.context.annotation.Bean
@@ -123,6 +138,10 @@ class RepositoryConfiguration {
     ): SaveRagSearchLogPort = SaveRagSearchLogPortAdapter(jpaSearchLogRepository, jpaRetrievedDocumentRepository)
 
     @Bean
+    fun ragSearchLogReader(jpaRepository: JpaRagSearchLogRepository): com.publicplatform.ragops.chatruntime.application.port.out.LoadRagSearchLogPort =
+        LoadRagSearchLogPortAdapter(jpaRepository)
+
+    @Bean
     fun feedbackWriter(jpaRepository: JpaFeedbackRepository): RecordFeedbackPort =
         RecordFeedbackPortAdapter(jpaRepository)
 
@@ -141,6 +160,14 @@ class RepositoryConfiguration {
     @Bean
     fun loadRagasEvaluationsPort(jpaRepository: JpaRagasEvaluationRepository): LoadRagasEvaluationsPort =
         LoadRagasEvaluationsPortAdapter(jpaRepository)
+
+    @Bean
+    fun loadRagasEvaluationSummaryPort(jdbcTemplate: JdbcTemplate): LoadRagasEvaluationSummaryPort =
+        LoadRagasEvaluationSummaryPortAdapter(jdbcTemplate)
+
+    @Bean
+    fun patchRagasEvaluationPort(jdbcTemplate: JdbcTemplate): PatchRagasEvaluationPort =
+        PatchRagasEvaluationPortAdapter(jdbcTemplate)
 
     @Bean
     fun loadLlmMetricsPort(
@@ -162,10 +189,33 @@ class RepositoryConfiguration {
         CreateChatSessionPortAdapter(jpaRepository)
 
     @Bean
+    fun loadChatSessionPort(jpaRepository: JpaChatSessionRepository): com.publicplatform.ragops.chatruntime.application.port.out.LoadChatSessionPort =
+        LoadChatSessionPortAdapter(jpaRepository)
+
+    @Bean
     fun loadFaqCandidatesPort(jpaRepository: JpaQuestionRepository): com.publicplatform.ragops.chatruntime.application.port.out.LoadFaqCandidatesPort =
         LoadFaqCandidatesPortAdapter(jpaRepository)
 
     @Bean
     fun questionAnsweredEventHandler(createQAReviewUseCase: CreateQAReviewUseCase): QuestionAnsweredEventHandler =
         QuestionAnsweredEventHandler(createQAReviewUseCase)
+
+    @Bean
+    fun loadRagConfigPort(
+        jpaRagConfigRepository: JpaRagConfigRepository,
+        jpaRagConfigVersionRepository: JpaRagConfigVersionRepository,
+    ): LoadRagConfigPort = LoadRagConfigPortAdapter(jpaRagConfigRepository, jpaRagConfigVersionRepository)
+
+    @Bean
+    fun recordRagConfigPort(
+        jpaRagConfigRepository: JpaRagConfigRepository,
+        jpaRagConfigVersionRepository: JpaRagConfigVersionRepository,
+    ): RecordRagConfigPort = RecordRagConfigPortAdapter(jpaRagConfigRepository, jpaRagConfigVersionRepository)
+
+    @Bean
+    @ConditionalOnBean(RedisTemplate::class)
+    fun ragasEvalQueuePublisher(
+        redisTemplate: RedisTemplate<String, String>,
+        objectMapper: ObjectMapper,
+    ): RagasEvalQueuePublisher = RagasEvalQueuePublisher(redisTemplate, objectMapper)
 }

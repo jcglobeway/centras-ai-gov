@@ -19,7 +19,7 @@ spring:
     locations:
       - classpath:db/migration
       - classpath:com/publicplatform/ragops/adminapi/migration
-    target: "42"
+    target: "30"
 
   ai:
     ollama:
