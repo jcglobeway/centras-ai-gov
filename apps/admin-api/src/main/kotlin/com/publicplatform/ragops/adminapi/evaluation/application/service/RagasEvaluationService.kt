@@ -15,10 +15,13 @@ class RagasEvaluationService(
         val evaluation = RagasEvaluationSummary(
             id = "ragas_${UUID.randomUUID().toString().substring(0, 8)}",
             questionId = command.questionId,
+            organizationId = command.organizationId,
             faithfulness = command.faithfulness,
             answerRelevancy = command.answerRelevancy,
             contextPrecision = command.contextPrecision,
             contextRecall = command.contextRecall,
+            citationCoverage = command.citationCoverage,
+            citationCorrectness = command.citationCorrectness,
             evaluatedAt = LocalDateTime.now(),
             judgeProvider = command.judgeProvider,
             judgeModel = command.judgeModel,

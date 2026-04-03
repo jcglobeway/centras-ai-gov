@@ -18,6 +18,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
     basePackages = [
         "com.publicplatform.ragops.identityaccess.adapter.outbound.persistence",
         "com.publicplatform.ragops.organizationdirectory.adapter.outbound.persistence",
+        "com.publicplatform.ragops.organizationdirectory.ragconfig.adapter.outbound.persistence",
         "com.publicplatform.ragops.ingestionops.adapter.outbound.persistence",
         "com.publicplatform.ragops.qareview.adapter.outbound.persistence",
         "com.publicplatform.ragops.chatruntime.adapter.outbound.persistence",
@@ -30,6 +31,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
     basePackages = [
         "com.publicplatform.ragops.identityaccess.adapter.outbound.persistence",
         "com.publicplatform.ragops.organizationdirectory.adapter.outbound.persistence",
+        "com.publicplatform.ragops.organizationdirectory.ragconfig.adapter.outbound.persistence",
         "com.publicplatform.ragops.ingestionops.adapter.outbound.persistence",
         "com.publicplatform.ragops.qareview.adapter.outbound.persistence",
         "com.publicplatform.ragops.chatruntime.adapter.outbound.persistence",

@@ -135,16 +135,36 @@ export type RootCauseCode =
   | "A01" | "A02" | "A03" | "A04" | "A05"
   | "A06" | "A07" | "A08" | "A09" | "A10";
 
+export type ActionType =
+  | "faq_create"
+  | "document_fix_request"
+  | "reindex_request"
+  | "ops_issue"
+  | "no_action";
+
 export interface QAReview {
   qaReviewId: string;
   questionId: string;
   reviewerId: string;
   reviewStatus: ReviewStatus;
   rootCauseCode: RootCauseCode | null;
-  actionType: string | null;
-  reviewNote: string | null;
+  actionType: ActionType | null;
+  reviewComment: string | null;
   createdAt: string;
   resolvedAt: string | null;
+}
+
+// ── 채팅 세션 ─────────────────────────────────────────────────────────────────
+
+export interface ChatSession {
+  sessionId: string;
+  organizationId: string;
+  serviceId: string;
+  channel: string;
+  startedAt: string;
+  endedAt: string | null;
+  sessionEndType: string | null;
+  totalQuestionCount: number;
 }
 
 // ── 질문 / 답변 ───────────────────────────────────────────────────────────────
@@ -164,6 +184,41 @@ export interface Question {
   isEscalated: boolean;
   answerConfidence: number | null;
   createdAt: string;
+  answerText: string | null;
+  answerStatus: string | null;
+  responseTimeMs: number | null;
+  faithfulness: number | null;
+  answerRelevancy: number | null;
+  contextPrecision: number | null;
+  contextRecall: number | null;
+}
+
+export interface RetrievedChunk {
+  rank: number;
+  score: number | null;
+  usedInCitation: boolean;
+  chunkId: string | null;
+  chunkText: string | null;
+}
+
+export interface QuestionContext {
+  queryText: string | null;
+  queryRewriteText: string | null;
+  latencyMs: number | null;
+  llmMs: number | null;
+  postprocessMs: number | null;
+  retrievalStatus: string | null;
+  retrievedChunks: RetrievedChunk[];
+}
+
+export interface RagSearchLogStats {
+  total: number;
+  avgLatencyMs: number | null;
+  p50LatencyMs: number | null;
+  p95LatencyMs: number | null;
+  zeroResultRate: number;
+  avgTopK: number | null;
+  retrievalStatusDistribution: Record<string, number>;
 }
 
 export interface UnresolvedQuestion {
@@ -200,10 +255,11 @@ export interface Document {
 }
 
 export interface DocumentVersion {
-  versionId: string;
+  id: string;
   documentId: string;
-  versionNumber: number;
-  changeNote: string | null;
+  versionLabel: string;
+  contentHash: string | null;
+  changeDetected: boolean;
   createdAt: string;
 }
 
@@ -216,9 +272,29 @@ export interface RagasEvaluation {
   answerRelevancy: number | null;
   contextPrecision: number | null;
   contextRecall: number | null;
+  citationCoverage: number | null;
+  citationCorrectness: number | null;
   evaluatedAt: string;
   judgeProvider: string | null;
   judgeModel: string | null;
+}
+
+export interface RagasEvaluationPeriodSummary {
+  avgFaithfulness: number | null;
+  avgAnswerRelevancy: number | null;
+  avgContextPrecision: number | null;
+  avgContextRecall: number | null;
+  avgCitationCoverage: number | null;
+  avgCitationCorrectness: number | null;
+  count: number;
+  from: string;
+  to: string;
+}
+
+export interface RagasEvaluationSummaryResponse {
+  current: RagasEvaluationPeriodSummary;
+  previous: RagasEvaluationPeriodSummary;
+  generatedAt: string;
 }
 
 // ── LLM 메트릭 ────────────────────────────────────────────────────────────────
@@ -230,6 +306,58 @@ export interface LlmMetrics {
   avgInputTokens: number | null;
   avgOutputTokens: number | null;
   generatedAt: string;
+}
+
+// ── 기관 RAG 설정 ─────────────────────────────────────────────────────────────
+
+export interface OrgRagConfig {
+  id: string;
+  organizationId: string;
+  systemPrompt: string;
+  tone: 'formal' | 'friendly' | 'neutral';
+  topK: number;
+  similarityThreshold: number;
+  rerankerEnabled: boolean;
+  llmModel: string;
+  llmTemperature: number;
+  llmMaxTokens: number;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OrgRagConfigVersion {
+  id: string;
+  organizationId: string;
+  version: number;
+  systemPrompt: string;
+  tone: string;
+  topK: number;
+  similarityThreshold: number;
+  rerankerEnabled: boolean;
+  llmModel: string;
+  llmTemperature: number;
+  llmMaxTokens: number;
+  changeNote: string | null;
+  changedBy: string | null;
+  createdAt: string;
+}
+
+export interface OrgRagConfigVersionListResponse {
+  items: OrgRagConfigVersion[];
+  total: number;
+}
+
+export interface ModelServingStatus {
+  orchestratorStatus: string;
+  models: ModelInfo[];
+}
+
+export interface ModelInfo {
+  name: string;
+  status: string;
+  version: string | null;
+  latencyMs: number | null;
 }
 
 // ── 메트릭 ────────────────────────────────────────────────────────────────────

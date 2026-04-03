@@ -33,49 +33,80 @@ DEFAULT_EVAL_RESULTS = _PROJECT_ROOT / "python" / "eval-runner" / "eval_results.
 
 @app.command()
 def run(
-    date_str: str = typer.Option(..., "--date", help="평가 대상 날짜 (YYYY-MM-DD)"),
+    date_str: Optional[str] = typer.Option(None, "--date", help="평가 대상 날짜 (YYYY-MM-DD). --from-eval-results 사용 시 생략 가능"),
     organization_id: Optional[str] = typer.Option(None, "--organization-id", help="조직 ID (미입력 시 전체)"),
     page_size: int = typer.Option(50, "--page-size", help="배치 크기"),
     eval_results_path: Path = typer.Option(DEFAULT_EVAL_RESULTS, "--eval-results", help="eval_results.json 경로 (contexts/ground_truth 보완용)"),
+    from_eval_results: bool = typer.Option(False, "--from-eval-results", help="eval_results.json의 question_id 목록으로 직접 조회 (날짜 필터 무시)"),
     dry_run: bool = typer.Option(False, "--dry-run", help="결과를 전송하지 않고 출력만"),
 ) -> None:
     """지정한 날짜의 질문에 대해 RAGAS 평가를 수행하고 admin-api에 결과를 전송한다."""
+    if not from_eval_results and not date_str:
+        typer.echo("[eval-runner] --date 또는 --from-eval-results 중 하나를 지정해야 합니다.", err=True)
+        raise typer.Exit(1)
+
     admin_api_url = os.getenv("ADMIN_API_BASE_URL", "http://localhost:8081")
     session_token = os.getenv("ADMIN_API_SESSION_TOKEN", "")
 
-    typer.echo(f"[eval-runner] 평가 시작 — 날짜: {date_str}, 조직: {organization_id or '전체'}")
-
     client = AdminApiClient(base_url=admin_api_url, session_token=session_token)
 
-    # DB에서 직접 질문+답변 쌍 조회 (API에 answerText 미포함 문제 우회)
-    db_url = os.getenv("DATABASE_URL")
-    if db_url:
-        questions = fetch_questions_from_db(db_url, date_str, organization_id, page_size)
-    else:
-        questions = client.fetch_questions(
-            from_date=date_str, to_date=date_str,
-            organization_id=organization_id, page_size=page_size,
-        )
-
-    if not questions:
-        typer.echo("[eval-runner] 평가 대상 질문 없음")
-        return
-
-    # eval_results.json에서 contexts·ground_truth 로드 (question_text 기준 매핑)
-    eval_lookup: dict[str, dict] = {}
+    # eval_results.json 로드 (contexts·ground_truth 보완 + question_id 기반 조회에도 사용)
+    eval_lookup: dict[str, dict] = {}  # question_text → item
+    eval_by_id: dict[str, dict] = {}   # question_id → item
+    eval_data: list[dict] = []
     if eval_results_path.exists():
         try:
             eval_data = json.loads(eval_results_path.read_text(encoding="utf-8"))
             for item in eval_data:
                 q_text = item.get("question", "").strip()
+                q_id = item.get("question_id", "")
                 if q_text:
                     eval_lookup[q_text] = item
-            typer.echo(f"[eval-runner] eval_results.json 로드: {len(eval_lookup)}건")
+                if q_id:
+                    eval_by_id[q_id] = item
+            typer.echo(f"[eval-runner] eval_results.json 로드: {len(eval_data)}건 (question_id 있음: {len(eval_by_id)}건)")
         except Exception as e:
             typer.echo(f"[eval-runner] eval_results.json 로드 실패: {e}", err=True)
 
-    typer.echo(f"[eval-runner] 평가 대상: {len(questions)}건")
-    results = evaluate_batch(questions, eval_lookup)
+    db_url = os.getenv("DATABASE_URL")
+
+    if from_eval_results:
+        # eval_results.json의 question_id 목록으로 직접 DB 조회 (날짜 필터 무시)
+        question_ids = [item["question_id"] for item in eval_data if item.get("question_id")]
+        if not question_ids:
+            typer.echo("[eval-runner] eval_results.json에 question_id가 없습니다.", err=True)
+            raise typer.Exit(1)
+        typer.echo(f"[eval-runner] 평가 시작 — eval_results.json 기반, {len(question_ids)}건")
+        if not db_url:
+            typer.echo("[eval-runner] --from-eval-results 모드는 DATABASE_URL이 필요합니다.", err=True)
+            raise typer.Exit(1)
+        questions = fetch_questions_by_ids(db_url, question_ids, page_size)
+    else:
+        typer.echo(f"[eval-runner] 평가 시작 — 날짜: {date_str}, 조직: {organization_id or '전체'}")
+        if db_url:
+            questions = fetch_questions_from_db(db_url, date_str, organization_id, page_size)
+        else:
+            questions = client.fetch_questions(
+                from_date=date_str, to_date=date_str,
+                organization_id=organization_id, page_size=page_size,
+            )
+
+    if not questions:
+        typer.echo("[eval-runner] 평가 대상 질문 없음")
+        return
+
+    # question_id 기준 lookup이 있으면 우선 사용, 없으면 question_text 기준 fallback
+    merged_lookup: dict[str, dict] = {}
+    for q in questions:
+        qid = q.get("questionId", "")
+        qtext = q.get("questionText", "")
+        if qid and qid in eval_by_id:
+            merged_lookup[qtext] = eval_by_id[qid]
+        elif qtext in eval_lookup:
+            merged_lookup[qtext] = eval_lookup[qtext]
+
+    typer.echo(f"[eval-runner] 평가 대상: {len(questions)}건 (eval_results 매핑: {len(merged_lookup)}건)")
+    results = evaluate_batch(questions, merged_lookup)
 
     for result in results:
         if dry_run:
@@ -125,6 +156,38 @@ class AdminApiClient:
 
 
 # ── RAGAS 평가 로직 ───────────────────────────────────────────────────────────
+
+def fetch_questions_by_ids(
+    db_url: str,
+    question_ids: list[str],
+    page_size: int,
+) -> list[dict]:
+    """question_id 목록으로 직접 질문+답변을 조회한다 (날짜 필터 없음)."""
+    results: list[dict] = []
+    try:
+        conn = psycopg2.connect(db_url)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        # page_size 단위로 분할 조회 (IN 절 크기 제한 회피)
+        for offset in range(0, len(question_ids), page_size):
+            batch = question_ids[offset:offset + page_size]
+            placeholders = ",".join(["%s"] * len(batch))
+            cur.execute(f"""
+                SELECT q.id AS "questionId", q.question_text AS "questionText",
+                       a.answer_text AS "answerText", a.answer_status AS "answerStatus"
+                FROM questions q
+                LEFT JOIN answers a ON a.question_id = q.id
+                WHERE q.id IN ({placeholders})
+                  AND a.answer_text IS NOT NULL AND a.answer_text != ''
+            """, batch)
+            rows = cur.fetchall()
+            results.extend([dict(r) for r in rows])
+            typer.echo(f"[eval-runner] DB 조회: {offset + len(batch)}/{len(question_ids)}건 처리")
+        cur.close()
+        conn.close()
+    except Exception as e:
+        typer.echo(f"[eval-runner] DB 조회 실패: {e}", err=True)
+    return results
+
 
 def fetch_questions_from_db(
     db_url: str,
@@ -225,12 +288,17 @@ def _compute_metrics(
         result = evaluate(dataset, metrics=metrics)
         scores = result.to_pandas().iloc[0].to_dict()
 
+        citation_coverage = _compute_citation_coverage(llm, question_text, answer_text, effective_contexts)
+        citation_correctness = _compute_citation_correctness(llm, answer_text, effective_contexts)
+
         return {
             "questionId": question_id,
             "faithfulness": _safe(scores.get("faithfulness")),
             "answerRelevancy": _safe(scores.get("answer_relevancy")),
             "contextPrecision": ctx_precision_score,
             "contextRecall": ctx_recall_score,
+            "citationCoverage": citation_coverage,
+            "citationCorrectness": citation_correctness,
             "judgeProvider": "ollama",
             "judgeModel": judge_model,
         }
@@ -242,9 +310,55 @@ def _compute_metrics(
             "answerRelevancy": None,
             "contextPrecision": None,
             "contextRecall": None,
+            "citationCoverage": None,
+            "citationCorrectness": None,
             "judgeProvider": "ollama",
             "judgeModel": judge_model,
         }
+
+
+def _compute_citation_coverage(llm: object, question: str, answer: str, contexts: list[str]) -> "float | None":
+    """각 context chunk가 answer에 실제로 활용됐는지 LLM이 판단. 사용된 청크 수 / 전체 청크 수."""
+    if not contexts or contexts == [""]:
+        return None
+    used = 0
+    for ctx in contexts:
+        if not ctx.strip():
+            continue
+        prompt = (
+            "다음 문서 조각이 답변 생성에 실제로 활용됐으면 YES, 그렇지 않으면 NO로만 답하세요.\n\n"
+            f"질문: {question}\n답변: {answer}\n문서: {ctx}\n\n활용됨:"
+        )
+        try:
+            resp = llm.invoke(prompt).content.strip().upper()
+            if resp.startswith("YES"):
+                used += 1
+        except Exception:
+            pass
+    valid = len([c for c in contexts if c.strip()])
+    return used / valid if valid > 0 else None
+
+
+def _compute_citation_correctness(llm: object, answer: str, contexts: list[str]) -> "float | None":
+    """각 context chunk가 answer 내용을 올바르게 지지하는지 판단. 지지 청크 수 / 전체 청크 수."""
+    if not contexts or contexts == [""]:
+        return None
+    correct = 0
+    for ctx in contexts:
+        if not ctx.strip():
+            continue
+        prompt = (
+            "다음 문서 조각이 답변의 내용을 올바르게 지지하면 YES, 왜곡·불일치하면 NO로만 답하세요.\n\n"
+            f"답변: {answer}\n문서: {ctx}\n\n지지함:"
+        )
+        try:
+            resp = llm.invoke(prompt).content.strip().upper()
+            if resp.startswith("YES"):
+                correct += 1
+        except Exception:
+            pass
+    valid = len([c for c in contexts if c.strip()])
+    return correct / valid if valid > 0 else None
 
 
 def _safe(v: object) -> "float | None":
