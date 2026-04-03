@@ -13,6 +13,8 @@ import com.publicplatform.ragops.metricsreporting.domain.MetricsScope
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import jakarta.servlet.http.HttpServletRequest
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.http.HttpStatus
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.web.bind.annotation.GetMapping
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.client.RestTemplate
 import org.springframework.web.server.ResponseStatusException
 import java.math.BigDecimal
 import java.time.Instant
@@ -39,7 +42,11 @@ class MetricsController(
     private val listMetricsUseCase: ListMetricsUseCase,
     private val triggerMetricsAggregationUseCase: TriggerMetricsAggregationUseCase,
     private val jdbcTemplate: NamedParameterJdbcTemplate,
+    @Value("\${rag.orchestrator.url:http://localhost:8090}")
+    private val ragOrchestratorUrl: String,
+    restTemplateBuilder: RestTemplateBuilder,
 ) {
+    private val restTemplate: RestTemplate = restTemplateBuilder.build()
 
     @GetMapping("/metrics/daily")
     fun listDailyMetrics(
@@ -523,11 +530,7 @@ class MetricsController(
                 WHERE CAST(created_at AS DATE) >= :fromDate
             """.trimIndent())
             if (!scope.globalAccess) {
-                append("""
-                    AND question_id IN (
-                        SELECT id FROM questions WHERE organization_id IN (:orgIds)
-                    )
-                """.trimIndent())
+                append(" AND question_id IN (SELECT id FROM questions WHERE organization_id IN (:orgIds))")
             }
             append(" GROUP BY CAST(created_at AS DATE) ORDER BY day ASC")
         }
@@ -585,6 +588,28 @@ class MetricsController(
             )
         }
         return QuestionTypeDistributionResponse(items = items, total = items.sumOf { it.count }, runDate = targetDate.toString())
+    }
+
+    @GetMapping("/metrics/infra")
+    fun getInfraMetrics(servletRequest: HttpServletRequest): InfraMetricsResponse {
+        adminRequestSessionResolver.resolve(servletRequest)
+        return try {
+            restTemplate.getForObject("$ragOrchestratorUrl/metrics/infra", InfraMetricsResponse::class.java)
+                ?: InfraMetricsResponse()
+        } catch (e: Exception) {
+            InfraMetricsResponse()
+        }
+    }
+
+    @GetMapping("/metrics/rate-limits")
+    fun getRateLimits(servletRequest: HttpServletRequest): RateLimitMetricsResponse {
+        adminRequestSessionResolver.resolve(servletRequest)
+        return try {
+            restTemplate.getForObject("$ragOrchestratorUrl/metrics/rate-limits", RateLimitMetricsResponse::class.java)
+                ?: RateLimitMetricsResponse()
+        } catch (e: Exception) {
+            RateLimitMetricsResponse()
+        }
     }
 
     @PostMapping("/metrics/trigger-aggregation")
@@ -665,6 +690,23 @@ data class SemanticSimilarGroupsResponse(val items: List<SemanticSimilarGroupIte
 
 data class CacheHitTrendItem(val date: String, val hits: Int, val total: Int, val hitRate: Double)
 data class CacheHitTrendResponse(val items: List<CacheHitTrendItem>)
+
+data class InfraMetricsResponse(
+    val cpuUsagePercent: Double? = null,
+    val memoryUsagePercent: Double? = null,
+    val gpuUsagePercent: Double? = null,
+    val collectedAt: String? = null,
+)
+
+data class RateLimitMetricsResponse(
+    val llmCallsTotal: Long? = null,
+    val llmRateLimitHits: Long? = null,
+    val llmRateLimitRate: Double? = null,
+    val embeddingCallsTotal: Long? = null,
+    val embeddingRateLimitHits: Long? = null,
+    val embeddingRateLimitRate: Double? = null,
+    val windowStartAt: String? = null,
+)
 
 data class DailyMetricsListResponse(val items: List<DailyMetricsResponse>, val total: Int)
 
