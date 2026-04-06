@@ -1,4 +1,4 @@
-# Proposal: 벌크 투입 질문 RAGAS 소급 평가
+/# Proposal: 벌크 투입 질문 RAGAS 소급 평가
 
 ## 배경
 

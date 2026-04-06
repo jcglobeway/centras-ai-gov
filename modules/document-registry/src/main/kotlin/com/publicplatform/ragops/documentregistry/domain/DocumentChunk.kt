@@ -17,6 +17,7 @@ data class DocumentChunkSummary(
     val chunkOrder: Int,
     val tokenCount: Int?,
     val embeddingVector: String?,
+    val metadata: String?,
     val createdAt: Instant,
 )
 
@@ -28,4 +29,5 @@ data class SaveDocumentChunkCommand(
     val chunkOrder: Int,
     val tokenCount: Int?,
     val embeddingVector: String?,
+    val metadata: String? = null,
 )

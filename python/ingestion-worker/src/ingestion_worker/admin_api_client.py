@@ -72,6 +72,7 @@ class AdminApiClient:
         token_count: Optional[int],
         embedding_vector: Optional[list[float]],
         document_version_id: Optional[str] = None,
+        metadata: Optional[dict] = None,
     ) -> dict:
         """문서 청크와 임베딩을 Admin API를 통해 저장한다."""
         payload: dict = {
@@ -87,6 +88,8 @@ class AdminApiClient:
         if embedding_vector is not None:
             # vector를 JSON 직렬화 가능한 문자열로 변환
             payload["embeddingVector"] = "[" + ",".join(str(v) for v in embedding_vector) + "]"
+        if metadata:
+            payload["metadata"] = metadata
 
         response = self.client.post("/admin/document-chunks", json=payload)
         response.raise_for_status()

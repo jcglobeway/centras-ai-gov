@@ -1,0 +1,1802 @@
+[
+  {
+    "question": "브런치 콘서트에 대한 단체 예매 가능 여부를 문의드립니다.",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "문화관광",
+    "source_id": "000012"
+  },
+  {
+    "question": "오픈 날짜에 맞춰 예매가 가능한가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "문화관광",
+    "source_id": "000012"
+  },
+  {
+    "question": "단체 예매를 위해 콜센터에 연락을 언제 해야 하나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "문화관광",
+    "source_id": "000012"
+  },
+  {
+    "question": "현장 예매는 10시부터 가능하신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "문화관광",
+    "source_id": "000012"
+  },
+  {
+    "question": "국립아시아문화전당에 방문할 때 일반적으로 몇 시부터 입장 대기 줄이 형성됩니까?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "문화관광",
+    "source_id": "000012"
+  },
+  {
+    "question": "단체 증빙 없이 20매 예매 시 할인이 적용됩니까?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "문화관광",
+    "source_id": "000012"
+  },
+  {
+    "question": "아시아문화전당에서 가이드 프로그램이 있는지 문의하고 싶으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "문화관광",
+    "source_id": "000021"
+  },
+  {
+    "question": "광주아시아문화전당에서 외국인 발제자들을 위한 영어 현장 투어 가이드 서비스가 가능한가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "문화관광",
+    "source_id": "000021"
+  },
+  {
+    "question": "아시아문화전당 고객센터에 문의하시려는 사항이 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "문화관광",
+    "source_id": "000021"
+  },
+  {
+    "question": "아시아문화전당에 대한 운영 시간을 알려주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "문화관광",
+    "source_id": "000021"
+  },
+  {
+    "question": "대전에서 4월 22일에 단체 견학을 가려고 하는데, 어떤 절차를 따르는지 알려주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "001555"
+  },
+  {
+    "question": "국립아시아문화전당은 어떤 구조로 이루어져 계신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "001555"
+  },
+  {
+    "question": "주민자치회와 관련된 문화전당 프로그램에 대한 정보를 제공해 주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "001555"
+  },
+  {
+    "question": "투어 안내 내용을 다시 한번 말씀해주시면 감사하겠습니다.",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "001555"
+  },
+  {
+    "question": "ACC 툼로 참여하는 경우 대략적으로 몇 시간이 소요되나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "001555"
+  },
+  {
+    "question": "국립아시아문화전당은 월요일에 휴무인가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "001555"
+  },
+  {
+    "question": "네이트비즈니스센터에 전화해 주신 이유는 무엇인가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "001555"
+  },
+  {
+    "question": "국립아시아문화전당에서 전화 상담을 받을 수 없을 경우 어떻게 접수를 진행해야 하나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "001555"
+  },
+  {
+    "question": "국립아시아문화전당에 무료 주차장이 있는지 알려주실 수 있으나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "001555"
+  },
+  {
+    "question": "네를 받으신 것에 대해 감사드립니다. 하지만 특정 민원 사항을详细了解以下内容，并给出详细的中文翻译：",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "001555"
+  },
+  {
+    "question": "국립아시아문화전당에서 이번 주举行的儿童表演中，有《 face and face meeting 》这个节目吗？",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002465"
+  },
+  {
+    "question": "보호자도 포함된 예약인가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002465"
+  },
+  {
+    "question": "한 사람당 2장까지 예약할 수 있나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002465"
+  },
+  {
+    "question": "예약 시 2장의 티켓을 선택할 수 없었던 이유를 설명해 주실 수 있으실까요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002465"
+  },
+  {
+    "question": "아이와 함께 이용 가능한 프로그램은 무엇인가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002465"
+  },
+  {
+    "question": "예약을 다른 사람이 도와서 할 수 있는지 궁금합니다.",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002465"
+  },
+  {
+    "question": "1인용석 2매 예약이 가능합니까?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002465"
+  },
+  {
+    "question": "아들 친구의 이름이나 정보를 알고 계신다면 함께 이용할 수 있을까요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002465"
+  },
+  {
+    "question": "만약 토요일에 자리가 나면, 시간 변경이 가능한가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002465"
+  },
+  {
+    "question": "아시아문화전당에서 운영 시간을 알려주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002465"
+  },
+  {
+    "question": "국립아시아문화전당 고객센터에 연락하는 방법을 알려주실 수 있나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002465"
+  },
+  {
+    "question": "국립아시아문화전당에서 예매한 공연을 취소하고 다시 예매하려는데 사이트가 잘 작동하지 않습니다. 어떻게 해결할 수 있을까요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002466"
+  },
+  {
+    "question": "통화를 통해 예약 취소가 가능한가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002466"
+  },
+  {
+    "question": "국립아시아문화전당에서 예매한 공연을 취소하고 다시 예매는 가능하십니까?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002466"
+  },
+  {
+    "question": "아시아문화전당에서 예약하신 3개의 프로그램을 취소하시려면 어떻게 해야 하나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002466"
+  },
+  {
+    "question": "아시아문화전당에서 예매한 내역을 확인하지 못하는 경우 어떻게 도와드릴 수 있을까요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002466"
+  },
+  {
+    "question": "네이버에서 국립아시아문화전당 재단의 웹사이트를 열 수 없을 경우 어떻게 도와드릴 수 있을까요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002466"
+  },
+  {
+    "question": "국립아시아문화전당에 문의하실 사항이 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002466"
+  },
+  {
+    "question": "산책투어 예매가 안 되는 이유가 무엇인가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002467"
+  },
+  {
+    "question": "26일에 국립아시아문화전당에서何种活动将于26日举行？",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002467"
+  },
+  {
+    "question": "아시아문화전당에서 운영하는 전시가 모두 종료된 상태인가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002467"
+  },
+  {
+    "question": "19일에 예매 가능하시겠습니까?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002467"
+  },
+  {
+    "question": "비회원 예매를 위해선 어떻게 절차를 밟아야 하나요? 핸드폰 인증 과정에서 문제가 발생하는 것 같습니다.",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002467"
+  },
+  {
+    "question": "국립아시아문화전당에 대한 문의가 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002467"
+  },
+  {
+    "question": "아무래도 국립아시아문화전당에서 열린 이벤트나 공연의 이름이나 내용을 물어보는 것 같습니다.",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002467"
+  },
+  {
+    "question": "꽃과 소재 다발 만들기 클래스는 다른 날에 진행됩니까?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002467"
+  },
+  {
+    "question": "아시아문화전당에서 열리는 전시회에 대한 예약을 부탁드립니다.",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002467"
+  },
+  {
+    "question": "마크라메 관련 사진을 확인할 수 있는 곳은 어디인가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002467"
+  },
+  {
+    "question": "아시아문화전당의 예약을 해주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002467"
+  },
+  {
+    "question": "22일에 어린이 문화원에서 열리는 극장 공연의 예매 관련 민원은 어떻게 처리됩니까?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002468"
+  },
+  {
+    "question": "다음 주로 예약을 변경할 수는 있으실까요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002468"
+  },
+  {
+    "question": "아시아문화전당 고객센터에 전화를 해서 취소 절차가 어떻게 진행되는지 문의하신 것으로 이해됩니다. 어제 취소를 시도했을 때 인증이 되지 않아 취소가 불가능했다는 말씀이시 맞죠?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002468"
+  },
+  {
+    "question": "아이가 자는 시간을 물어볼 때 혼란을 겪으셨나 봅니다. 언제 자는 시간을 물어볼 수 있나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002468"
+  },
+  {
+    "question": "다음 주 토요일에도 같은 시간에 문화전당을 이용할 수 있나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002468"
+  },
+  {
+    "question": "29일 11시로 변경 신청을 어떻게 하나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002468"
+  },
+  {
+    "question": "예매를 다시 해야 하나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002468"
+  },
+  {
+    "question": "예매를 도와드릴 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002468"
+  },
+  {
+    "question": "취소 사항을 처리해 주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002468"
+  },
+  {
+    "question": "서울 사슴과 어머니라는 행사를 언제와 어디서 볼 수 있나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002469"
+  },
+  {
+    "question": "어르신들도 참여가 가능하고 자리가 있는지 확인 가능하시나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002469"
+  },
+  {
+    "question": "요양원에 어르신을 몇 분 모시려고 하는데 가능한지 문의드립니다.",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002469"
+  },
+  {
+    "question": "사전 접수로 지역 주관 어르신들과 함께 참여할 수 있는 예약이 가능한가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002469"
+  },
+  {
+    "question": "현재 150석이 가능한 날짜는 언제인가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002469"
+  },
+  {
+    "question": "요양원에서의 프로그램 참여 방법을 알려주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002469"
+  },
+  {
+    "question": "한 20명에서 30명 정도의 단체 방문시 예약 방법은 어떻게 되나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002469"
+  },
+  {
+    "question": "몇 명의 인원이 필요하겠습니까?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002469"
+  },
+  {
+    "question": "아시아문화전당에서 운영시간을 알려주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002469"
+  },
+  {
+    "question": "예약한 공연을 취소하고자 하는데 어떻게 해야 하나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002470"
+  },
+  {
+    "question": "차차차차원이 다른 공연의 정확한 이름을 알려주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002470"
+  },
+  {
+    "question": "네가지 사항을 알려주시면 감사하겠습니다.",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002470"
+  },
+  {
+    "question": "전화번호를 어떻게 입력하셨나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002470"
+  },
+  {
+    "question": "인터넷으로 예매한 내역이 조회되지 않습니다. 이는 정상적인 현상인가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002470"
+  },
+  {
+    "question": "비회원으로 가입시 재단으로 자동 전환되지 않는 이유를 설명해 주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002470"
+  },
+  {
+    "question": "도슨트에 대한 안내를 받고 싶습니다. 어떻게 도와드릴 수 있을까요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002471"
+  },
+  {
+    "question": "아시아문화전당에서 평일과 주말 모두 투어를 할 수 있나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002471"
+  },
+  {
+    "question": "온라인 예약과 현장 예약을 모두 진행할 수는 있나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002471"
+  },
+  {
+    "question": "몇 명까지 단체 예약이 가능한지 안내해 주실 수 있을까요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002471"
+  },
+  {
+    "question": "30명 이상이 아닌 경우 몇 명이 참석하면 몇 명으로 등록해주시나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002471"
+  },
+  {
+    "question": "국립아시아문화전당에서의 이용료는 어떻게 되나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002471"
+  },
+  {
+    "question": "단체 예약이 아닌 개인이 방문하기 위해선 몇 명 이상의 인원이 필요하신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002471"
+  },
+  {
+    "question": "국립아시아문화전당에서 도슨트 서비스를 받을 수 있는 다른 투어가 있나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002471"
+  },
+  {
+    "question": "국립아시아문화전당을 방문하여 건물이나 시설물을 관찰하는 것이 주요 목적인가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002471"
+  },
+  {
+    "question": "국립아시아문화전당으로 오는 시간은 얼마나 걸립니까?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002471"
+  },
+  {
+    "question": "국립아시아문화전당 고객센터에 연락하셨다가 뭔가 궁금한 사항이 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002471"
+  },
+  {
+    "question": "국립아시아문화전당에 대한 문의사항이 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002471"
+  },
+  {
+    "question": "국립아시아문화전당에서 비밀번호를 찾는 방법을 알려주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002472"
+  },
+  {
+    "question": "핸드폰으로는 고객센터에 연락할 수 없나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002472"
+  },
+  {
+    "question": "비밀번호 변경을 신청하려면 어떻게 절차를 따르는지 알려주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002472"
+  },
+  {
+    "question": "연락처를 알려주시면 감사하겠습니다.",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002472"
+  },
+  {
+    "question": "아시아문화전당에 대한 문화전당 건물 내 위치를 알려주실 수 있으실까요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002472"
+  },
+  {
+    "question": "회원가입을 하면 받는 이메일 주소가 항상 동일한지 문의드립니다.",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002472"
+  },
+  {
+    "question": "국립아시아문화전당에 관련된 오래된 수업 자료가 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002472"
+  },
+  {
+    "question": "혹시 저작권 보호 항목도 한번 확인해 주실 수 있으실까요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002472"
+  },
+  {
+    "question": "메일 주소로는 회원가입이 불가능한가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002472"
+  },
+  {
+    "question": "공연 예매를 어떻게 진행할 수 있는지 설명해 주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002473"
+  },
+  {
+    "question": "6월 23일에 열리는 차차 차원이 다 다른 차원 공연의 예매 방법을 알려주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002473"
+  },
+  {
+    "question": "관계자 할인 혜택이 어떻게 이루어지는지 알려주실 수 있나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002473"
+  },
+  {
+    "question": "▲▲▲▲▲▲▲번 문의 사항에 대해 도와드릴 수 있을까요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002473"
+  },
+  {
+    "question": "23일에 진행된 마지막 공연과 관련한 정보를 알려주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002473"
+  },
+  {
+    "question": "친구 이름으로 검색이 가능한가요? 현장에서요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002473"
+  },
+  {
+    "question": "유치원에서 관련 민원이 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002474"
+  },
+  {
+    "question": "6월 19일 오전 10시 어린이 문화원의 체험 프로그램 예약 확인이 가능합니까?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002474"
+  },
+  {
+    "question": "네이트까지 예약이 가능한지 확인해 주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002474"
+  },
+  {
+    "question": "아시아문화전당에 대한 안내를 받고 싶으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002474"
+  },
+  {
+    "question": "국립아시아문화전당 예약 확인은 어떤 사이트에서 할 수 있나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002474"
+  },
+  {
+    "question": "예매한 사이트에서만 예매 내역을 확인할 수 있는 이유는 무엇인가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002474"
+  },
+  {
+    "question": "국립아시아문화전당에 연락이 어려운가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002474"
+  },
+  {
+    "question": "아시아문화전당에 위치는 무엇입니까?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002474"
+  },
+  {
+    "question": "아시아문화전당에서 교육 프로그램의 무료 이용 기간은 몇 개월인가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002474"
+  },
+  {
+    "question": "교사분들께서 이용하실 때 무료로 제공되는 인원이 어떻게规定的翻译：",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002474"
+  },
+  {
+    "question": "입장료는 어떻게 되나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002474"
+  },
+  {
+    "question": "아시아문화전당에서 어린이집 운영자로서 교육을 받을 수 있는 방법은 무엇인가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "001556"
+  },
+  {
+    "question": "어린이집에 방문해 설명을 받을 수 있는가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "001556"
+  },
+  {
+    "question": "오늘 방문하시면 건축물과 관련된 빛의 소개를 받을 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "001556"
+  },
+  {
+    "question": "국립아시아문화전당에 방문했을 때 빛이 무엇인가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "001556"
+  },
+  {
+    "question": "아시아문화전당에서 진행하는 프로그램의 이름을 알려주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "001556"
+  },
+  {
+    "question": "주민센터와 관련된 민원이 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "001556"
+  },
+  {
+    "question": "아시아문화전당에서 운영시간이 어떻게 되나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "001556"
+  },
+  {
+    "question": "차량 대여 서비스가 제공됩니까?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "001556"
+  },
+  {
+    "question": "주민센터에서 오늘 차량을 대여한 것이 무엇인지 안내해주시겠습니까?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "001556"
+  },
+  {
+    "question": "ACC에서 차량이 왔다는 점에 대해 문의드립니다.",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "001556"
+  },
+  {
+    "question": "차량 이용이 불가한 신청 절차는 어떻게 하나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "001556"
+  },
+  {
+    "question": "아무리 말씀해도 좋습니다만, 홈페이지를 통해 예약을 하시는 것이 맞는지요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "001556"
+  },
+  {
+    "question": "23일 일요일 14시에 마법의 샘이라는 공연을 예약하고 싶습니다. 어떻게 도와드릴까요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002475"
+  },
+  {
+    "question": "문화누리카드로 이용할 수 있습니까?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002475"
+  },
+  {
+    "question": "국립아시아문화전당 고객센터에 전화를 해보시겠습니까?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002475"
+  },
+  {
+    "question": "▲▲▲▲▲▲▲▲▲▲▲번 고객님, 어떤 민원 사항을 도와드릴까요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002475"
+  },
+  {
+    "question": "23일 오후 2시에 문화전당에 문의를 하시려면 어떻게 도와드릴 수 있을까요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002475"
+  },
+  {
+    "question": "좌석 배정 방식은 어떻게 되신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002475"
+  },
+  {
+    "question": "선착순으로 원하는 좌석을 예약할 수 있나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002475"
+  },
+  {
+    "question": "문자로 예매 확인 요청을 어떻게 하나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002475"
+  },
+  {
+    "question": "국립아시아문화전당 고객센터에 연락하셨나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002475"
+  },
+  {
+    "question": "아시아문화전당 어린이 체험관의 연락처를 알려주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002476"
+  },
+  {
+    "question": "어린이집에 대한 예약 취소나 변경은 어떻게 처리하나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002476"
+  },
+  {
+    "question": "단체 예약 내역이 확인되지 않습니다. 어떻게 도와드릴까요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002476"
+  },
+  {
+    "question": "비회원 예매 내역을 확인하려면 인증 절차가 필요하지 않나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002476"
+  },
+  {
+    "question": "비회원으로도 이용 가능한 서비스가 있는지 문의드립니다.",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002476"
+  },
+  {
+    "question": "로그인 후 내역이 표시되지 않는 문제는 어떻게 해결할 수 있을까요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002476"
+  },
+  {
+    "question": "단체 예약 내역이 확인되지 않는 이유를 알려주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002476"
+  },
+  {
+    "question": "승인 상태 확인 후 문자메시지가 오지 않은 경우是如何询问：在确认了审批状态之后没有收到短信通知的情况？",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002476"
+  },
+  {
+    "question": "승인 내역이 확인되지 않는 이유를 알려주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002476"
+  },
+  {
+    "question": "4년 이상의 회원이면 혜택이 주어지나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002476"
+  },
+  {
+    "question": "국립아시아문화전당에 방문하는 프로그램에 참가자们的对话主要围绕着如何在国家亚洲文化馆为参加文化之旅的访客提供车辆停放服务。为了将市民的发言转化为一个独立且易于理解的民怨问题，可以这样提问：",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002477"
+  },
+  {
+    "question": "아이오닉 차량에 대해 문의하고자 하시나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002477"
+  },
+  {
+    "question": "걸어서 탐방이 가능하지만 물건을 싣고 가는 경우 어떻게 참여할 수 있을까요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002477"
+  },
+  {
+    "question": "차량을 주차하는 방법을 알려주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002477"
+  },
+  {
+    "question": "아동 문화탐방 프로그램에 대한 정보를 제공해 주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002477"
+  },
+  {
+    "question": "문화의 전당에 위치한 시설은 무엇인가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002477"
+  },
+  {
+    "question": "주차장 위치를 알려주실 수 있으실까요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002477"
+  },
+  {
+    "question": "그 추어탕 가게 앞 주차장은 어디에 위치해 계신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002477"
+  },
+  {
+    "question": "아시아문화전당 내 프로그램의 진행 시간은 어떻게 확인할 수 있나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002477"
+  },
+  {
+    "question": "동구청에서 추진하는 프로그램에 필요한 물을 제공해 달라는 민원을 어떻게 처리해야 하는지 문의드립니다.",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002477"
+  },
+  {
+    "question": "탐방을 위한 장소를 예약할 수 있나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002477"
+  },
+  {
+    "question": "어린이 체험관은 어디에 위치하고 계시나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002477"
+  },
+  {
+    "question": "아시아문화전당에서 진행하는 프로그램에 참여하려면 어떻게 해야 하나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002477"
+  },
+  {
+    "question": "일요일에도 고객센터를 이용할 수 있나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002478"
+  },
+  {
+    "question": "차원이 다른 차원 공연의 관계자 할인 관련 문의가 가능합니까?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002478"
+  },
+  {
+    "question": "1인당 몇 장까지 무료로 예매할 수 있나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002478"
+  },
+  {
+    "question": "1일차와 2일차에 각각 영화 티켓을 예매할 수 있는지 문의드립니다.",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002478"
+  },
+  {
+    "question": "티켓 수령 방법을 알려주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002478"
+  },
+  {
+    "question": "현장에서 티켓을 발권해야 하는지 확인드립니다.",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002478"
+  },
+  {
+    "question": "예매를 취소하는 방법은 어떻게 되나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002478"
+  },
+  {
+    "question": "전화로 예매를 했을 때 어떻게 취소를 하는지 알려주실 수 있나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002478"
+  },
+  {
+    "question": "콜센터에서 예매를 취소하는 방법을 알려주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002478"
+  },
+  {
+    "question": "국립아시아문화전당에 문의하시려는 사항이 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002478"
+  },
+  {
+    "question": "아시아문화전당 내에 도서관이 위치해 계신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002478"
+  },
+  {
+    "question": "국립아시아문화전당의 운영 시간은 어떻게 되나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002478"
+  },
+  {
+    "question": "국립아시아문화전당은 수요일과 목요일에 연장 운영됩니까?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002478"
+  },
+  {
+    "question": "네를 받은 경우의 민원 질문을 생성하려면, 시민 발화와 관련된 적절한 민원 질문을 만들어야 합니다. 그러나 주어진 발화는 단순한 응답으로, 민원 내용이 없습니다. 따라서 민원 질문을 생성할 수 없습니다.",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002478"
+  },
+  {
+    "question": "광주 ▲▲▲▲ 아카데미와 관련된 문화행사에 대한 정보를 제공해 주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002479"
+  },
+  {
+    "question": "아시아문화전당에서 관람을 원하는 경우 어떻게 해야 하나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002479"
+  },
+  {
+    "question": "아시아문화전당에서 예약 가능한 인원은 몇 명인가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002479"
+  },
+  {
+    "question": "해설 서비스를 요청할 수 있나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002479"
+  },
+  {
+    "question": "도슨트나 큐레이터와 관련된 정보를 제공해 주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002479"
+  },
+  {
+    "question": "카메라를 가져갈 수 있나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002479"
+  },
+  {
+    "question": "기념 촬영을 함께 한 방문객의 정보는 어떻게 확인할 수 있습니까?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002479"
+  },
+  {
+    "question": "홈페이지에서 예약을 어떻게 하면 됩니까?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002479"
+  },
+  {
+    "question": "국립아시아문화전당 고객센터에 연락하는 방법을 알려주실 수 있나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002479"
+  },
+  {
+    "question": "6월 27일에 예약한 작가와 함께하는 워크숍과 관련하여 어떤 정보를 제공해 주실 수 있으나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002480"
+  },
+  {
+    "question": "마이페이지에서 수강 후 기록이 남아있지 않은지 확인해 주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002480"
+  },
+  {
+    "question": "박물관에서 인도네시아 바티 체험 워크숍을 진행하시나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002480"
+  },
+  {
+    "question": "수강 신청 내역에 교육 기간이 5월 23일로 되어 있지만 회차는 6월 27일로 기재되어 있어 혼란이 있습니다. 이 점 확인 부탁드립니다.",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002480"
+  },
+  {
+    "question": "2023년에 수강 đăng ký는 언제부터 시작됩니까?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002480"
+  },
+  {
+    "question": "6월 27일부터 ▲▲▲ 작가님께 뜨는 것으로 알고 맞습니까?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002480"
+  },
+  {
+    "question": "현재 예약이 가능하지 않다는 말씀인가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002480"
+  },
+  {
+    "question": "국립아시아문화전당에 대한 문의사항이 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002480"
+  },
+  {
+    "question": "차차차원의 공연을 예매하고자 합니다만 어떻게 진행해야 하나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002481"
+  },
+  {
+    "question": "22일 3시에 예약 가능한 자리가 있을까요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002481"
+  },
+  {
+    "question": "티켓을 예약하고 싶은데, 어떻게 도와드릴까요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002482"
+  },
+  {
+    "question": "6월 30일 2시에举办的沙画表演是否有变更？",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002482"
+  },
+  {
+    "question": "6월 30일에 2시에 열리는 모래로 하는 공연에 대한 자세한 정보를 알려주실 수 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002482"
+  },
+  {
+    "question": "아무래도 프로그램명을 확인해 주실 수 있으실까요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002482"
+  },
+  {
+    "question": "6월 30일에 개최되는 공연이 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002482"
+  },
+  {
+    "question": "컴퓨터의 성능이 저하된다는 말씀을 주시면 감사하겠습니다.🤖💻🔍",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002482"
+  },
+  {
+    "question": "그 모래로 하는 공연은 언제 열립니까?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002482"
+  },
+  {
+    "question": "어린이들이 이용할 수 있는 시설이 있는지 확인하겠습니다.",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002482"
+  },
+  {
+    "question": "9살 어린이와 함께 방문하려면 예약 절차가 어떻게 되나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002482"
+  },
+  {
+    "question": "문화누리카드로 이용하려면 어떻게해야 하나요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002482"
+  },
+  {
+    "question": "국립아시아문화전당에 대한 문의가 있으신가요?",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002482"
+  },
+  {
+    "question": "예매한 티켓에 대한 영수증 제출 시 50% 할인 혜택이 적용되는지 문의드립니다.",
+    "ground_truth": "",
+    "org_id": "org_acc",
+    "service_id": "svc_acc_chatbot",
+    "task_category": "민원질의",
+    "consulting_category": "",
+    "source_id": "002483"
+  }
+]

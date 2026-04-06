@@ -1,50 +1,61 @@
 from __future__ import annotations
 
+import asyncio
+import os
+
+import httpx
+from loguru import logger
+
 from .admin_api_client import AdminApiClient
-from .crawl_executor import CrawlExecutor
-from .models import JobStage, JobStatus
+from .crawler import AutonomousCrawler, HierarchicalChunker
+from .kg_extractor import KGExtractor
+from .models import CrawledPage, JobStage, JobStatus
 
 
 class IngestionJobRunner:
-    """Ingestion job 실행 orchestrator."""
+    """Ingestion job 실행 orchestrator.
+
+    단계: FETCH → EXTRACT → CHUNK → EMBED → INDEX → COMPLETE
+
+    FETCH: AutonomousCrawler로 멀티페이지 재귀 크롤
+    EXTRACT: ContentExtractor로 섹션 구조 추출 (크롤 단계 내 수행)
+    CHUNK: HierarchicalChunker로 계층형 청킹
+    EMBED: Ollama bge-m3로 임베딩 생성
+    INDEX: Admin API POST /admin/document-chunks로 저장
+    """
 
     def __init__(self, admin_api_client: AdminApiClient):
         self.admin_api = admin_api_client
-        self.crawl_executor = CrawlExecutor()
+        self.ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
+
+        self._max_depth = int(os.getenv("CRAWLER_MAX_DEPTH", "3"))
+        self._max_pages = int(os.getenv("CRAWLER_MAX_PAGES", "100"))
+        self._crawler_delay = float(os.getenv("CRAWLER_DELAY", "1.0"))
+        self._concurrency = int(os.getenv("CRAWLER_CONCURRENCY", "3"))
 
     def run_job(self, job_id: str) -> None:
-        """
-        Job을 실행하고 lifecycle을 관리한다.
-
-        단계: FETCH → EXTRACT → CHUNK → EMBED → INDEX → COMPLETE
-        각 단계 실패 시 FAILED로 전이.
-        """
-        print(f"[JobRunner] Starting job: {job_id}")
+        """Job을 실행하고 lifecycle을 관리한다."""
+        logger.info(f"[JobRunner] Starting job: {job_id}")
 
         try:
-            # 1. Job 정보 조회
             job = self.admin_api.get_ingestion_job(job_id)
-            print(f"[JobRunner] Job loaded: {job.id}, status={job.job_status}")
+            logger.info(f"[JobRunner] Job loaded: {job.id}, status={job.job_status}")
 
-            # 2. Crawl source 정보 조회
             source = self.admin_api.get_crawl_source(job.crawl_source_id)
-            print(f"[JobRunner] Crawl source loaded: {source.name}, uri={source.source_uri}")
+            logger.info(f"[JobRunner] Crawl source: {source.name}, uri={source.source_uri}")
 
-            # 3. FETCH 단계: URL 크롤링
-            print("[JobRunner] Transitioning to RUNNING / FETCH...")
+            # FETCH + EXTRACT: 멀티페이지 크롤
+            logger.info("[JobRunner] Transitioning to RUNNING / FETCH...")
             self.admin_api.transition_job_status(
                 job_id=job_id,
                 job_status=JobStatus.RUNNING,
                 job_stage=JobStage.FETCH,
             )
 
-            crawl_result = self.crawl_executor.execute_crawl_sync(
-                source_uri=source.source_uri,
-                crawl_source_id=source.id,
-            )
+            pages = asyncio.run(self._crawl_all(source.source_uri))
 
-            if crawl_result["status"] == "error":
-                print(f"[JobRunner] Crawl failed: {crawl_result['error']}")
+            if not pages:
+                logger.error("[JobRunner] 크롤 결과 없음")
                 self.admin_api.transition_job_status(
                     job_id=job_id,
                     job_status=JobStatus.FAILED,
@@ -53,97 +64,100 @@ class IngestionJobRunner:
                 )
                 return
 
-            # 4. EXTRACT 단계: HTML → 텍스트 추출
-            print("[JobRunner] Transitioning to EXTRACT...")
+            logger.info(f"[JobRunner] 크롤 완료: {len(pages)} 페이지")
+
+            # EXTRACT 단계 전환 (크롤과 함께 수행됨)
             self.admin_api.transition_job_status(
                 job_id=job_id,
                 job_status=JobStatus.RUNNING,
                 job_stage=JobStage.EXTRACT,
             )
 
-            raw_text = self.crawl_executor.extract_text(crawl_result["html_content"])
-            print(f"[JobRunner] Extracted text length: {len(raw_text)}")
+            # KG 추출 (선택적)
+            kg_extractor = KGExtractor() if KGExtractor.is_enabled() else None
+            if kg_extractor:
+                logger.info("[JobRunner] KG 추출 활성화됨")
+                pages = asyncio.run(self._enrich_with_kg(pages, kg_extractor))
 
-            if not raw_text.strip():
-                print("[JobRunner] No text extracted, marking as failed")
-                self.admin_api.transition_job_status(
-                    job_id=job_id,
-                    job_status=JobStatus.FAILED,
-                    job_stage=JobStage.EXTRACT,
-                    error_code="EMPTY_CONTENT",
-                )
-                return
-
-            # 5. CHUNK 단계: 텍스트 분할
-            print("[JobRunner] Transitioning to CHUNK...")
+            # CHUNK
+            logger.info("[JobRunner] Transitioning to CHUNK...")
             self.admin_api.transition_job_status(
                 job_id=job_id,
                 job_status=JobStatus.RUNNING,
                 job_stage=JobStage.CHUNK,
             )
 
-            chunks = self.crawl_executor.chunk_text(raw_text)
-            print(f"[JobRunner] Created {len(chunks)} chunks")
+            chunker = HierarchicalChunker()
+            all_chunks = []
+            for page in pages:
+                sections = page.metadata.get("sections", [])
+                chunks = chunker.chunk(sections, page.content, page.url)
+                # 청크에 페이지 메타데이터 병합 (KG 포함)
+                for chunk in chunks:
+                    chunk.metadata.update({
+                        k: v for k, v in page.metadata.items()
+                        if k != "sections"
+                    })
+                all_chunks.extend(chunks)
 
-            # 6. EMBED 단계: 임베딩 생성
-            print("[JobRunner] Transitioning to EMBED...")
+            logger.info(f"[JobRunner] 총 {len(all_chunks)} 청크 생성")
+
+            # EMBED
+            logger.info("[JobRunner] Transitioning to EMBED...")
             self.admin_api.transition_job_status(
                 job_id=job_id,
                 job_status=JobStatus.RUNNING,
                 job_stage=JobStage.EMBED,
             )
 
-            chunk_embeddings: list[tuple[str, list[float] | None]] = []
-            for i, chunk_text in enumerate(chunks):
-                embedding = self.crawl_executor.embed_text(chunk_text)
-                chunk_embeddings.append((chunk_text, embedding))
+            chunk_with_embeddings = []
+            for i, chunk in enumerate(all_chunks):
+                embedding = self._embed_text(chunk.chunk_text)
+                chunk_with_embeddings.append((chunk, embedding))
                 if (i + 1) % 10 == 0:
-                    print(f"[JobRunner] Embedded {i + 1}/{len(chunks)} chunks")
+                    logger.info(f"[JobRunner] 임베딩 {i + 1}/{len(all_chunks)}")
 
-            embedded_count = sum(1 for _, emb in chunk_embeddings if emb is not None)
-            print(f"[JobRunner] Successfully embedded {embedded_count}/{len(chunks)} chunks")
+            embedded_count = sum(1 for _, emb in chunk_with_embeddings if emb is not None)
+            logger.info(f"[JobRunner] 임베딩 완료: {embedded_count}/{len(all_chunks)}")
 
-            # 7. INDEX 단계: Admin API를 통해 청크 저장
-            print("[JobRunner] Transitioning to INDEX...")
+            # INDEX
+            logger.info("[JobRunner] Transitioning to INDEX...")
             self.admin_api.transition_job_status(
                 job_id=job_id,
                 job_status=JobStatus.RUNNING,
                 job_stage=JobStage.INDEX,
             )
 
-            # document_id는 crawl_source_id 기반으로 생성 (실제로는 Admin API에서 할당)
             document_id = f"doc_{source.id}"
             saved_count = 0
 
-            for i, (chunk_text, embedding) in enumerate(chunk_embeddings):
+            for chunk, embedding in chunk_with_embeddings:
                 try:
-                    token_count = len(chunk_text.split())
                     self.admin_api.save_document_chunk(
                         document_id=document_id,
-                        chunk_key=f"chunk_{i}",
-                        chunk_text=chunk_text,
-                        chunk_order=i,
-                        token_count=token_count,
+                        chunk_key=chunk.chunk_key,
+                        chunk_text=chunk.chunk_text,
+                        chunk_order=chunk.chunk_order,
+                        token_count=chunk.token_count,
                         embedding_vector=embedding,
+                        metadata=chunk.metadata if chunk.metadata else None,
                     )
                     saved_count += 1
                 except Exception as e:
-                    print(f"[JobRunner] Failed to save chunk {i}: {e}")
+                    logger.warning(f"[JobRunner] 청크 저장 실패 {chunk.chunk_key}: {e}")
 
-            print(f"[JobRunner] Saved {saved_count}/{len(chunks)} chunks to index")
+            logger.info(f"[JobRunner] 저장 완료: {saved_count}/{len(all_chunks)}")
 
-            # 8. COMPLETE
-            print("[JobRunner] Transitioning to COMPLETE...")
+            # COMPLETE
             self.admin_api.transition_job_status(
                 job_id=job_id,
                 job_status=JobStatus.SUCCEEDED,
                 job_stage=JobStage.COMPLETE,
             )
-
-            print(f"[JobRunner] Job {job_id} completed successfully!")
+            logger.info(f"[JobRunner] Job {job_id} completed successfully!")
 
         except Exception as e:
-            print(f"[JobRunner] Unexpected error: {e}")
+            logger.error(f"[JobRunner] Unexpected error: {e}")
             try:
                 self.admin_api.transition_job_status(
                     job_id=job_id,
@@ -152,5 +166,40 @@ class IngestionJobRunner:
                     error_code="WORKER_ERROR",
                 )
             except Exception as callback_error:
-                print(f"[JobRunner] Failed to send error callback: {callback_error}")
+                logger.error(f"[JobRunner] Failed to send error callback: {callback_error}")
             raise
+
+    async def _crawl_all(self, seed_url: str) -> list[CrawledPage]:
+        async with AutonomousCrawler(
+            max_depth=self._max_depth,
+            max_pages=self._max_pages,
+            concurrency=self._concurrency,
+            delay=self._crawler_delay,
+        ) as crawler:
+            return await crawler.crawl_all(seed_url)
+
+    async def _enrich_with_kg(
+        self,
+        pages: list[CrawledPage],
+        extractor: KGExtractor,
+    ) -> list[CrawledPage]:
+        enriched = []
+        for page in pages:
+            kg_meta = await extractor.extract(page)
+            if kg_meta:
+                page.metadata.update(kg_meta)
+            enriched.append(page)
+        return enriched
+
+    def _embed_text(self, text: str) -> list[float] | None:
+        try:
+            response = httpx.post(
+                f"{self.ollama_url}/api/embeddings",
+                json={"model": "bge-m3", "prompt": text},
+                timeout=10.0,
+            )
+            if response.status_code == 200:
+                return response.json().get("embedding")
+            return None
+        except Exception:
+            return None

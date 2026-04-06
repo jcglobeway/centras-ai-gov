@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b1326;
+        }
+        .mono {
+            font-family: 'IBM+Plex+Mono', monospace;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "tertiary-fixed": "#ffdbcd",
+                "surface-variant": "#2d3449",
+                "tertiary-container": "#bc4800",
+                "primary": "#b4c5ff",
+                "error-container": "#93000a",
+                "on-tertiary-container": "#ffede6",
+                "on-primary-container": "#eeefff",
+                "secondary": "#b4c5ff",
+                "surface-container-high": "#222a3d",
+                "on-secondary-container": "#a4b6f5",
+                "on-surface-variant": "#c3c6d7",
+                "inverse-primary": "#0053db",
+                "error": "#ffb4ab",
+                "on-secondary": "#182d63",
+                "on-error-container": "#ffdad6",
+                "surface": "#0b1326",
+                "on-tertiary": "#581e00",
+                "on-background": "#dae2fd",
+                "primary-fixed-dim": "#b4c5ff",
+                "inverse-surface": "#dae2fd",
+                "inverse-on-surface": "#283044",
+                "surface-container-lowest": "#060e20",
+                "on-tertiary-fixed": "#360f00",
+                "secondary-container": "#33467e",
+                "surface-container": "#171f33",
+                "on-tertiary-fixed-variant": "#7d2d00",
+                "surface-tint": "#b4c5ff",
+                "surface-container-low": "#131b2e",
+                "outline": "#8d90a0",
+                "on-error": "#690005",
+                "secondary-fixed": "#dbe1ff",
+                "background": "#0b1326",
+                "on-surface": "#dae2fd",
+                "on-secondary-fixed": "#00174b",
+                "primary-container": "#2563eb",
+                "outline-variant": "#434655",
+                "tertiary": "#ffb596",
+                "on-primary-fixed-variant": "#003ea8",
+                "tertiary-fixed-dim": "#ffb596",
+                "surface-dim": "#0b1326",
+                "on-secondary-fixed-variant": "#31447b",
+                "primary-fixed": "#dbe1ff",
+                "on-primary": "#002a78",
+                "surface-container-highest": "#2d3449",
+                "surface-bright": "#31394d",
+                "secondary-fixed-dim": "#b4c5ff",
+                "on-primary-fixed": "#00174b"
+              },
+              fontFamily: {
+                "headline": ["Inter"],
+                "body": ["Inter"],
+                "label": ["Inter"]
+              },
+              borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+            },
+          },
+        }
+      </script>
+</head>
+<body class="bg-surface text-on-surface selection:bg-primary-container selection:text-white">
+<!-- SideNavBar (Shared Component) -->
+<aside class="fixed h-screen w-[240px] left-0 top-0 bg-[#0b1326] flex flex-col py-6 px-4 z-50">
+<div class="mb-8 px-2">
+<h1 class="text-lg font-black tracking-tighter text-slate-100">Obsidian AI</h1>
+<p class="text-[10px] text-slate-500 font-mono mt-1">v2.4.0-stable</p>
+</div>
+<button class="mb-6 w-full py-2 bg-primary-container text-white rounded-sm font-medium text-sm flex items-center justify-center gap-2 active:opacity-90 transition-all scale-98-on-click">
+<span class="material-symbols-outlined text-[18px]">add</span>
+            New Inference
+        </button>
+<nav class="flex-1 space-y-1">
+<!-- Analytics/Operations is the closest active state -->
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-slate-100 hover:bg-[#171f33] rounded-sm transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard_customize</span>
+<span class="text-[11px] font-bold tracking-widest uppercase">Operations</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-slate-100 hover:bg-[#171f33] rounded-sm transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]">timeline</span>
+<span class="text-[11px] font-bold tracking-widest uppercase">RAG Traces</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-slate-100 hover:bg-[#171f33] rounded-sm transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]">database</span>
+<span class="text-[11px] font-bold tracking-widest uppercase">Knowledge Base</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-slate-100 hover:bg-[#171f33] rounded-sm transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]">settings_input_component</span>
+<span class="text-[11px] font-bold tracking-widest uppercase">Model Config</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-[#2563eb] text-white rounded-sm font-medium transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]">monitoring</span>
+<span class="text-[11px] font-bold tracking-widest uppercase">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-slate-100 hover:bg-[#171f33] rounded-sm transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]">terminal</span>
+<span class="text-[11px] font-bold tracking-widest uppercase">System Logs</span>
+</a>
+</nav>
+<div class="mt-auto space-y-1 pt-6 border-t border-outline-variant/10">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-slate-100 hover:bg-[#171f33] rounded-sm transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">help_outline</span>
+<span class="text-[11px] font-bold tracking-widest uppercase">Support</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-slate-100 hover:bg-[#171f33] rounded-sm transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">menu_book</span>
+<span class="text-[11px] font-bold tracking-widest uppercase">Documentation</span>
+</a>
+</div>
+</aside>
+<!-- TopNavBar (Shared Component) -->
+<header class="fixed top-0 right-0 left-[240px] h-16 bg-[#0b1326]/80 backdrop-blur-md border-b border-[#434655]/15 px-8 flex items-center justify-between z-40">
+<div class="flex items-center gap-8">
+<h2 class="text-sm font-semibold text-on-surface tracking-tight">RAG Intelligence Center</h2>
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-lg">search</span>
+<input class="bg-surface-container-lowest border border-outline-variant/20 rounded-sm pl-10 pr-4 py-1.5 text-xs w-full focus:outline-none focus:border-primary/50 text-on-surface" placeholder="Search traces..." type="text"/>
+</div>
+</div>
+<nav class="flex items-center gap-6">
+<a class="text-xs font-mono text-slate-400 hover:text-slate-200 uppercase tracking-wider" href="#">Cluster-01</a>
+<a class="text-xs font-mono text-[#2563eb] border-b-2 border-[#2563eb] pb-2 uppercase tracking-wider" href="#">Global</a>
+<a class="text-xs font-mono text-slate-400 hover:text-slate-200 uppercase tracking-wider" href="#">Edge</a>
+</nav>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 mr-4">
+<button class="p-2 text-slate-400 hover:bg-[#222a3d] rounded-sm transition-colors">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<button class="p-2 text-slate-400 hover:bg-[#222a3d] rounded-sm transition-colors">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+</button>
+</div>
+<button class="px-4 py-1.5 bg-[#2563eb] text-white text-xs font-bold rounded-sm hover:opacity-90 transition-all">
+                Deploy Hub
+            </button>
+<div class="w-8 h-8 rounded-full bg-surface-container-high overflow-hidden border border-outline-variant/20">
+<img alt="Admin User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwrtvdnV9cr2ZnuNR_KnzqS05x2lUPiKEloAYnASU_qCpWVw0rGSogi-c8c3wzGfyqC3WDA8N7Sx-3-kcd8ckREveBqAtwTBxGxi6t-rYfh8-lK9dKkkk4kJIZKnKoexaJYczCvFoKNIi58bRGf3LuQikysLCG1d8J5s-KvphGBc1ffImhQgXO88pvcOxRorEWcDAFR65JsJ_dudK7urtx_e7VYBBi-2z8N84B0ExALf-1TX6Wzpz6WanKZ1aa9AT-sRE51N-H7_2W"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-[240px] pt-24 pb-12 px-8 min-h-screen">
+<!-- Page Header -->
+<header class="flex items-center justify-between mb-8">
+<div>
+<h1 class="text-2xl font-bold text-on-surface tracking-tight">서비스 통계</h1>
+<p class="text-sm text-on-surface-variant font-mono mt-1 uppercase tracking-tighter">System ID: rag-prod-korea-01 // Region: ap-northeast-2</p>
+</div>
+<div class="flex items-center gap-2">
+<div class="flex bg-surface-container p-0.5 rounded-sm">
+<button class="px-3 py-1 text-[10px] font-bold tracking-widest bg-surface-container-high text-primary rounded-sm shadow-sm">1H</button>
+<button class="px-3 py-1 text-[10px] font-bold tracking-widest text-slate-500 hover:text-slate-300">6H</button>
+<button class="px-3 py-1 text-[10px] font-bold tracking-widest text-slate-500 hover:text-slate-300">24H</button>
+<button class="px-3 py-1 text-[10px] font-bold tracking-widest text-slate-500 hover:text-slate-300">7D</button>
+<button class="px-3 py-1 text-[10px] font-bold tracking-widest text-slate-500 hover:text-slate-300">30D</button>
+</div>
+<button class="flex items-center gap-2 bg-surface-container hover:bg-surface-container-high px-3 py-1.5 rounded-sm text-xs font-semibold text-on-surface border border-outline-variant/10 transition-colors">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                    Filter
+                </button>
+</div>
+</header>
+<!-- Dashboard Grid -->
+<div class="grid grid-cols-12 gap-4">
+<!-- Left Column (8 columns) -->
+<div class="col-span-8 space-y-4">
+<!-- Card 1: DAU Line Chart -->
+<section class="bg-[#131b2e] rounded-sm p-6 relative overflow-hidden group">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-6 bg-primary rounded-full"></span>
+<h3 class="text-xs font-bold tracking-widest uppercase text-on-surface">DAU Line Chart (Daily Trend)</h3>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-mono text-slate-500">AVG:</span>
+<span class="text-xs font-mono text-on-surface">12,482</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-mono text-slate-500">PEAK:</span>
+<span class="text-xs font-mono text-[#10b981]">18,291</span>
+</div>
+</div>
+</div>
+<div class="h-64 flex flex-col justify-between">
+<!-- Chart Area Placeholder with Grid -->
+<div class="relative flex-1">
+<!-- Horizontal Grid Lines -->
+<div class="absolute inset-0 flex flex-col justify-between opacity-10">
+<div class="w-full h-px bg-outline-variant"></div>
+<div class="w-full h-px bg-outline-variant"></div>
+<div class="w-full h-px bg-outline-variant"></div>
+<div class="w-full h-px bg-outline-variant"></div>
+<div class="w-full h-px bg-outline-variant"></div>
+</div>
+<!-- Y-Axis Labels -->
+<div class="absolute -left-12 inset-y-0 flex flex-col justify-between text-[9px] font-mono text-slate-500 py-1">
+<span>20K</span>
+<span>15K</span>
+<span>10K</span>
+<span>5K</span>
+<span>0</span>
+</div>
+<!-- SVG Chart Path -->
+<svg class="absolute inset-0 w-full h-full overflow-visible" preserveaspectratio="none">
+<defs>
+<lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#2563eb" stop-opacity="0.2"></stop>
+<stop offset="100%" stop-color="#2563eb" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path class="w-full" d="M0 180 Q 50 160, 100 190 T 200 140 T 300 170 T 400 110 T 500 150 T 600 90 T 700 130 T 800 100" fill="none" stroke="#2563eb" stroke-width="2"></path>
+<path d="M0 180 Q 50 160, 100 190 T 200 140 T 300 170 T 400 110 T 500 150 T 600 90 T 700 130 T 800 100 V 256 H 0 Z" fill="url(#chartGradient)"></path>
+</svg>
+</div>
+<!-- X-Axis Labels -->
+<div class="flex justify-between text-[9px] font-mono text-slate-500 pt-4 px-2">
+<span>AUG 01</span>
+<span>AUG 07</span>
+<span>AUG 14</span>
+<span>AUG 21</span>
+<span>AUG 28</span>
+<span>SEP 01</span>
+</div>
+</div>
+</section>
+<!-- Card 2: Hourly Usage Heatmap -->
+<section class="bg-[#131b2e] rounded-sm p-6">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-6 bg-[#f59e0b] rounded-full"></span>
+<h3 class="text-xs font-bold tracking-widest uppercase text-on-surface">Hourly Usage Heatmap</h3>
+</div>
+<div class="flex items-center gap-4 text-[10px] text-slate-500 font-mono">
+<span>LESS</span>
+<div class="flex gap-1">
+<div class="w-3 h-3 bg-surface-container"></div>
+<div class="w-3 h-3 bg-[#2563eb]/20"></div>
+<div class="w-3 h-3 bg-[#2563eb]/40"></div>
+<div class="w-3 h-3 bg-[#2563eb]/60"></div>
+<div class="w-3 h-3 bg-[#2563eb]/80"></div>
+<div class="w-3 h-3 bg-[#2563eb]"></div>
+</div>
+<span>MORE</span>
+</div>
+</div>
+<div class="flex">
+<!-- Day Labels -->
+<div class="flex flex-col justify-between text-[10px] font-mono text-slate-500 pr-4 pb-6 py-1">
+<span>MON</span>
+<span>TUE</span>
+<span>WED</span>
+<span>THU</span>
+<span>FRI</span>
+<span>SAT</span>
+<span>SUN</span>
+</div>
+<!-- Heatmap Grid -->
+<div class="flex-1 space-y-1">
+<!-- Generate rows -->
+<div class="grid grid-cols-24 gap-1 h-4">
+<!-- Day Row Logic -->
+<div class="bg-[#2563eb]/10 rounded-xs"></div><div class="bg-[#2563eb]/20 rounded-xs"></div><div class="bg-[#2563eb]/10 rounded-xs"></div><div class="bg-surface-container rounded-xs"></div><div class="bg-surface-container rounded-xs"></div><div class="bg-[#2563eb]/20 rounded-xs"></div><div class="bg-[#2563eb]/40 rounded-xs"></div><div class="bg-[#2563eb]/60 rounded-xs"></div><div class="bg-[#2563eb]/80 rounded-xs"></div><div class="bg-[#2563eb] rounded-xs"></div><div class="bg-[#2563eb] rounded-xs"></div><div class="bg-[#2563eb]/80 rounded-xs"></div><div class="bg-[#2563eb]/60 rounded-xs"></div><div class="bg-[#2563eb]/40 rounded-xs"></div><div class="bg-[#2563eb]/60 rounded-xs"></div><div class="bg-[#2563eb]/80 rounded-xs"></div><div class="bg-[#2563eb]/60 rounded-xs"></div><div class="bg-[#2563eb]/40 rounded-xs"></div><div class="bg-[#2563eb]/20 rounded-xs"></div><div class="bg-[#2563eb]/10 rounded-xs"></div><div class="bg-[#2563eb]/20 rounded-xs"></div><div class="bg-[#2563eb]/40 rounded-xs"></div><div class="bg-[#2563eb]/20 rounded-xs"></div><div class="bg-[#2563eb]/10 rounded-xs"></div>
+</div>
+<div class="grid grid-cols-24 gap-1 h-4">
+<div class="bg-[#2563eb]/20 rounded-xs"></div><div class="bg-[#2563eb]/10 rounded-xs"></div><div class="bg-surface-container rounded-xs"></div><div class="bg-surface-container rounded-xs"></div><div class="bg-surface-container rounded-xs"></div><div class="bg-[#2563eb]/30 rounded-xs"></div><div class="bg-[#2563eb]/50 rounded-xs"></div><div class="bg-[#2563eb]/70 rounded-xs"></div><div class="bg-[#2563eb]/90 rounded-xs"></div><div class="bg-[#2563eb] rounded-xs"></div><div class="bg-[#2563eb] rounded-xs"></div><div class="bg-[#2563eb]/90 rounded-xs"></div><div class="bg-[#2563eb]/70 rounded-xs"></div><div class="bg-[#2563eb]/50 rounded-xs"></div><div class="bg-[#2563eb]/70 rounded-xs"></div><div class="bg-[#2563eb]/90 rounded-xs"></div><div class="bg-[#2563eb]/70 rounded-xs"></div><div class="bg-[#2563eb]/50 rounded-xs"></div><div class="bg-[#2563eb]/30 rounded-xs"></div><div class="bg-[#2563eb]/20 rounded-xs"></div><div class="bg-[#2563eb]/30 rounded-xs"></div><div class="bg-[#2563eb]/50 rounded-xs"></div><div class="bg-[#2563eb]/30 rounded-xs"></div><div class="bg-[#2563eb]/20 rounded-xs"></div>
+</div>
+<div class="grid grid-cols-24 gap-1 h-4">
+<div class="bg-surface-container rounded-xs"></div><div class="bg-surface-container rounded-xs"></div><div class="bg-surface-container rounded-xs"></div><div class="bg-surface-container rounded-xs"></div><div class="bg-[#2563eb]/10 rounded-xs"></div><div class="bg-[#2563eb]/40 rounded-xs"></div><div class="bg-[#2563eb]/60 rounded-xs"></div><div class="bg-[#2563eb]/80 rounded-xs"></div><div class="bg-[#2563eb] rounded-xs"></div><div class="bg-[#2563eb] rounded-xs"></div><div class="bg-[#2563eb] rounded-xs"></div><div class="bg-[#2563eb] rounded-xs"></div><div class="bg-[#2563eb]/80 rounded-xs"></div><div class="bg-[#2563eb]/60 rounded-xs"></div><div class="bg-[#2563eb]/80 rounded-xs"></div><div class="bg-[#2563eb] rounded-xs"></div><div class="bg-[#2563eb]/80 rounded-xs"></div><div class="bg-[#2563eb]/60 rounded-xs"></div><div class="bg-[#2563eb]/40 rounded-xs"></div><div class="bg-[#2563eb]/20 rounded-xs"></div><div class="bg-[#2563eb]/40 rounded-xs"></div><div class="bg-[#2563eb]/60 rounded-xs"></div><div class="bg-[#2563eb]/40 rounded-xs"></div><div class="bg-[#2563eb]/20 rounded-xs"></div>
+</div>
+<div class="grid grid-cols-24 gap-1 h-4">
+<div class="bg-[#2563eb]/10 rounded-xs"></div><div class="bg-[#2563eb]/10 rounded-xs"></div><div class="bg-[#2563eb]/10 rounded-xs"></div><div class="bg-surface-container rounded-xs"></div><div class="bg-[#2563eb]/20 rounded-xs"></div><div class="bg-[#2563eb]/50 rounded-xs"></div><div class="bg-[#2563eb]/70 rounded-xs"></div><div class="bg-[#2563eb]/90 rounded-xs"></div><div class="bg-[#2563eb] rounded-xs"></div><div class="bg-[#2563eb] rounded-xs"></div><div class="bg-[#2563eb] rounded-xs"></div><div class="bg-[#2563eb] rounded-xs"></div><div class="bg-[#2563eb]/90 rounded-xs"></div><div class="bg-[#2563eb]/70 rounded-xs"></div><div class="bg-[#2563eb]/90 rounded-xs"></div><div class="bg-[#2563eb] rounded-xs"></div><div class="bg-[#2563eb]/90 rounded-xs"></div><div class="bg-[#2563eb]/70 rounded-xs"></div><div class="bg-[#2563eb]/50 rounded-xs"></div><div class="bg-[#2563eb]/30 rounded-xs"></div><div class="bg-[#2563eb]/50 rounded-xs"></div><div class="bg-[#2563eb]/70 rounded-xs"></div><div class="bg-[#2563eb]/50 rounded-xs"></div><div class="bg-[#2563eb]/30 rounded-xs"></div>
+</div>
+<div class="grid grid-cols-24 gap-1 h-4">
+<div class="bg-[#2563eb]/20 rounded-xs"></div><div class="bg-[#2563eb]/30 rounded-xs"></div><div class="bg-[#2563eb]/20 rounded-xs"></div><div class="bg-[#2563eb]/10 rounded-xs"></div><div class="bg-[#2563eb]/30 rounded-xs"></div><div class="bg-[#2563eb]/60 rounded-xs"></div><div class="bg-[#2563eb]/80 rounded-xs"></div><div class="bg-[#2563eb] rounded-xs"></div><div class="bg-[#2563eb] rounded-xs"></div><div class="bg-[#2563eb] rounded-xs"></div><div class="bg-[#2563eb] rounded-xs"></div><div class="bg-[#2563eb] rounded-xs"></div><div class="bg-[#2563eb] rounded-xs"></div><div class="bg-[#2563eb]/80 rounded-xs"></div><div class="bg-[#2563eb] rounded-xs"></div><div class="bg-[#2563eb] rounded-xs"></div><div class="bg-[#2563eb] rounded-xs"></div><div class="bg-[#2563eb]/80 rounded-xs"></div><div class="bg-[#2563eb]/60 rounded-xs"></div><div class="bg-[#2563eb]/40 rounded-xs"></div><div class="bg-[#2563eb]/60 rounded-xs"></div><div class="bg-[#2563eb]/80 rounded-xs"></div><div class="bg-[#2563eb]/60 rounded-xs"></div><div class="bg-[#2563eb]/40 rounded-xs"></div>
+</div>
+<div class="grid grid-cols-24 gap-1 h-4">
+<div class="bg-[#2563eb]/10 rounded-xs"></div><div class="bg-[#2563eb]/20 rounded-xs"></div><div class="bg-[#2563eb]/10 rounded-xs"></div><div class="bg-surface-container rounded-xs"></div><div class="bg-surface-container rounded-xs"></div><div class="bg-[#2563eb]/10 rounded-xs"></div><div class="bg-[#2563eb]/20 rounded-xs"></div><div class="bg-[#2563eb]/30 rounded-xs"></div><div class="bg-[#2563eb]/40 rounded-xs"></div><div class="bg-[#2563eb]/50 rounded-xs"></div><div class="bg-[#2563eb]/40 rounded-xs"></div><div class="bg-[#2563eb]/30 rounded-xs"></div><div class="bg-[#2563eb]/20 rounded-xs"></div><div class="bg-[#2563eb]/10 rounded-xs"></div><div class="bg-[#2563eb]/20 rounded-xs"></div><div class="bg-[#2563eb]/30 rounded-xs"></div><div class="bg-[#2563eb]/20 rounded-xs"></div><div class="bg-[#2563eb]/10 rounded-xs"></div><div class="bg-surface-container rounded-xs"></div><div class="bg-[#2563eb]/10 rounded-xs"></div><div class="bg-[#2563eb]/20 rounded-xs"></div><div class="bg-[#2563eb]/30 rounded-xs"></div><div class="bg-[#2563eb]/20 rounded-xs"></div><div class="bg-[#2563eb]/10 rounded-xs"></div>
+</div>
+<div class="grid grid-cols-24 gap-1 h-4">
+<div class="bg-[#2563eb]/10 rounded-xs"></div><div class="bg-surface-container rounded-xs"></div><div class="bg-surface-container rounded-xs"></div><div class="bg-surface-container rounded-xs"></div><div class="bg-surface-container rounded-xs"></div><div class="bg-[#2563eb]/10 rounded-xs"></div><div class="bg-[#2563eb]/20 rounded-xs"></div><div class="bg-[#2563eb]/30 rounded-xs"></div><div class="bg-[#2563eb]/40 rounded-xs"></div><div class="bg-[#2563eb]/50 rounded-xs"></div><div class="bg-[#2563eb]/40 rounded-xs"></div><div class="bg-[#2563eb]/30 rounded-xs"></div><div class="bg-[#2563eb]/20 rounded-xs"></div><div class="bg-[#2563eb]/10 rounded-xs"></div><div class="bg-[#2563eb]/20 rounded-xs"></div><div class="bg-[#2563eb]/30 rounded-xs"></div><div class="bg-[#2563eb]/20 rounded-xs"></div><div class="bg-[#2563eb]/10 rounded-xs"></div><div class="bg-surface-container rounded-xs"></div><div class="bg-[#2563eb]/10 rounded-xs"></div><div class="bg-[#2563eb]/20 rounded-xs"></div><div class="bg-[#2563eb]/30 rounded-xs"></div><div class="bg-[#2563eb]/20 rounded-xs"></div><div class="bg-[#2563eb]/10 rounded-xs"></div>
+</div>
+<!-- Hour Labels -->
+<div class="grid grid-cols-24 gap-1 pt-4 text-[9px] font-mono text-slate-500">
+<span>0</span><span></span><span></span><span>3</span><span></span><span></span><span>6</span><span></span><span></span><span>9</span><span></span><span></span><span>12</span><span></span><span></span><span>15</span><span></span><span></span><span>18</span><span></span><span></span><span>21</span><span></span><span></span>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column (4 columns) -->
+<div class="col-span-4 space-y-4">
+<!-- Card 3: Donut chart showing "Query Category Distribution" -->
+<section class="bg-[#131b2e] rounded-sm p-6">
+<div class="flex items-center gap-2 mb-8">
+<span class="w-1.5 h-6 bg-error rounded-full"></span>
+<h3 class="text-xs font-bold tracking-widest uppercase text-on-surface">Query Category Distribution</h3>
+</div>
+<div class="relative flex flex-col items-center">
+<!-- Pseudo Donut Chart -->
+<div class="relative w-40 h-40">
+<svg class="w-full h-full -rotate-90">
+<circle cx="80" cy="80" fill="transparent" r="70" stroke="#2563eb" stroke-dasharray="440" stroke-dashoffset="110" stroke-width="20"></circle>
+<circle cx="80" cy="80" fill="transparent" r="70" stroke="#10b981" stroke-dasharray="440" stroke-dashoffset="330" stroke-width="20"></circle>
+<circle cx="80" cy="80" fill="transparent" r="70" stroke="#f59e0b" stroke-dasharray="440" stroke-dashoffset="400" stroke-width="20"></circle>
+<circle cx="80" cy="80" fill="transparent" r="70" stroke="#ef4444" stroke-dasharray="440" stroke-dashoffset="430" stroke-width="20"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-xs font-mono text-slate-500 uppercase tracking-widest">Total</span>
+<span class="text-2xl font-bold font-mono">1.2k</span>
+</div>
+</div>
+<!-- Legend -->
+<div class="grid grid-cols-2 gap-x-8 gap-y-4 w-full mt-10">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-[#2563eb]"></div>
+<span class="text-[11px] text-slate-300">General</span>
+<span class="ml-auto text-[11px] font-mono font-bold">45%</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-[#10b981]"></div>
+<span class="text-[11px] text-slate-300">Technical</span>
+<span class="ml-auto text-[11px] font-mono font-bold">30%</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-[#f59e0b]"></div>
+<span class="text-[11px] text-slate-300">Billing</span>
+<span class="ml-auto text-[11px] font-mono font-bold">15%</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-[#ef4444]"></div>
+<span class="text-[11px] text-slate-300">HR</span>
+<span class="ml-auto text-[11px] font-mono font-bold">10%</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Card 4: Session Success Rate -->
+<section class="bg-[#131b2e] rounded-sm p-6">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-6 bg-[#10b981] rounded-full"></span>
+<h3 class="text-xs font-bold tracking-widest uppercase text-on-surface">Session Success Rate</h3>
+</div>
+<span class="material-symbols-outlined text-slate-500 text-lg">info</span>
+</div>
+<div class="mt-4">
+<div class="flex items-baseline gap-2">
+<span class="text-4xl font-black font-mono text-on-surface">94.2%</span>
+<span class="text-[11px] font-mono text-[#10b981] flex items-center">
+<span class="material-symbols-outlined text-[14px]">arrow_upward</span>
+                                1.2%
+                            </span>
+</div>
+<p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-1">Vs. Last Month (93.0%)</p>
+</div>
+<!-- Small Sparkline -->
+<div class="h-16 mt-6 relative">
+<svg class="w-full h-full">
+<path d="M0 40 L 40 30 L 80 45 L 120 20 L 160 35 L 200 15 L 240 25 L 280 10 L 320 15" fill="none" stroke="#10b981" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+</svg>
+<div class="absolute inset-0 bg-gradient-to-t from-[#10b981]/10 to-transparent"></div>
+</div>
+</section>
+</div>
+<!-- Bottom Full-Width: Card 5: Knowledge Gap Rate -->
+<section class="col-span-12 bg-[#131b2e] rounded-sm p-6 flex items-center justify-between">
+<div class="flex items-center gap-12">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-sm bg-error/10 flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-2xl" data-weight="fill">warning</span>
+</div>
+<div>
+<h3 class="text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-1">Knowledge Gap Rate</h3>
+<div class="flex items-center gap-3">
+<span class="text-3xl font-black font-mono text-error">8.5%</span>
+<div class="px-2 py-0.5 bg-error/20 rounded-full">
+<span class="text-[10px] font-mono font-bold text-error">+2.4% Δ</span>
+</div>
+</div>
+</div>
+</div>
+<div class="h-10 w-px bg-outline-variant/20"></div>
+<div class="flex items-center gap-4">
+<div class="text-right">
+<span class="block text-2xl font-bold font-mono text-on-surface">124</span>
+<span class="block text-[10px] font-bold tracking-widest uppercase text-slate-500">Unhandled Queries</span>
+</div>
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full border-2 border-[#131b2e] bg-[#222a3d] flex items-center justify-center text-[10px] font-mono font-bold">Q1</div>
+<div class="w-8 h-8 rounded-full border-2 border-[#131b2e] bg-[#222a3d] flex items-center justify-center text-[10px] font-mono font-bold">Q2</div>
+<div class="w-8 h-8 rounded-full border-2 border-[#131b2e] bg-[#222a3d] flex items-center justify-center text-[10px] font-mono font-bold">Q3</div>
+</div>
+</div>
+</div>
+<a class="group flex items-center gap-2 px-6 py-3 bg-surface-container hover:bg-surface-container-high border border-outline-variant/10 rounded-sm transition-all" href="#">
+<span class="text-xs font-bold tracking-widest uppercase text-on-surface">View Unresolved Queries</span>
+<span class="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
+</a>
+</section>
+</div>
+</main>
+<!-- Footer Meta-info -->
+<footer class="ml-[240px] px-8 py-6 border-t border-outline-variant/5">
+<div class="flex items-center justify-between opacity-40">
+<div class="flex items-center gap-6">
+<span class="text-[9px] font-mono uppercase tracking-widest">Instance: RAG-MAIN-REDUNDANT</span>
+<span class="text-[9px] font-mono uppercase tracking-widest">Latency: 42ms</span>
+<span class="text-[9px] font-mono uppercase tracking-widest">Uptime: 99.99%</span>
+</div>
+<div class="text-[9px] font-mono">
+                © 2024 Obsidian Intelligent Systems Inc.
+            </div>
+</div>
+</footer>
+</body></html>

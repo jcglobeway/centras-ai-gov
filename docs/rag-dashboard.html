@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>소원아이 RAG 분석 대시보드</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#08111f;--s1:#0d1a2e;--s2:#111f38;
+  --border:rgba(56,189,248,0.1);
+  --cyan:#38bdf8;--green:#4ade80;--amber:#fbbf24;--red:#f87171;--purple:#a78bfa;
+  --text:#e2e8f0;--muted:#64748b;--dim:#94a3b8;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(56,189,248,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,.025) 1px,transparent 1px);
+  background-size:40px 40px;}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px;position:relative;z-index:1;}
+.header{text-align:center;margin-bottom:40px;}
+.badge{display:inline-flex;align-items:center;gap:8px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25);
+  border-radius:100px;padding:5px 14px;font-size:11px;color:var(--cyan);font-family:'JetBrains Mono',monospace;letter-spacing:.06em;margin-bottom:16px;}
+.badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+h1{font-size:clamp(22px,4vw,36px);font-weight:900;letter-spacing:-.02em;margin-bottom:8px;}
+h1 span{color:var(--cyan);}
+.sub{font-size:13px;color:var(--muted);}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
+@media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr);}}
+.stat{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:20px 18px;}
+.stat-label{font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;}
+.stat-val{font-size:26px;font-weight:900;line-height:1;margin-bottom:4px;}
+.stat-sub{font-size:11px;color:var(--muted);}
+.stat.cyan{border-color:rgba(56,189,248,.25);}.stat.cyan .stat-val{color:var(--cyan);}
+.stat.green{border-color:rgba(74,222,128,.25);}.stat.green .stat-val{color:var(--green);}
+.stat.amber{border-color:rgba(251,191,36,.25);}.stat.amber .stat-val{color:var(--amber);}
+.stat.red{border-color:rgba(248,113,113,.25);}.stat.red .stat-val{color:var(--red);}
+.sec-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;
+  display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:28px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:28px;}
+@media(max-width:800px){.grid2,.grid3{grid-template-columns:1fr;}}
+.card{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:22px;}
+.card-title{font-size:13px;font-weight:700;margin-bottom:16px;color:var(--text);}
+.card-title span{font-size:11px;color:var(--muted);font-weight:400;margin-left:6px;}
+.kw-list{display:flex;flex-direction:column;gap:6px;}
+.kw-item{display:flex;align-items:center;gap:10px;}
+.kw-name{font-size:12px;width:110px;flex-shrink:0;color:var(--dim);}
+.kw-bar-wrap{flex:1;background:rgba(255,255,255,.05);border-radius:4px;height:6px;overflow:hidden;}
+.kw-bar{height:100%;border-radius:4px;}
+.kw-count{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;width:36px;text-align:right;}
+.repeat-table{width:100%;border-collapse:collapse;font-size:12px;}
+.repeat-table th{padding:8px 12px;text-align:left;color:var(--muted);font-size:11px;border-bottom:1px solid var(--border);}
+.repeat-table td{padding:8px 12px;border-bottom:1px solid rgba(56,189,248,.05);color:var(--dim);}
+.repeat-table td:last-child{color:var(--red);font-family:'JetBrains Mono',monospace;font-weight:700;text-align:right;}
+.repeat-table tr:hover td{background:rgba(56,189,248,.03);}
+.lat-list{display:flex;flex-direction:column;gap:10px;}
+.lat-item label{font-size:11px;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:5px;}
+.lat-bar-wrap{background:rgba(255,255,255,.05);border-radius:4px;height:8px;overflow:hidden;}
+.lat-fill{height:100%;border-radius:4px;}
+.improve-list{display:flex;flex-direction:column;gap:10px;}
+.improve-item{background:var(--s2);border-radius:10px;padding:14px 16px;border-left:3px solid;display:flex;gap:14px;align-items:flex-start;}
+.improve-item.crit{border-color:var(--red);}.improve-item.warn{border-color:var(--amber);}.improve-item.info{border-color:var(--cyan);}
+.improve-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+.improve-body .title{font-size:13px;font-weight:700;margin-bottom:4px;}
+.improve-body .desc{font-size:12px;color:var(--muted);line-height:1.6;}
+.improve-body .metric{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--amber);margin-top:6px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="badge">소원아이(AI) · 경기도의회 RAG 챗봇</div>
+    <h1>대화 이력 <span>분석 대시보드</span></h1>
+    <p class="sub">7,601건 · 구버전 6,938건 + 신버전(gpt-5) 663건 · 2025-10-30 ~ 2026-03-29</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat cyan"><div class="stat-label">전체 대화</div><div class="stat-val">7,601</div><div class="stat-sub">건 누적</div></div>
+    <div class="stat green"><div class="stat-label">Fallback 사용률</div><div class="stat-val">0%</div><div class="stat-sub">신버전 · 검색 실패 없음</div></div>
+    <div class="stat amber"><div class="stat-label">평균 응답 속도</div><div class="stat-val">9.6초</div><div class="stat-sub">p95 = 16.9초</div></div>
+    <div class="stat red"><div class="stat-label">Citation 실패율</div><div class="stat-val">9.2%</div><div class="stat-sub">663건 중 61건</div></div>
+  </div>
+
+  <p class="sec-title">질문 패턴 분석</p>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">TOP 키워드 <span>전체 기준</span></div>
+      <div class="kw-list" id="kwList"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">질문 유형 분포 <span>정규식 분류</span></div>
+      <canvas id="typeChart"></canvas>
+    </div>
+  </div>
+
+  <p class="sec-title">반복 질문 · UX 문제 신호</p>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">세션 내 반복 질문 TOP 10 <span>같은 질문 반복 횟수</span></div>
+      <table class="repeat-table">
+        <thead><tr><th>질문</th><th>반복</th></tr></thead>
+        <tbody id="repeatBody"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title">질문 길이 분포</div>
+      <canvas id="lenChart"></canvas>
+    </div>
+  </div>
+
+  <p class="sec-title">RAG 성능 지표 (신버전 663건)</p>
+  <div class="grid3">
+    <div class="card">
+      <div class="card-title">레이턴시 분해</div>
+      <div class="lat-list">
+        <div class="lat-item"><label><span>검색 (search)</span><span style="color:var(--cyan)">1,962ms</span></label><div class="lat-bar-wrap"><div class="lat-fill" style="width:37%;background:var(--cyan)"></div></div></div>
+        <div class="lat-item"><label><span>컨텍스트 구성</span><span style="color:var(--green)">2,333ms</span></label><div class="lat-bar-wrap"><div class="lat-fill" style="width:44%;background:var(--green)"></div></div></div>
+        <div class="lat-item"><label><span>LLM 생성 ⚠</span><span style="color:var(--amber)">5,282ms</span></label><div class="lat-bar-wrap"><div class="lat-fill" style="width:100%;background:var(--amber)"></div></div></div>
+        <div class="lat-item"><label><span>전체 total</span><span>9,578ms</span></label><div class="lat-bar-wrap"><div class="lat-fill" style="width:90%;background:linear-gradient(90deg,var(--cyan),var(--purple))"></div></div></div>
+      </div>
+      <div style="margin-top:14px;font-size:11px;color:var(--muted)">p95 = 16,884ms · LLM이 전체의 55%</div>
+    </div>
+    <div class="card">
+      <div class="card-title">토큰 구간 분포</div>
+      <canvas id="tokenChart"></canvas>
+      <div style="margin-top:10px;font-size:11px;color:var(--muted)">평균 25,121 토큰 · $0.037/건<br>월 추정 (50건/일): ~$55/월</div>
+    </div>
+    <div class="card">
+      <div class="card-title">일별 사용량 <span>신버전</span></div>
+      <canvas id="dailyChart" style="max-height:180px"></canvas>
+    </div>
+  </div>
+
+  <p class="sec-title">RAG 개선 포인트 도출</p>
+  <div class="improve-list">
+    <div class="improve-item crit">
+      <div class="improve-icon">🔴</div>
+      <div class="improve-body">
+        <div class="title">응답 속도 — LLM이 전체 레이턴시의 55% 차지</div>
+        <div class="desc">평균 9.6초, p95 16.9초는 챗봇으로 체감상 매우 느립니다. 검색된 20개 문서 중 실제 citation은 평균 4.3개뿐이라, 불필요한 토큰이 LLM 입력을 늘리고 있습니다. 스트리밍 출력을 적용하면 체감 속도를 즉시 개선할 수 있습니다.</div>
+        <div class="metric">→ 스트리밍 응답 적용 / 컨텍스트 문서 20→5개 축소 / 동일 질문 캐싱 (세션 내 반복 즉시 반환)</div>
+      </div>
+    </div>
+    <div class="improve-item crit">
+      <div class="improve-icon">🔴</div>
+      <div class="improve-body">
+        <div class="title">반복 질문 — "김진경 의원 몇 층?" 단일 세션에서 16회 반복</div>
+        <div class="desc">같은 질문이 한 세션에서 수십 번 반복되는 것은 답변 불만족이거나 UI에서 답변이 잘 보이지 않는 신호입니다. 상위 10개 반복 패턴만 해결해도 전체 트래픽을 의미 있게 줄일 수 있습니다.</div>
+        <div class="metric">→ 세션 내 중복 질문 캐시 / "이전 답변 다시 보기" UI / 자주 묻는 질문 바로가기 제공</div>
+      </div>
+    </div>
+    <div class="improve-item warn">
+      <div class="improve-icon">🟡</div>
+      <div class="improve-body">
+        <div class="title">Citation 실패 9.2% — 도메인 외 질문 + 비질문성 입력 혼재</div>
+        <div class="desc">"oㅇ", "안녕", "네" 등 비질문성 입력과 "안산 대법원 판결 앞둔 국회의원" 처럼 도메인 외 질문이 RAG 파이프라인까지 들어오고 있습니다. 인텐트 분류기로 조기 차단하면 불필요한 LLM 호출과 비용을 줄일 수 있습니다.</div>
+        <div class="metric">→ 5자 이하 단답 입력 → 재질문 유도 / 도메인 외 질문 → out-of-scope 안내로 RAG 우회</div>
+      </div>
+    </div>
+    <div class="improve-item warn">
+      <div class="improve-icon">🟡</div>
+      <div class="improve-body">
+        <div class="title">컨텍스트 토큰 과다 — 검색 20개 중 LLM이 실제 쓰는 건 4.3개</div>
+        <div class="desc">retrieval_hit_count 평균 19개를 모두 컨텍스트에 넣어 평균 25k 토큰이 발생합니다. Cross-encoder re-ranking으로 상위 5개만 선별하면 비용과 응답속도를 동시에 개선합니다.</div>
+        <div class="metric">→ Re-ranking 추가 (selected_doc 20→5) / 예상 토큰 절감 ~40% / 월 비용 $55→$33 예상</div>
+      </div>
+    </div>
+    <div class="improve-item info">
+      <div class="improve-icon">🔵</div>
+      <div class="improve-body">
+        <div class="title">위치/층수 504건 + 의원 정보 1,018건 — 구조화 데이터 직접 조회로 RAG 우회 가능</div>
+        <div class="desc">위치/층수 질문은 청사 층별 안내 테이블로, 의원 정보 질문은 앞서 설계한 Neo4j 엔티티 허브로 처리하면 RAG 없이 0.1초 이내 응답이 가능합니다. 전체 질문의 20%가 해당됩니다.</div>
+        <div class="metric">→ 인텐트별 라우팅 레이어 추가: 위치 → 구조화 DB / 의원명 → Neo4j entity 직접 조회</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const kws=[['구직자지원',375],['취업교육',351],['재단',301],['일자리',265],['의원',198],['김진경',98],['근로자지원',92],['청년기본소득',92],['의장',86],['조례',82],['인사',76],['기업지원',72],['부의장',66],['청년복지포인트',64],['예산',61]];
+const clrs=['#38bdf8','#4ade80','#a78bfa','#fbbf24','#f472b6','#38bdf8','#4ade80','#a78bfa','#fbbf24','#f472b6','#38bdf8','#4ade80','#a78bfa','#fbbf24','#f472b6'];
+const mx=kws[0][1];
+const kl=document.getElementById('kwList');
+kws.forEach(([n,c],i)=>{kl.innerHTML+=`<div class="kw-item"><span class="kw-name">${n}</span><div class="kw-bar-wrap"><div class="kw-bar" style="width:${c/mx*100}%;background:${clrs[i]}"></div></div><span class="kw-count">${c}</span></div>`;});
+
+const repeats=[['김진경의원은 몇층에 있어?',16],['상임위원회 부위원장은 누구냐?',7],['정윤경',5],['송한준',5],['의원 공약 어디서봐요?',4],['민원신청',4],['의정지원정보센터 어디야?',3],['예결위위원장 누구야?',3],['안뇽',3],['김진경',4]];
+const tb=document.getElementById('repeatBody');
+repeats.forEach(([q,n])=>{tb.innerHTML+=`<tr><td>${q}</td><td>${n}회</td></tr>`;});
+
+const cfg={responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:'#94a3b8',font:{size:11},boxWidth:12}}},scales:{x:{ticks:{color:'#94a3b8',font:{size:10}},grid:{color:'rgba(56,189,248,.05)'}},y:{ticks:{color:'#94a3b8',font:{size:10}},grid:{color:'rgba(56,189,248,.05)'}}}};
+
+new Chart(document.getElementById('typeChart'),{type:'doughnut',data:{labels:['기타','의원 정보','위치/층수','일정','법령/조례','회의','예산/재정','연락처'],datasets:[{data:[5470,1018,504,223,108,105,85,75],backgroundColor:['#334155','#38bdf8','#4ade80','#fbbf24','#a78bfa','#f472b6','#fb923c','#34d399'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:'#94a3b8',font:{size:11},boxWidth:12}}}}});
+
+new Chart(document.getElementById('lenChart'),{type:'bar',data:{labels:['1~5자 (명사만)','6~20자 (짧은 질문)','21자+ (구체적)'],datasets:[{data:[1568,4119,1911],backgroundColor:['#f87171','#38bdf8','#4ade80'],borderRadius:6,borderWidth:0}]},options:{...cfg,plugins:{legend:{display:false}}}});
+
+new Chart(document.getElementById('tokenChart'),{type:'bar',data:{labels:['~10k','10k~20k','20k~30k','30k~40k','40k+'],datasets:[{data:[12,198,378,68,4],backgroundColor:'rgba(167,139,250,.65)',borderRadius:6,borderWidth:0}]},options:{...cfg,plugins:{legend:{display:false}}}});
+
+new Chart(document.getElementById('dailyChart'),{type:'line',data:{labels:['3/12','3/13','3/14','3/15','3/16','3/17','3/18','3/19','3/20','3/21','3/22','3/23','3/24','3/25','3/26','3/27','3/28','3/29'],datasets:[{data:[54,44,13,28,42,43,52,52,38,19,20,65,50,46,47,27,18,5],borderColor:'#38bdf8',backgroundColor:'rgba(56,189,248,.08)',tension:.4,fill:true,pointRadius:3,pointBackgroundColor:'#38bdf8'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#94a3b8',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#94a3b8',font:{size:9}},grid:{color:'rgba(56,189,248,.05)'}}}}});
+</script>
+</body>
+</html>

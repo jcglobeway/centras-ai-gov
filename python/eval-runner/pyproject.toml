@@ -11,13 +11,23 @@ dependencies = [
   "typer>=0.15.0",
   "psycopg2-binary>=2.9.0",
   "langchain-ollama>=0.3.0",
+  "numpy>=1.26.0",
+  "redis>=5.0.0",
 ]
+
+[project.optional-dependencies]
+openai = ["openai>=1.0.0"]
 
 [project.scripts]
 eval-runner          = "eval_runner.ragas_batch:main"
+realtime-eval        = "eval_runner.realtime_eval:main"
 query-runner         = "eval_runner.query_runner:main"
 prepare-eval-data    = "eval_runner.prepare_eval_data:main"
 ingest-training-docs = "eval_runner.ingest_training_docs:main"
+bulk-query-runner    = "eval_runner.bulk_query_runner:main"
+citizen-query-gen    = "eval_runner.citizen_query_gen:main"
+cluster-questions    = "eval_runner.cluster_questions:main"
+export-db-eval-data  = "eval_runner.export_db_eval_data:main"
 
 [build-system]
 requires = ["hatchling"]

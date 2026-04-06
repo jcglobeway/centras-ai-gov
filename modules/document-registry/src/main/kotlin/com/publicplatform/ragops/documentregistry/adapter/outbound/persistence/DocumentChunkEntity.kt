@@ -25,6 +25,7 @@ class DocumentChunkEntity(
     @Column(name = "token_count") val tokenCount: Int?,
     // H2(테스트): TEXT로 저장, PostgreSQL(운영): V018로 vector(1024) 타입으로 변환
     @Column(name = "embedding_vector", columnDefinition = "TEXT") val embeddingVector: String?,
+    @Column(name = "metadata", columnDefinition = "TEXT") val metadata: String?,
     @Column(name = "created_at", nullable = false) val createdAt: Instant = Instant.now(),
 )
 
@@ -32,5 +33,6 @@ fun DocumentChunkEntity.toSummary(): DocumentChunkSummary =
     DocumentChunkSummary(
         id = id, documentId = documentId, documentVersionId = documentVersionId,
         chunkKey = chunkKey, chunkText = chunkText, chunkOrder = chunkOrder,
-        tokenCount = tokenCount, embeddingVector = embeddingVector, createdAt = createdAt,
+        tokenCount = tokenCount, embeddingVector = embeddingVector, metadata = metadata,
+        createdAt = createdAt,
     )

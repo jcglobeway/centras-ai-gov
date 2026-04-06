@@ -4,6 +4,7 @@ import com.publicplatform.ragops.organizationdirectory.application.port.`in`.Get
 import com.publicplatform.ragops.organizationdirectory.application.port.out.LoadOrganizationPort
 import com.publicplatform.ragops.organizationdirectory.domain.Organization
 import com.publicplatform.ragops.organizationdirectory.domain.OrganizationScope
+import com.publicplatform.ragops.organizationdirectory.domain.Service
 
 /**
  * 기관 목록 조회 유스케이스 구현체.
@@ -16,4 +17,7 @@ open class GetOrganizationsService(
 
     override fun listOrganizations(scope: OrganizationScope): List<Organization> =
         organizationDirectoryReader.loadByScope(scope)
+
+    override fun listServices(organizationId: String): List<Service> =
+        organizationDirectoryReader.listServicesByOrganizationId(organizationId)
 }

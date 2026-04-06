@@ -69,7 +69,7 @@ export default function ClientDashboardPage() {
       </div>
 
       {/* 민원응대 성과 KPI — Row 1 */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
         <KpiCard
           label="총 문의 수"
           value={totalQuestions != null ? totalQuestions.toLocaleString() : "-"}
@@ -97,7 +97,7 @@ export default function ClientDashboardPage() {
       </div>
 
       {/* 민원응대 성과 KPI — Row 2 */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
         <KpiCard
           label="평균 응답시간"
           value={avgResponseMsVal != null ? avgResponseMsVal.toLocaleString() + "ms" : "-"}
@@ -108,13 +108,13 @@ export default function ClientDashboardPage() {
           help="챗봇이 답변을 생성하는 데 걸린 평균 시간입니다. 1.5초 미만이면 정상, 2.5초를 초과하면 시스템 성능 점검이 필요합니다."
         />
         <KpiCard
-          label="피드백 완료율"
+          label="재방문율"
           value={revisitVal != null ? revisitVal.toFixed(1) + "%" : "-"}
           status={getKpiStatus(revisitVal, {
             ok: (v) => v < 10,
             warn: (v) => v < 15,
           })}
-          help="시민이 피드백 버튼을 통해 대화를 완료한 세션 비율입니다. 높을수록 대화 완결도가 높음을 의미합니다."
+          help="동일 민원 건으로 재방문한 세션 비율입니다. 10% 미만이면 정상, 15% 이상이면 답변 품질 점검이 필요합니다."
         />
         <KpiCard
           label="업무시간 외 응대율"

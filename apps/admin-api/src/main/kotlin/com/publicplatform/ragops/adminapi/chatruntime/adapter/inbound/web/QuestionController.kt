@@ -3,6 +3,7 @@ package com.publicplatform.ragops.adminapi.chatruntime.adapter.inbound.web
 import com.publicplatform.ragops.adminapi.auth.AdminRequestSessionResolver
 import com.publicplatform.ragops.chatruntime.application.port.`in`.CreateAnswerUseCase
 import com.publicplatform.ragops.chatruntime.application.port.`in`.CreateQuestionUseCase
+import com.publicplatform.ragops.chatruntime.application.port.`in`.GetQuestionContextUseCase
 import com.publicplatform.ragops.chatruntime.application.port.`in`.ListFaqCandidatesUseCase
 import com.publicplatform.ragops.chatruntime.application.port.`in`.ListQuestionsUseCase
 import com.publicplatform.ragops.chatruntime.domain.AnswerStatus
@@ -11,6 +12,7 @@ import com.publicplatform.ragops.chatruntime.domain.ChatScope
 import com.publicplatform.ragops.chatruntime.domain.FaqCandidate
 import com.publicplatform.ragops.chatruntime.domain.CreateAnswerCommand
 import com.publicplatform.ragops.chatruntime.domain.CreateQuestionCommand
+import com.publicplatform.ragops.chatruntime.domain.QuestionContextSummary
 import com.publicplatform.ragops.chatruntime.domain.QuestionSummary
 import com.publicplatform.ragops.chatruntime.domain.UnresolvedQuestionSummary
 import java.math.BigDecimal
@@ -20,6 +22,7 @@ import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -42,6 +45,7 @@ class QuestionController(
     private val listQuestionsUseCase: ListQuestionsUseCase,
     private val createAnswerUseCase: CreateAnswerUseCase,
     private val listFaqCandidatesUseCase: ListFaqCandidatesUseCase,
+    private val getQuestionContextUseCase: GetQuestionContextUseCase,
 ) {
 
     @PostMapping("/questions")
@@ -75,7 +79,7 @@ class QuestionController(
         servletRequest: HttpServletRequest,
     ): QuestionListResponse {
         val session = adminRequestSessionResolver.resolve(servletRequest)
-        val questions = listQuestionsUseCase.listAll(session.toScope(organizationId), from, to)
+        val questions = listQuestionsUseCase.listAllWithAnswers(session.toScope(organizationId), from, to)
         return QuestionListResponse(items = questions.map { it.toResponse() }, total = questions.size)
     }
 
@@ -100,6 +104,17 @@ class QuestionController(
         adminRequestSessionResolver.resolve(servletRequest)
         val candidates = listFaqCandidatesUseCase.list(organizationId, threshold)
         return FaqCandidateListResponse(items = candidates.map { it.toResponse() }, total = candidates.size)
+    }
+
+    @GetMapping("/questions/{questionId}/context")
+    fun getQuestionContext(
+        @PathVariable questionId: String,
+        servletRequest: HttpServletRequest,
+    ): QuestionContextResponse {
+        adminRequestSessionResolver.resolve(servletRequest)
+        val ctx = getQuestionContextUseCase.getContext(questionId)
+            ?: return QuestionContextResponse(queryText = null, queryRewriteText = null, latencyMs = null, llmMs = null, postprocessMs = null, retrievalStatus = null, retrievedChunks = emptyList())
+        return ctx.toResponse()
     }
 
     @PostMapping("/answers")
@@ -156,6 +171,13 @@ data class QuestionResponse(
     val isEscalated: Boolean,
     val answerConfidence: BigDecimal?,
     val createdAt: Instant,
+    val answerText: String?,
+    val answerStatus: String?,
+    val responseTimeMs: Int?,
+    val faithfulness: Double?,
+    val answerRelevancy: Double?,
+    val contextPrecision: Double?,
+    val contextRecall: Double?,
 )
 
 data class UnresolvedQuestionListResponse(val items: List<UnresolvedQuestionResponse>, val total: Int)
@@ -169,6 +191,8 @@ data class UnresolvedQuestionResponse(
     val isEscalated: Boolean,
     val answerStatus: String?,
     val latestReviewStatus: String?,
+    val latestReviewId: String?,
+    val assigneeId: String?,
     val createdAt: Instant,
 )
 
@@ -209,13 +233,53 @@ private fun QuestionSummary.toResponse() = QuestionResponse(
     questionIntentLabel = questionIntentLabel, channel = channel,
     questionCategory = questionCategory, failureReasonCode = failureReasonCode?.code,
     isEscalated = isEscalated, answerConfidence = answerConfidence, createdAt = createdAt,
+    answerText = answerText, answerStatus = answerStatus, responseTimeMs = responseTimeMs,
+    faithfulness = faithfulness, answerRelevancy = answerRelevancy,
+    contextPrecision = contextPrecision, contextRecall = contextRecall,
 )
 
 private fun UnresolvedQuestionSummary.toResponse() = UnresolvedQuestionResponse(
     questionId = questionId, organizationId = organizationId, questionText = questionText,
     failureReasonCode = failureReasonCode?.code, questionCategory = questionCategory,
     isEscalated = isEscalated, answerStatus = answerStatus,
-    latestReviewStatus = latestReviewStatus, createdAt = createdAt,
+    latestReviewStatus = latestReviewStatus, latestReviewId = latestReviewId,
+    assigneeId = latestReviewAssigneeId, createdAt = createdAt,
+)
+
+data class QuestionContextResponse(
+    val queryText: String?,
+    val queryRewriteText: String?,
+    val latencyMs: Int?,
+    val llmMs: Int?,
+    val postprocessMs: Int?,
+    val retrievalStatus: String?,
+    val retrievedChunks: List<RetrievedChunkResponse>,
+)
+
+data class RetrievedChunkResponse(
+    val rank: Int,
+    val score: Double?,
+    val usedInCitation: Boolean,
+    val chunkId: String?,
+    val chunkText: String?,
+)
+
+private fun QuestionContextSummary.toResponse() = QuestionContextResponse(
+    queryText = queryText,
+    queryRewriteText = queryRewriteText,
+    latencyMs = latencyMs,
+    llmMs = llmMs,
+    postprocessMs = postprocessMs,
+    retrievalStatus = retrievalStatus,
+    retrievedChunks = retrievedChunks.map { chunk ->
+        RetrievedChunkResponse(
+            rank = chunk.rank,
+            score = chunk.score,
+            usedInCitation = chunk.usedInCitation,
+            chunkId = chunk.chunkId,
+            chunkText = chunk.chunkText,
+        )
+    },
 )
 
 private fun AdminSessionSnapshot.toScope(filterOrgId: String? = null): ChatScope {

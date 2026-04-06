@@ -14,12 +14,17 @@ import com.publicplatform.ragops.ingestionops.adapter.outbound.persistence.*
 import com.publicplatform.ragops.ingestionops.application.port.out.*
 import com.publicplatform.ragops.qareview.adapter.outbound.persistence.*
 import com.publicplatform.ragops.qareview.application.port.out.*
+import com.publicplatform.ragops.qareview.adapter.outbound.persistence.UpdateQAReviewAssigneePortAdapter
 import com.publicplatform.ragops.chatruntime.adapter.outbound.persistence.*
 import com.publicplatform.ragops.chatruntime.application.port.out.*
 import com.publicplatform.ragops.documentregistry.adapter.outbound.persistence.*
 import com.publicplatform.ragops.documentregistry.application.port.out.*
 import com.publicplatform.ragops.metricsreporting.adapter.outbound.persistence.*
 import com.publicplatform.ragops.metricsreporting.application.port.out.*
+import com.publicplatform.ragops.metricsreporting.adapter.outbound.persistence.AnomalyThresholdPortAdapter
+import com.publicplatform.ragops.metricsreporting.adapter.outbound.persistence.AlertEventPortAdapter
+import com.publicplatform.ragops.metricsreporting.adapter.outbound.persistence.JpaAlertThresholdRepository
+import com.publicplatform.ragops.metricsreporting.adapter.outbound.persistence.JpaAlertEventRepository
 import com.publicplatform.ragops.adminapi.evaluation.adapter.inbound.event.RagasEvalQueuePublisher
 import com.publicplatform.ragops.adminapi.evaluation.adapter.outbound.persistence.JpaRagasEvaluationRepository
 import com.publicplatform.ragops.adminapi.evaluation.adapter.outbound.persistence.LoadRagasEvaluationsPortAdapter
@@ -59,8 +64,8 @@ class RepositoryConfiguration {
         RecordAuditLogPortAdapter(jpaRepository)
 
     @Bean
-    fun loadAuditLogPort(jpaRepository: JpaRecordAuditLogPort): LoadAuditLogPort =
-        LoadAuditLogPortAdapter(jpaRepository)
+    fun loadAuditLogPort(jdbcTemplate: JdbcTemplate): LoadAuditLogPort =
+        LoadAuditLogPortAdapter(jdbcTemplate)
 
     @Bean
     fun loadAdminUsersPort(jpaRepository: JpaManageAdminUserPort): LoadAdminUsersPort =
@@ -98,6 +103,10 @@ class RepositoryConfiguration {
     @Bean
     fun qaReviewWriter(jpaRepository: JpaQAReviewRepository): RecordQAReviewPort =
         RecordQAReviewPortAdapter(jpaRepository)
+
+    @Bean
+    fun updateQAReviewAssigneePort(jpaRepository: JpaQAReviewRepository): UpdateQAReviewAssigneePort =
+        UpdateQAReviewAssigneePortAdapter(jpaRepository)
 
     @Bean
     fun questionReader(jpaRepository: JpaQuestionRepository): LoadQuestionPort =
@@ -211,6 +220,22 @@ class RepositoryConfiguration {
         jpaRagConfigRepository: JpaRagConfigRepository,
         jpaRagConfigVersionRepository: JpaRagConfigVersionRepository,
     ): RecordRagConfigPort = RecordRagConfigPortAdapter(jpaRagConfigRepository, jpaRagConfigVersionRepository)
+
+    @Bean
+    fun loadAnomalyThresholdPort(jpaRepository: JpaAlertThresholdRepository): com.publicplatform.ragops.metricsreporting.application.port.out.LoadAnomalyThresholdPort =
+        AnomalyThresholdPortAdapter(jpaRepository)
+
+    @Bean
+    fun saveAnomalyThresholdPort(jpaRepository: JpaAlertThresholdRepository): com.publicplatform.ragops.metricsreporting.application.port.out.SaveAnomalyThresholdPort =
+        AnomalyThresholdPortAdapter(jpaRepository)
+
+    @Bean
+    fun loadAlertEventPort(jpaRepository: JpaAlertEventRepository): com.publicplatform.ragops.metricsreporting.application.port.out.LoadAlertEventPort =
+        AlertEventPortAdapter(jpaRepository)
+
+    @Bean
+    fun saveAlertEventPort(jpaRepository: JpaAlertEventRepository): com.publicplatform.ragops.metricsreporting.application.port.out.SaveAlertEventPort =
+        AlertEventPortAdapter(jpaRepository)
 
     @Bean
     @ConditionalOnBean(RedisTemplate::class)

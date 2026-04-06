@@ -24,6 +24,11 @@ spring:
       - classpath:db/migration
       - classpath:com/publicplatform/ragops/adminapi/migration
 
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
   main:
     web-application-type: servlet
 
@@ -42,6 +47,11 @@ rag:
     enabled: true
     url: http://localhost:8090
 
+ragas:
+  eval:
+    redis:
+      enabled: ${RAGAS_EVAL_REDIS_ENABLED:true}
+
 evaluation:
   ragas:
     enabled: ${RAGAS_EVAL_ENABLED:true}
@@ -51,3 +61,7 @@ evaluation:
   llm-judge:
     enabled: ${LLM_JUDGE_ENABLED:false}
     provider: ${JUDGE_PROVIDER:ollama}
+
+metrics:
+  aggregation:
+    cron: "0 */30 * * * *"

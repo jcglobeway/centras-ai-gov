@@ -2,6 +2,7 @@ package com.publicplatform.ragops.organizationdirectory.application.port.`in`
 
 import com.publicplatform.ragops.organizationdirectory.domain.Organization
 import com.publicplatform.ragops.organizationdirectory.domain.OrganizationScope
+import com.publicplatform.ragops.organizationdirectory.domain.Service
 
 /**
  * 기관 목록 조회 인바운드 포트.
@@ -11,4 +12,5 @@ import com.publicplatform.ragops.organizationdirectory.domain.OrganizationScope
  */
 interface GetOrganizationsUseCase {
     fun listOrganizations(scope: OrganizationScope): List<Organization>
+    fun listServices(organizationId: String): List<Service>
 }

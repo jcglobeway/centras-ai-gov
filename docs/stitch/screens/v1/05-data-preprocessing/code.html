@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "surface-bright": "#31394d",
+                        "secondary-container": "#33467e",
+                        "on-secondary-container": "#a4b6f5",
+                        "tertiary-fixed": "#ffdbcd",
+                        "primary": "#b4c5ff",
+                        "tertiary": "#ffb596",
+                        "secondary-fixed": "#dbe1ff",
+                        "error": "#ffb4ab",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "on-secondary-fixed": "#00174b",
+                        "on-error": "#690005",
+                        "tertiary-container": "#bc4800",
+                        "error-container": "#93000a",
+                        "surface-container-high": "#222a3d",
+                        "inverse-on-surface": "#283044",
+                        "outline": "#8d90a0",
+                        "on-tertiary-container": "#ffede6",
+                        "on-surface": "#dae2fd",
+                        "surface-container": "#171f33",
+                        "primary-container": "#2563eb",
+                        "on-secondary": "#182d63",
+                        "surface-container-lowest": "#060e20",
+                        "background": "#0b1326",
+                        "surface-tint": "#b4c5ff",
+                        "on-primary": "#002a78",
+                        "secondary": "#b4c5ff",
+                        "inverse-primary": "#0053db",
+                        "surface-variant": "#2d3449",
+                        "surface": "#0b1326",
+                        "outline-variant": "#434655",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "inverse-surface": "#dae2fd",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "primary-fixed": "#dbe1ff",
+                        "on-secondary-fixed-variant": "#31447b",
+                        "on-primary-container": "#eeefff",
+                        "surface-container-highest": "#2d3449",
+                        "on-background": "#dae2fd",
+                        "on-primary-fixed": "#00174b",
+                        "secondary-fixed-dim": "#b4c5ff",
+                        "on-tertiary-fixed": "#360f00",
+                        "on-surface-variant": "#c3c6d7",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-low": "#131b2e",
+                        "on-tertiary": "#581e00",
+                        "surface-dim": "#0b1326"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"],
+                        "mono": ["IBM Plex Mono"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #2563eb;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body antialiased">
+<!-- SideNavBar Shell -->
+<aside class="fixed left-0 top-0 h-full w-[240px] z-50 bg-[#0b1326] shadow-[4px_0_24px_rgba(0,0,0,0.4)] flex flex-col py-6">
+<div class="px-6 mb-8">
+<h1 class="text-lg font-bold tracking-tighter text-slate-100">RAG Admin</h1>
+<p class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mt-1">Kinetic Intelligence</p>
+</div>
+<nav class="flex-1 space-y-1">
+<div class="px-4 py-2 flex items-center gap-3 text-slate-400 hover:text-slate-200 hover:bg-[#131b2e] transition-colors duration-200 cursor-pointer text-sm font-medium">
+<span class="material-symbols-outlined" data-icon="dashboard_customize">dashboard_customize</span>
+<span>Operations</span>
+</div>
+<div class="px-4 py-2 flex items-center gap-3 text-slate-400 hover:text-slate-200 hover:bg-[#131b2e] transition-colors duration-200 cursor-pointer text-sm font-medium">
+<span class="material-symbols-outlined" data-icon="account_tree">account_tree</span>
+<span>Vector Traces</span>
+</div>
+<!-- Active State: Knowledge Base -->
+<div class="px-4 py-2 flex items-center gap-3 bg-[#171f33] text-white border-l-2 border-[#2563eb] text-sm font-medium cursor-pointer">
+<span class="material-symbols-outlined" data-icon="database">database</span>
+<span>Knowledge Base</span>
+</div>
+<div class="px-4 py-2 flex items-center gap-3 text-slate-400 hover:text-slate-200 hover:bg-[#131b2e] transition-colors duration-200 cursor-pointer text-sm font-medium">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span>Analytics</span>
+</div>
+<div class="px-4 py-2 flex items-center gap-3 text-slate-400 hover:text-slate-200 hover:bg-[#131b2e] transition-colors duration-200 cursor-pointer text-sm font-medium">
+<span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span>
+<span>Model Config</span>
+</div>
+<div class="px-4 py-2 flex items-center gap-3 text-slate-400 hover:text-slate-200 hover:bg-[#131b2e] transition-colors duration-200 cursor-pointer text-sm font-medium">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+<span>System Logs</span>
+</div>
+</nav>
+<div class="px-4 mt-auto space-y-1">
+<div class="px-4 py-2 flex items-center gap-3 text-slate-400 hover:text-slate-200 hover:bg-[#131b2e] transition-colors duration-200 cursor-pointer text-sm font-medium">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+<span>Support</span>
+</div>
+<div class="px-4 py-2 flex items-center gap-3 text-slate-400 hover:text-slate-200 hover:bg-[#131b2e] transition-colors duration-200 cursor-pointer text-sm font-medium">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</div>
+</div>
+</aside>
+<!-- TopNavBar Shell -->
+<header class="fixed top-0 right-0 w-[calc(100%-240px)] z-40 bg-[#0b1326]/80 backdrop-blur-md border-b border-slate-800/50 flex justify-between items-center h-16 px-8 ml-[240px]">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 text-xs uppercase tracking-widest font-semibold text-slate-400">
+<span class="hover:text-white cursor-pointer">Knowledge Base</span>
+<span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+<span class="text-[#2563eb]">데이터 전처리</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-slate-400 hover:text-white cursor-pointer" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-slate-400 hover:text-white cursor-pointer" data-icon="cloud_done">cloud_done</span>
+<div class="w-8 h-8 rounded-full bg-surface-container-high border border-outline-variant flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="professional male headshot with neutral background, corporate avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkqpp7bu14uv80PJkmN6fHKKCMnpJgdCBnLK7FW1fkmEH7glRkkYpBrdH-uNLpOKF7v7l8l4tFZpqqrliXoTK9UY44QYeZkrTZ_X25i8I9ykjbIFZKw_FRQ4Xu_pkoEjdM1XI1kf1q8J4eC0jDF6FpNAXg51Pn3qxtgPq_thH2rH5DxEfyreE_gVkX_u7MKDmM9v9nV_ks0X1sq8sA-QIPoDnUCVbzT0k9vzckWF81QOVab3r25PQzYfcNnfRRZqXzwEKGcTzXlg7z"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-[240px] pt-24 px-8 pb-12 min-h-screen">
+<div class="max-w-[1400px] mx-auto space-y-6">
+<!-- Page Header Section -->
+<div class="flex justify-between items-end mb-8">
+<div>
+<h2 class="text-2xl font-bold tracking-tight text-white mb-1">데이터 전처리</h2>
+<p class="text-on-surface-variant text-sm">고성능 RAG 응답을 위한 벡터 데이터 정제 및 파이프라인 구성</p>
+</div>
+<button class="bg-primary-container text-white px-4 py-2 rounded font-semibold text-sm hover:opacity-90 transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="play_arrow">play_arrow</span>
+                    설정 적용 및 재인덱싱
+                </button>
+</div>
+<!-- Top Section: Config Panels (12-col grid) -->
+<div class="grid grid-cols-12 gap-4">
+<!-- Left Panel: Chunking Configuration -->
+<section class="col-span-6 bg-surface-container-low p-6 rounded-lg space-y-6">
+<div class="flex items-center justify-between">
+<h3 class="text-sm font-bold uppercase tracking-wider text-white">청킹(Chunking) 설정</h3>
+<span class="material-symbols-outlined text-on-surface-variant cursor-help" data-icon="info">info</span>
+</div>
+<!-- Chunking Strategy Selector -->
+<div class="grid grid-cols-3 gap-3">
+<label class="cursor-pointer">
+<input checked="" class="hidden peer" name="chunk_strategy" type="radio"/>
+<div class="p-3 border border-outline-variant rounded peer-checked:border-primary-container peer-checked:bg-primary-container/10 transition-all text-center">
+<span class="block text-xs font-semibold text-on-surface-variant peer-checked:text-primary">Fixed Size</span>
+</div>
+</label>
+<label class="cursor-pointer">
+<input class="hidden peer" name="chunk_strategy" type="radio"/>
+<div class="p-3 border border-outline-variant rounded peer-checked:border-primary-container peer-checked:bg-primary-container/10 transition-all text-center">
+<span class="block text-xs font-semibold text-on-surface-variant peer-checked:text-primary">Sentence</span>
+</div>
+</label>
+<label class="cursor-pointer">
+<input class="hidden peer" name="chunk_strategy" type="radio"/>
+<div class="p-3 border border-outline-variant rounded peer-checked:border-primary-container peer-checked:bg-primary-container/10 transition-all text-center">
+<span class="block text-xs font-semibold text-on-surface-variant peer-checked:text-primary">Semantic</span>
+</div>
+</label>
+</div>
+<!-- Sliders -->
+<div class="space-y-4 pt-2">
+<div class="space-y-2">
+<div class="flex justify-between items-center">
+<label class="text-xs font-medium text-on-surface-variant">Token Size</label>
+<span class="font-mono text-xs text-primary font-bold">512 tokens</span>
+</div>
+<input class="w-full h-1 bg-surface-container rounded-full appearance-none" max="2048" min="128" type="range" value="512"/>
+<div class="flex justify-between text-[10px] text-outline font-mono">
+<span>128</span>
+<span>2048</span>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-center">
+<label class="text-xs font-medium text-on-surface-variant">Overlap Ratio</label>
+<span class="font-mono text-xs text-primary font-bold">15%</span>
+</div>
+<input class="w-full h-1 bg-surface-container rounded-full appearance-none" max="30" min="0" type="range" value="15"/>
+<div class="flex justify-between text-[10px] text-outline font-mono">
+<span>0%</span>
+<span>30%</span>
+</div>
+</div>
+</div>
+<!-- Amber Warning Banner -->
+<div class="bg-[#f59e0b]/10 border-l-4 border-[#f59e0b] p-4 flex items-start gap-3">
+<span class="material-symbols-outlined text-[#f59e0b] text-sm mt-0.5" data-icon="warning">warning</span>
+<p class="text-xs text-[#f59e0b] font-medium leading-relaxed">
+                            전체 재인덱싱이 필요합니다 — 예상 소요: 약 23분
+                        </p>
+</div>
+</section>
+<!-- Right Panel: PII Anonymization -->
+<section class="col-span-6 bg-surface-container-low p-6 rounded-lg space-y-6">
+<div class="flex items-center justify-between">
+<h3 class="text-sm font-bold uppercase tracking-wider text-white">PII 비식별화 규칙</h3>
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-mono text-on-surface-variant bg-surface-container px-2 py-0.5 rounded">AUTO-DETECT ON</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-3">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="w-4 h-4 rounded bg-surface-container border-outline-variant text-primary-container focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+<span class="text-xs font-medium text-on-surface group-hover:text-primary transition-colors">주민번호</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="w-4 h-4 rounded bg-surface-container border-outline-variant text-primary-container focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+<span class="text-xs font-medium text-on-surface group-hover:text-primary transition-colors">전화번호</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="w-4 h-4 rounded bg-surface-container border-outline-variant text-primary-container focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+<span class="text-xs font-medium text-on-surface group-hover:text-primary transition-colors">계좌번호</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="w-4 h-4 rounded bg-surface-container border-outline-variant text-primary-container focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+<span class="text-xs font-medium text-on-surface group-hover:text-primary transition-colors">이메일</span>
+</label>
+</div>
+<div class="space-y-4">
+<div class="space-y-2">
+<label class="text-[10px] font-bold uppercase tracking-widest text-outline">마스킹 방법</label>
+<div class="relative">
+<select class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-3 py-2 text-xs text-on-surface focus:outline-none focus:border-primary-container appearance-none">
+<option>Masking (****)</option>
+<option>Replacing (Pseudo-ID)</option>
+<option>Removing</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-sm text-outline pointer-events-none" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+<div class="p-4 rounded bg-surface-container-highest/30 border border-outline-variant/10">
+<p class="text-[10px] text-on-surface-variant leading-tight">선택한 규칙에 따라 개인정보가 처리된 후 벡터 DB로 인코딩됩니다. 원본 문서는 별도의 격리 저장소에 유지됩니다.</p>
+</div>
+</div>
+</div>
+<!-- Preview Area -->
+<div class="mt-4 p-3 bg-surface-container-lowest rounded-lg border border-outline-variant/20 font-mono text-[11px] leading-relaxed overflow-hidden relative">
+<div class="absolute top-2 right-2 flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-[#10b981]"></span>
+<span class="text-[9px] text-[#10b981] font-bold">PREVIEW</span>
+</div>
+<div class="text-outline">Input: "Kim works at Seoul, 010-1234-5678"</div>
+<div class="text-on-surface mt-1">Output: "Kim works at Seoul, <span class="bg-primary-container/30 text-primary-fixed border-b border-primary px-1">010-****-****</span>"</div>
+</div>
+</section>
+<!-- Middle Section: Error Logs -->
+<section class="col-span-12 bg-surface-container-low rounded-lg overflow-hidden flex flex-col">
+<div class="px-6 py-4 flex items-center justify-between border-b border-outline-variant/10">
+<h3 class="text-sm font-bold uppercase tracking-wider text-white">데이터 적재 에러 로그</h3>
+<div class="flex items-center gap-4">
+<span class="font-mono text-[11px] text-[#ef4444] bg-[#ef4444]/10 px-2 py-0.5 rounded">Total 4 Errors</span>
+<span class="material-symbols-outlined text-outline cursor-pointer" data-icon="refresh">refresh</span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-high/50">
+<th class="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-outline">Document Name</th>
+<th class="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-outline">Error Type</th>
+<th class="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-outline">Occurred At</th>
+<th class="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-outline text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="px-6 py-4 text-xs font-medium text-on-surface">Q3_financial_report.pdf</td>
+<td class="px-6 py-4">
+<span class="text-[10px] font-mono font-bold text-[#ef4444]">ENCODING_ERROR</span>
+</td>
+<td class="px-6 py-4 text-[11px] font-mono text-on-surface-variant">2023-10-24 14:22:01</td>
+<td class="px-6 py-4 text-right">
+<button class="text-[10px] font-bold text-primary-container hover:underline px-3 py-1 rounded-sm border border-primary-container/20">Retry</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="px-6 py-4 text-xs font-medium text-on-surface">internal_policy_v2.docx</td>
+<td class="px-6 py-4">
+<span class="text-[10px] font-mono font-bold text-[#f59e0b]">CHUNKING_TIMEOUT</span>
+</td>
+<td class="px-6 py-4 text-[11px] font-mono text-on-surface-variant">2023-10-24 13:05:48</td>
+<td class="px-6 py-4 text-right">
+<button class="text-[10px] font-bold text-primary-container hover:underline px-3 py-1 rounded-sm border border-primary-container/20">Retry</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="px-6 py-4 text-xs font-medium text-on-surface">user_manual_draft.txt</td>
+<td class="px-6 py-4">
+<span class="text-[10px] font-mono font-bold text-[#ef4444]">UNSUPPORTED_FORMAT</span>
+</td>
+<td class="px-6 py-4 text-[11px] font-mono text-on-surface-variant">2023-10-24 09:12:33</td>
+<td class="px-6 py-4 text-right">
+<button class="text-[10px] font-bold text-outline cursor-not-allowed px-3 py-1 rounded-sm border border-outline-variant/20">Details</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Bottom Section: Duplicate Detection -->
+<section class="col-span-12 bg-surface-container-low rounded-lg overflow-hidden flex flex-col">
+<div class="px-6 py-4 flex items-center justify-between border-b border-outline-variant/10">
+<div class="flex items-center gap-3">
+<h3 class="text-sm font-bold uppercase tracking-wider text-white">중복 청크 탐지 결과</h3>
+<span class="text-[9px] px-1.5 py-0.5 rounded bg-[#10b981]/10 text-[#10b981] font-mono font-bold">THRESHOLD &gt; 85%</span>
+</div>
+<button class="text-[10px] font-bold text-white bg-surface-container-highest px-3 py-1.5 rounded hover:bg-surface-container-high transition-colors">Bulk Action</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-high/50">
+<th class="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-outline">Chunk ID Pairs</th>
+<th class="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-outline">Similarity Score</th>
+<th class="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-outline text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="group hover:bg-surface-container-high/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 font-mono text-xs">
+<span class="text-primary">#001</span>
+<span class="material-symbols-outlined text-[10px] text-outline" data-icon="link">link</span>
+<span class="text-primary">#024</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="w-full max-w-[120px] bg-surface-container rounded-full h-1.5 flex items-center gap-3">
+<div class="bg-[#10b981] h-full rounded-full" style="width: 98%;"></div>
+<span class="font-mono text-xs text-[#10b981] font-bold">98.4%</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right space-x-3">
+<button class="text-[10px] font-bold text-white hover:text-[#ef4444] transition-colors">Delete</button>
+<button class="text-[10px] font-bold text-primary-container hover:bg-primary-container/10 px-3 py-1 rounded">Merge</button>
+</td>
+</tr>
+<tr class="group hover:bg-surface-container-high/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 font-mono text-xs">
+<span class="text-primary">#112</span>
+<span class="material-symbols-outlined text-[10px] text-outline" data-icon="link">link</span>
+<span class="text-primary">#113</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="w-full max-w-[120px] bg-surface-container rounded-full h-1.5 flex items-center gap-3">
+<div class="bg-[#f59e0b] h-full rounded-full" style="width: 87%;"></div>
+<span class="font-mono text-xs text-[#f59e0b] font-bold">87.2%</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right space-x-3">
+<button class="text-[10px] font-bold text-white hover:text-[#ef4444] transition-colors">Delete</button>
+<button class="text-[10px] font-bold text-primary-container hover:bg-primary-container/10 px-3 py-1 rounded">Merge</button>
+</td>
+</tr>
+<tr class="group hover:bg-surface-container-high/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 font-mono text-xs">
+<span class="text-primary">#509</span>
+<span class="material-symbols-outlined text-[10px] text-outline" data-icon="link">link</span>
+<span class="text-primary">#512</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="w-full max-w-[120px] bg-surface-container rounded-full h-1.5 flex items-center gap-3">
+<div class="bg-[#f59e0b] h-full rounded-full" style="width: 86%;"></div>
+<span class="font-mono text-xs text-[#f59e0b] font-bold">86.0%</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right space-x-3">
+<button class="text-[10px] font-bold text-white hover:text-[#ef4444] transition-colors">Delete</button>
+<button class="text-[10px] font-bold text-primary-container hover:bg-primary-container/10 px-3 py-1 rounded">Merge</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+</div>
+</main>
+<!-- Background Decoration -->
+<div class="fixed inset-0 pointer-events-none z-[-1] opacity-30">
+<div class="absolute top-0 right-0 w-[800px] h-[800px] bg-primary-container/5 rounded-full blur-[120px]"></div>
+<div class="absolute bottom-[-200px] left-0 w-[600px] h-[600px] bg-secondary-container/10 rounded-full blur-[100px]"></div>
+</div>
+</body></html>

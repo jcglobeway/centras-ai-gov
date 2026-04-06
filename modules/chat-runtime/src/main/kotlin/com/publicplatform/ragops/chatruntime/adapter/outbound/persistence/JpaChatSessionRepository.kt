@@ -9,6 +9,9 @@ import java.time.Instant
 
 @Repository
 interface JpaChatSessionRepository : JpaRepository<ChatSessionEntity, String> {
+    fun findByOrganizationIdInOrderByStartedAtDesc(organizationIds: Set<String>): List<ChatSessionEntity>
+    fun findAllByOrderByStartedAtDesc(): List<ChatSessionEntity>
+
     @Modifying
     @Query("""
         UPDATE ChatSessionEntity s SET

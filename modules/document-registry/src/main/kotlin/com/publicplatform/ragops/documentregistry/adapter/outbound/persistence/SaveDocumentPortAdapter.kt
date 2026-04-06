@@ -22,6 +22,7 @@ open class SaveDocumentPortAdapter(
             chunkKey = command.chunkKey, chunkText = command.chunkText,
             chunkOrder = command.chunkOrder, tokenCount = command.tokenCount,
             embeddingVector = command.embeddingVector,
+            metadata = command.metadata,
         )
         return jpaChunkRepository.save(entity).toSummary()
     }

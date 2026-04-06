@@ -35,8 +35,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="기관 어드민" />
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-[1400px] mx-auto">{children}</div>
+        <main className="flex-1 overflow-y-auto p-8">
+          <div className="max-w-[1400px]">{children}</div>
         </main>
       </div>
     </div>

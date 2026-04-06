@@ -3,7 +3,8 @@ package com.publicplatform.ragops.identityaccess.application.port.`in`
 import com.publicplatform.ragops.identityaccess.domain.AuditLogEntry
 
 interface GetAuditLogsUseCase {
-    fun list(page: Int, pageSize: Int): GetAuditLogsResult
+    fun list(filter: AuditLogFilter, page: Int, pageSize: Int): GetAuditLogsResult
+    fun listAll(filter: AuditLogFilter): List<AuditLogEntry>
 }
 
 data class GetAuditLogsResult(

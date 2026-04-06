@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sovereign AI - Service Statistics</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "inverse-surface": "#dae2fd",
+              "secondary-container": "#3a4a5f",
+              "error-container": "#93000a",
+              "secondary-fixed-dim": "#b7c8e1",
+              "surface-container": "#171f33",
+              "surface-container-low": "#131b2e",
+              "tertiary-fixed": "#6ffbbe",
+              "on-secondary-fixed": "#0b1c30",
+              "on-tertiary-fixed": "#002113",
+              "surface-bright": "#31394d",
+              "on-surface-variant": "#c3c6d7",
+              "background": "#0b1326",
+              "error": "#ffb4ab",
+              "secondary": "#b7c8e1",
+              "surface-variant": "#2d3449",
+              "tertiary": "#4edea3",
+              "on-primary-container": "#eeefff",
+              "on-error-container": "#ffdad6",
+              "surface-tint": "#b4c5ff",
+              "primary-fixed-dim": "#b4c5ff",
+              "surface-dim": "#0b1326",
+              "on-primary-fixed": "#00174b",
+              "on-tertiary": "#003824",
+              "on-primary": "#002a78",
+              "on-tertiary-container": "#bdffdb",
+              "on-secondary": "#213145",
+              "surface": "#0b1326",
+              "primary-fixed": "#dbe1ff",
+              "surface-container-high": "#222a3d",
+              "surface-container-lowest": "#060e20",
+              "on-background": "#dae2fd",
+              "outline": "#8d90a0",
+              "on-surface": "#dae2fd",
+              "on-error": "#690005",
+              "on-primary-fixed-variant": "#003ea8",
+              "secondary-fixed": "#d3e4fe",
+              "on-tertiary-fixed-variant": "#005236",
+              "inverse-primary": "#0053db",
+              "primary-container": "#2563eb",
+              "on-secondary-container": "#a9bad3",
+              "surface-container-highest": "#2d3449",
+              "tertiary-container": "#007d55",
+              "on-secondary-fixed-variant": "#38485d",
+              "inverse-on-surface": "#283044",
+              "primary": "#b4c5ff",
+              "outline-variant": "#434655",
+              "tertiary-fixed-dim": "#4edea3"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["IBM Plex Mono"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+      body { background-color: #0b1326; color: #dae2fd; font-family: 'Inter', sans-serif; }
+      .mono { font-family: 'IBM Plex Mono', monospace; }
+      .glass-card { background-color: #171f33; border: 1px solid rgba(67, 70, 85, 0.3); border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body class="flex min-h-screen">
+<!-- SideNavBar Component -->
+<aside class="w-[240px] h-screen fixed left-0 top-0 bg-[#0b1326] flex flex-col py-6 z-50">
+<div class="px-6 mb-10">
+<h1 class="text-xl font-bold tracking-tighter text-slate-100 mono">Sovereign AI</h1>
+<p class="text-[10px] uppercase tracking-widest text-slate-500 mt-1 mono">RAG Operations Control</p>
+</div>
+<nav class="flex-1 space-y-1">
+<!-- Active Navigation Logic: Dashboard -->
+<a class="bg-[#131b2e] text-white border-l-[3px] border-[#2563eb] transition-all px-4 py-3 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined text-[#2563eb]">dashboard</span>
+<span class="text-xs mono">Dashboard</span>
+</a>
+<a class="text-slate-400 hover:text-slate-100 hover:bg-[#171f33] px-4 py-3 flex items-center gap-3 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">database</span>
+<span class="text-xs mono">Knowledge Base</span>
+</a>
+<a class="text-slate-400 hover:text-slate-100 hover:bg-[#171f33] px-4 py-3 flex items-center gap-3 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">smart_toy</span>
+<span class="text-xs mono">Chatbot Settings</span>
+</a>
+<a class="text-slate-400 hover:text-slate-100 hover:bg-[#171f33] px-4 py-3 flex items-center gap-3 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">verified_user</span>
+<span class="text-xs mono">Quality Management</span>
+</a>
+<a class="text-slate-400 hover:text-slate-100 hover:bg-[#171f33] px-4 py-3 flex items-center gap-3 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="text-xs mono">Service Monitoring</span>
+</a>
+<a class="text-slate-400 hover:text-slate-100 hover:bg-[#171f33] px-4 py-3 flex items-center gap-3 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-xs mono">Reports</span>
+</a>
+<a class="text-slate-400 hover:text-slate-100 hover:bg-[#171f33] px-4 py-3 flex items-center gap-3 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">settings_input_component</span>
+<span class="text-xs mono">System &amp; Permissions</span>
+</a>
+</nav>
+<div class="px-6 mt-auto">
+<div class="p-3 bg-surface-container-low rounded flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-[10px] font-bold">OP</div>
+<div class="overflow-hidden">
+<p class="text-[10px] font-semibold text-white truncate">Admin_User_01</p>
+<p class="text-[8px] text-slate-500 mono uppercase">System Root</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="flex-1 ml-[240px] flex flex-col min-h-screen">
+<!-- TopNavBar Component -->
+<header class="fixed top-0 right-0 left-[240px] h-16 z-40 bg-[#0b1326]/80 backdrop-blur-md flex justify-between items-center px-8 w-full border-b border-slate-800/50">
+<div class="flex items-center gap-6">
+<h2 class="text-on-surface font-bold text-lg tracking-tight">Service Statistics</h2>
+<div class="h-4 w-[1px] bg-slate-700"></div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-low rounded text-xs text-slate-400 mono">
+<span class="material-symbols-outlined text-[16px]">calendar_today</span>
+<span>Last 30 Days</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-low rounded text-xs text-slate-400 mono">
+<span class="material-symbols-outlined text-[16px]">person</span>
+<span>Global Customer</span>
+<span class="material-symbols-outlined text-[16px]">expand_more</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-slate-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-slate-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Content Area -->
+<div class="mt-16 p-8 space-y-6">
+<div class="grid grid-cols-12 gap-6">
+<!-- Left Column: DAU & Heatmap -->
+<div class="col-span-8 space-y-6">
+<!-- DAU Line Chart -->
+<div class="glass-card p-5">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-sm font-semibold text-white">Daily Active Users (DAU)</h3>
+<p class="text-[10px] text-slate-500 mono uppercase tracking-tight">30-day Trend Analysis</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-[#2563eb]"></span>
+<span class="text-[10px] mono text-slate-300">Live Traffic</span>
+</div>
+</div>
+<div class="h-[240px] relative w-full flex items-end justify-between px-2 pt-4">
+<!-- Background Grid -->
+<div class="absolute inset-0 flex flex-col justify-between py-4">
+<div class="w-full border-b border-slate-800/50"></div>
+<div class="w-full border-b border-slate-800/50"></div>
+<div class="w-full border-b border-slate-800/50"></div>
+<div class="w-full border-b border-slate-800/50"></div>
+</div>
+<!-- Mockup SVG Line Chart -->
+<svg class="absolute inset-0 w-full h-full px-2" preserveaspectratio="none" viewbox="0 0 100 100">
+<path d="M0,80 Q10,75 20,85 T40,60 T60,40 T80,50 T100,20" fill="none" stroke="#2563eb" stroke-width="2"></path>
+<path d="M0,80 Q10,75 20,85 T40,60 T60,40 T80,50 T100,20 L100,100 L0,100 Z" fill="url(#lineGradient)" opacity="0.1"></path>
+<defs>
+<lineargradient id="lineGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#2563eb"></stop>
+<stop offset="100%" stop-color="transparent"></stop>
+</lineargradient>
+</defs>
+</svg>
+<div class="flex justify-between w-full mt-auto pt-2">
+<span class="text-[9px] mono text-slate-500">MAY 01</span>
+<span class="text-[9px] mono text-slate-500">MAY 15</span>
+<span class="text-[9px] mono text-slate-500">MAY 30</span>
+</div>
+</div>
+</div>
+<!-- Hourly Usage Heatmap -->
+<div class="glass-card p-5">
+<div class="mb-4">
+<h3 class="text-sm font-semibold text-white">Hourly Usage Density</h3>
+<p class="text-[10px] text-slate-500 mono uppercase tracking-tight">Peak performance distribution</p>
+</div>
+<div class="grid grid-cols-24 gap-1">
+<!-- Day Labels Placeholder -->
+<div class="col-span-24 grid grid-cols-24 gap-1 h-20">
+<!-- Mock heatmap squares -->
+<div class="bg-primary-container/20 rounded-sm"></div>
+<div class="bg-primary-container/10 rounded-sm"></div>
+<div class="bg-primary-container/30 rounded-sm"></div>
+<div class="bg-primary-container/60 rounded-sm"></div>
+<div class="bg-primary-container/80 rounded-sm"></div>
+<div class="bg-primary-container/90 rounded-sm"></div>
+<div class="bg-primary-container/70 rounded-sm"></div>
+<div class="bg-primary-container/50 rounded-sm"></div>
+<div class="bg-primary-container/20 rounded-sm"></div>
+<div class="bg-primary-container/10 rounded-sm"></div>
+<div class="bg-primary-container/10 rounded-sm"></div>
+<div class="bg-primary-container/20 rounded-sm"></div>
+<div class="bg-primary-container/40 rounded-sm"></div>
+<div class="bg-primary-container/60 rounded-sm"></div>
+<div class="bg-primary-container/100 rounded-sm"></div>
+<div class="bg-primary-container/90 rounded-sm"></div>
+<div class="bg-primary-container/60 rounded-sm"></div>
+<div class="bg-primary-container/30 rounded-sm"></div>
+<div class="bg-primary-container/10 rounded-sm"></div>
+<div class="bg-primary-container/05 rounded-sm"></div>
+<div class="bg-primary-container/10 rounded-sm"></div>
+<div class="bg-primary-container/20 rounded-sm"></div>
+<div class="bg-primary-container/10 rounded-sm"></div>
+<div class="bg-primary-container/05 rounded-sm"></div>
+</div>
+</div>
+<div class="flex justify-between mt-2 px-1">
+<span class="text-[8px] mono text-slate-500">00:00</span>
+<span class="text-[8px] mono text-slate-500">12:00</span>
+<span class="text-[8px] mono text-slate-500">23:59</span>
+</div>
+</div>
+</div>
+<!-- Right Column: Categories & Success Rate -->
+<div class="col-span-4 space-y-6">
+<!-- Distribution Donut -->
+<div class="glass-card p-5 h-[340px] flex flex-col">
+<div class="mb-4">
+<h3 class="text-sm font-semibold text-white">Query Categories</h3>
+<p class="text-[10px] text-slate-500 mono uppercase tracking-tight">Semantic Cluster Distribution</p>
+</div>
+<div class="flex-1 flex flex-col justify-center items-center relative">
+<!-- Simple SVG Donut -->
+<svg class="w-32 h-32 transform -rotate-90">
+<circle cx="64" cy="64" fill="transparent" r="50" stroke="#1e293b" stroke-width="12"></circle>
+<circle cx="64" cy="64" fill="transparent" r="50" stroke="#2563eb" stroke-dasharray="314" stroke-dashoffset="100" stroke-width="12"></circle>
+<circle cx="64" cy="64" fill="transparent" r="50" stroke="#4edea3" stroke-dasharray="314" stroke-dashoffset="250" stroke-width="12"></circle>
+<circle cx="64" cy="64" fill="transparent" r="50" stroke="#b4c5ff" stroke-dasharray="314" stroke-dashoffset="290" stroke-width="12"></circle>
+</svg>
+<div class="absolute flex flex-col items-center">
+<span class="mono text-lg font-bold text-white leading-none">8.4k</span>
+<span class="text-[8px] text-slate-500 mono">TOTAL</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-y-2 mt-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-[#2563eb]"></span>
+<span class="text-[10px] mono text-slate-400">Technical (42%)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-[#4edea3]"></span>
+<span class="text-[10px] mono text-slate-400">Billing (31%)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-[#b4c5ff]"></span>
+<span class="text-[10px] mono text-slate-400">Onboarding (18%)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-slate-600"></span>
+<span class="text-[10px] mono text-slate-400">Other (9%)</span>
+</div>
+</div>
+</div>
+<!-- Session Success Rate -->
+<div class="glass-card p-5">
+<div class="flex justify-between items-center mb-4">
+<div>
+<h3 class="text-sm font-semibold text-white">Session Success</h3>
+<p class="text-[10px] text-slate-500 mono uppercase tracking-tight">Resolution Efficiency</p>
+</div>
+<span class="mono text-2xl font-bold text-[#4edea3]">94.2%</span>
+</div>
+<div class="h-12 w-full flex items-end gap-[2px]">
+<!-- Small Sparkline -->
+<div class="flex-1 bg-slate-800 h-4 rounded-sm"></div>
+<div class="flex-1 bg-slate-800 h-6 rounded-sm"></div>
+<div class="flex-1 bg-slate-800 h-5 rounded-sm"></div>
+<div class="flex-1 bg-slate-800 h-7 rounded-sm"></div>
+<div class="flex-1 bg-slate-800 h-8 rounded-sm"></div>
+<div class="flex-1 bg-slate-800 h-9 rounded-sm"></div>
+<div class="flex-1 bg-[#4edea3]/40 h-11 rounded-sm"></div>
+<div class="flex-1 bg-[#4edea3]/60 h-10 rounded-sm"></div>
+<div class="flex-1 bg-[#4edea3]/80 h-12 rounded-sm"></div>
+<div class="flex-1 bg-[#4edea3] h-11 rounded-sm"></div>
+<div class="flex-1 bg-[#4edea3] h-12 rounded-sm"></div>
+</div>
+<p class="mt-2 text-[9px] text-slate-500 mono text-right">+1.2% from prev. cycle</p>
+</div>
+</div>
+<!-- Bottom: Knowledge Gap Rate -->
+<div class="col-span-12">
+<div class="glass-card p-5 flex items-center justify-between bg-error-container/5 border-error/20">
+<div class="flex items-center gap-6">
+<div class="w-12 h-12 rounded bg-error-container/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<div>
+<h3 class="text-sm font-semibold text-white">Critical Knowledge Gap Rate</h3>
+<p class="text-xs text-slate-400 max-w-md">The percentage of queries that could not be resolved due to missing retrieval context or conflicting RAG nodes.</p>
+</div>
+</div>
+<div class="flex gap-8 items-center">
+<div class="text-center">
+<p class="text-[10px] mono text-slate-500 uppercase mb-1">Gap Rate</p>
+<p class="text-3xl font-bold text-[#ef4444] mono">4.82%</p>
+</div>
+<div class="h-10 w-[1px] bg-slate-800"></div>
+<div class="text-center">
+<p class="text-[10px] mono text-slate-500 uppercase mb-1">Unhandled Queries</p>
+<p class="text-3xl font-bold text-white mono underline decoration-[#ef4444] underline-offset-4 cursor-pointer">405</p>
+</div>
+<button class="bg-[#ef4444] text-white px-4 py-2 rounded text-[10px] font-bold uppercase mono tracking-tight hover:bg-red-600 transition-colors">
+                                Resolve Gaps
+                            </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Bento Card Grid for Additional Metrics -->
+<div class="grid grid-cols-4 gap-6">
+<div class="glass-card p-5">
+<p class="text-[10px] mono text-slate-500 uppercase mb-2">Avg. Latency</p>
+<div class="flex items-baseline gap-2">
+<span class="text-2xl font-bold text-white mono">1.2s</span>
+<span class="text-[10px] text-tertiary mono">Optimal</span>
+</div>
+</div>
+<div class="glass-card p-5">
+<p class="text-[10px] mono text-slate-500 uppercase mb-2">Cost Per Query</p>
+<div class="flex items-baseline gap-2">
+<span class="text-2xl font-bold text-white mono">$0.004</span>
+<span class="text-[10px] text-slate-400 mono">Fixed</span>
+</div>
+</div>
+<div class="glass-card p-5">
+<p class="text-[10px] mono text-slate-500 uppercase mb-2">Total Tokens</p>
+<div class="flex items-baseline gap-2">
+<span class="text-2xl font-bold text-white mono">14.2M</span>
+<span class="text-[10px] text-primary mono">+12%</span>
+</div>
+</div>
+<div class="glass-card p-5">
+<p class="text-[10px] mono text-slate-500 uppercase mb-2">Active Nodes</p>
+<div class="flex items-baseline gap-2">
+<span class="text-2xl font-bold text-white mono">1,024</span>
+<span class="text-[10px] text-tertiary mono">Healthy</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Visual Asset Definitions -->
+<div class="hidden">
+<img data-alt="Technical dashboard background showing intricate connection points of a neural network in deep navy and blue neon colors" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbXCaLLAGeX4ejQHnQxfFNugXTHKMtC6efiy_a4kg7mGU5MkUJv6chQNKFGVqukYhAV8U_6Nf6r3qEjASEv2-UFPHQ6IywBOFXd2UDgXOkTEIbx7QSKek-LVQt4w720_tprTurqprBlJrTofZihpzTQCngfbpC9O0rhzuBbL3uMwWplGKdHywjq82JTqppz3N8cEQe34sRlT2BVChs9QzBbEr6BrkhskiiPmkIb38L5bixGbG9IYKIcGiSm9XA9IM5wVTlqkh1HDhK"/>
+<img data-alt="Abstract representation of data flow and cloud computing nodes in a dark technological environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqERniWi79xXu9YvbqPm5S9LK34fs8bajEmp1PHS2D3m0Y_eHb4feZGXUn4BveKzpaS30qXh1Jshvn0NeegO2lm46kkrJooRWasbZjeIPy5gigXNO3aeMTubeH8qj-YqPK__uF4HfQ8ymcSHZ3jgLpvf5C_a0eSWOD9-BP8TDHlOv8KGuAfNHsSKqJpV111W6EPJBrULRU5T-quUGJyMs46dyYthhObwOTXkFgbNPq7p9kWHYSMW2JE7wCxjmcTq4fn9HjIC1ek_EA"/>
+</div>
+</body></html>

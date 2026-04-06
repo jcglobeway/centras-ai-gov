@@ -1,61 +1,65 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { fetcher } from "@/lib/api";
-import type { PagedResponse } from "@/lib/types";
+import type { PagedResponse, ChatSession } from "@/lib/types";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Table, Thead, Th, Tbody, Tr, Td } from "@/components/ui/Table";
-import { Badge } from "@/components/ui/Badge";
 import { Spinner } from "@/components/ui/Spinner";
-import { PageFilters, getWeekFrom, getToday } from "@/components/ui/PageFilters";
+import { PageFilters, getDaysAgo, getToday } from "@/components/ui/PageFilters";
 import { PageGuide } from "@/components/ui/PageGuide";
-import type { ComponentProps } from "react";
 
-type BadgeVariant = ComponentProps<typeof Badge>["variant"];
+// ── 헬퍼 ─────────────────────────────────────────────────────────────────────
 
-interface QuestionItem {
-  questionId: string;
-  organizationId: string;
-  chatSessionId: string;
-  questionText: string;
-  questionCategory: string | null;
-  failureReasonCode: string | null;
-  isEscalated: boolean;
-  createdAt: string;
+function sessionEndTypeLabel(t: string | null): string {
+  if (!t) return "-";
+  const map: Record<string, string> = {
+    user_closed: "사용자 종료",
+    timeout: "타임아웃",
+    escalated: "상담 전환",
+    resolved: "해결 완료",
+  };
+  return map[t] ?? t;
 }
 
-function answerStatusBadge(failureReasonCode: string | null, isEscalated: boolean): { label: string; variant: BadgeVariant } {
-  if (isEscalated) return { label: "상담 전환", variant: "warning" };
-  if (failureReasonCode) return { label: "미해결", variant: "error" };
-  return { label: "정상 응답", variant: "success" };
+function durationLabel(startedAt: string, endedAt: string | null): string {
+  if (!endedAt) return "진행 중";
+  const ms = new Date(endedAt).getTime() - new Date(startedAt).getTime();
+  const min = Math.floor(ms / 60000);
+  const sec = Math.floor((ms % 60000) / 1000);
+  return min > 0 ? `${min}분 ${sec}초` : `${sec}초`;
 }
+
+// ── 세션 목록 페이지 ──────────────────────────────────────────────────────────
 
 export default function ChatHistoryPage() {
+  const router = useRouter();
   const [orgId, setOrgId] = useState("");
-  const [from, setFrom] = useState(getWeekFrom);
+  const [from, setFrom] = useState(() => getDaysAgo(30));
   const [to, setTo] = useState(getToday);
 
-  const params = new URLSearchParams({ page_size: "30" });
+  const params = new URLSearchParams();
   if (orgId) params.set("organization_id", orgId);
   if (from) params.set("from_date", from);
   if (to) params.set("to_date", to);
 
-  const { data, isLoading } = useSWR<PagedResponse<QuestionItem>>(
-    `/api/admin/questions?${params}`,
+  const { data, isLoading } = useSWR<PagedResponse<ChatSession>>(
+    `/api/admin/chat-sessions?${params}`,
     fetcher,
   );
 
-  const questions = data?.items ?? [];
+  const sessions = data?.items ?? [];
 
   return (
     <div className="space-y-4">
       <PageGuide
-        description="실제 시민 질문 이력을 조회하고 품질 문제를 파악하는 화면입니다."
+        description="시민과의 대화 세션 이력을 조회합니다. 세션을 클릭하면 전체 대화 흐름과 각 질문의 품질 지표를 확인할 수 있습니다."
         tips={[
-          "미해결·상담 전환 건을 확인해 자주 실패하는 질의 유형을 파악하세요.",
-          "기관별 필터로 특정 고객사의 대화 패턴을 집중 분석할 수 있습니다.",
-          "개인정보 보호를 위해 원문 조회는 감사 로그에 기록됩니다.",
+          "세션 행을 클릭하면 해당 세션의 전체 Q&A 대화 스레드로 이동합니다.",
+          "각 대화 항목을 클릭하면 RAGAS 지표, 검색 컨텍스트, QA 검수 상세 패널이 열립니다.",
+          "기관 필터와 날짜 범위를 조합해 특정 기간의 세션을 조회하세요.",
         ]}
       />
       <div className="flex items-center justify-between flex-wrap gap-2">
@@ -69,47 +73,40 @@ export default function ChatHistoryPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle tag="QUESTIONS">질문 이력</CardTitle>
+          <CardTitle tag="SESSIONS">세션 목록 (클릭 시 대화 상세)</CardTitle>
         </CardHeader>
         {isLoading ? (
-          <div className="flex items-center justify-center h-24">
-            <Spinner />
-          </div>
+          <div className="flex items-center justify-center h-24"><Spinner /></div>
         ) : (
-          <div className="overflow-hidden">
+          <div className="overflow-x-auto">
             <Table>
               <Thead>
-                <Th>질문 ID</Th>
-                <Th>기관</Th>
-                <Th>질문 내용</Th>
-                <Th>카테고리</Th>
-                <Th>응답 상태</Th>
-                <Th>시각</Th>
+                <Th>시작 시각</Th>
+                <Th>채널</Th>
+                <Th>질문 수</Th>
+                <Th>소요 시간</Th>
+                <Th>종료 유형</Th>
               </Thead>
               <Tbody>
-                {questions.map((q) => {
-                  const status = answerStatusBadge(q.failureReasonCode, q.isEscalated);
-                  return (
-                    <Tr key={q.questionId}>
-                      <Td className="font-mono text-xs text-text-muted">{q.questionId}</Td>
-                      <Td className="text-xs text-text-muted">{q.organizationId}</Td>
-                      <Td className="text-sm max-w-xs truncate" title={q.questionText}>
-                        {q.questionText}
-                      </Td>
-                      <Td className="text-xs text-text-muted">{q.questionCategory ?? "-"}</Td>
-                      <Td>
-                        <Badge variant={status.variant}>{status.label}</Badge>
-                      </Td>
-                      <Td className="text-xs text-text-muted">
-                        {new Date(q.createdAt).toLocaleString("ko-KR")}
-                      </Td>
-                    </Tr>
-                  );
-                })}
-                {questions.length === 0 && (
+                {sessions.map((s) => (
+                  <Tr
+                    key={s.sessionId}
+                    className="cursor-pointer"
+                    onClick={() => router.push(`/ops/chat-history/${s.sessionId}`)}
+                  >
+                    <Td className="text-xs text-text-secondary whitespace-nowrap">
+                      {new Date(s.startedAt).toLocaleString("ko-KR")}
+                    </Td>
+                    <Td className="text-xs text-text-muted">{s.channel}</Td>
+                    <Td className="text-xs text-text-primary font-mono">{s.totalQuestionCount}</Td>
+                    <Td className="text-xs text-text-muted">{durationLabel(s.startedAt, s.endedAt)}</Td>
+                    <Td className="text-xs text-text-muted">{sessionEndTypeLabel(s.sessionEndType)}</Td>
+                  </Tr>
+                ))}
+                {sessions.length === 0 && (
                   <Tr>
-                    <Td colSpan={6} className="text-center text-text-muted text-sm py-8">
-                      조회된 질문이 없습니다.
+                    <Td colSpan={5} className="text-center text-text-muted text-sm py-8">
+                      조회된 세션이 없습니다.
                     </Td>
                   </Tr>
                 )}
@@ -117,11 +114,9 @@ export default function ChatHistoryPage() {
             </Table>
           </div>
         )}
-        {questions.length > 0 && (
+        {sessions.length > 0 && (
           <div className="px-4 py-3 border-t border-bg-border">
-            <p className="text-[11px] text-text-muted">
-              총 {data?.total ?? questions.length}건 중 최신 {questions.length}건 표시
-            </p>
+            <p className="text-[11px] text-text-muted">총 {data?.total ?? sessions.length}개 세션</p>
           </div>
         )}
       </Card>

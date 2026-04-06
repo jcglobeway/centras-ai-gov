@@ -22,6 +22,59 @@ open class LoadQuestionPortAdapter(
         else allQuestions.filter { it.organizationId in scope.organizationIds }
     }
 
+    override fun listQuestionsWithAnswers(scope: ChatScope): List<QuestionSummary> {
+        val rows = jpaRepository.findAllWithAnswers().map { row ->
+            QuestionSummary(
+                id = row.getQuestionId(),
+                organizationId = row.getOrganizationId(),
+                serviceId = row.getServiceId(),
+                chatSessionId = row.getChatSessionId(),
+                questionText = row.getQuestionText(),
+                questionIntentLabel = row.getQuestionIntentLabel(),
+                channel = row.getChannel(),
+                questionCategory = row.getQuestionCategory(),
+                answerConfidence = row.getAnswerConfidence(),
+                failureReasonCode = FailureReasonCode.fromCodeOrNull(row.getFailureReasonCode()),
+                isEscalated = row.getIsEscalated(),
+                createdAt = row.getCreatedAt(),
+                answerText = row.getAnswerText(),
+                answerStatus = row.getAnswerStatus(),
+                responseTimeMs = row.getResponseTimeMs(),
+                faithfulness = row.getFaithfulness(),
+                answerRelevancy = row.getAnswerRelevancy(),
+                contextPrecision = row.getContextPrecision(),
+                contextRecall = row.getContextRecall(),
+            )
+        }
+        return if (scope.globalAccess) rows
+        else rows.filter { it.organizationId in scope.organizationIds }
+    }
+
+    override fun listQuestionsWithAnswersBySession(chatSessionId: String): List<QuestionSummary> =
+        jpaRepository.findAllWithAnswersBySessionId(chatSessionId).map { row ->
+            QuestionSummary(
+                id = row.getQuestionId(),
+                organizationId = row.getOrganizationId(),
+                serviceId = row.getServiceId(),
+                chatSessionId = row.getChatSessionId(),
+                questionText = row.getQuestionText(),
+                questionIntentLabel = row.getQuestionIntentLabel(),
+                channel = row.getChannel(),
+                questionCategory = row.getQuestionCategory(),
+                answerConfidence = row.getAnswerConfidence(),
+                failureReasonCode = FailureReasonCode.fromCodeOrNull(row.getFailureReasonCode()),
+                isEscalated = row.getIsEscalated(),
+                createdAt = row.getCreatedAt(),
+                answerText = row.getAnswerText(),
+                answerStatus = row.getAnswerStatus(),
+                responseTimeMs = row.getResponseTimeMs(),
+                faithfulness = row.getFaithfulness(),
+                answerRelevancy = row.getAnswerRelevancy(),
+                contextPrecision = row.getContextPrecision(),
+                contextRecall = row.getContextRecall(),
+            )
+        }
+
     override fun listUnresolvedQuestions(scope: ChatScope): List<UnresolvedQuestionSummary> {
         val rows = jpaRepository.findUnresolvedWithStatus().map { row ->
             UnresolvedQuestionSummary(
@@ -33,6 +86,8 @@ open class LoadQuestionPortAdapter(
                 isEscalated = row.getIsEscalated(),
                 answerStatus = row.getAnswerStatus(),
                 latestReviewStatus = row.getLatestReviewStatus(),
+                latestReviewId = row.getLatestReviewId(),
+                latestReviewAssigneeId = row.getLatestReviewAssigneeId(),
                 createdAt = row.getCreatedAt(),
             )
         }

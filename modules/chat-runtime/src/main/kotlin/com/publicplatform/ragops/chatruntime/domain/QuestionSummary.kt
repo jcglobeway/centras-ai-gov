@@ -23,6 +23,13 @@ data class QuestionSummary(
     val failureReasonCode: FailureReasonCode?,
     val isEscalated: Boolean,
     val createdAt: Instant,
+    val answerText: String? = null,
+    val answerStatus: String? = null,
+    val responseTimeMs: Int? = null,
+    val faithfulness: Double? = null,
+    val answerRelevancy: Double? = null,
+    val contextPrecision: Double? = null,
+    val contextRecall: Double? = null,
 )
 
 data class UnresolvedQuestionSummary(
@@ -34,6 +41,8 @@ data class UnresolvedQuestionSummary(
     val isEscalated: Boolean,
     val answerStatus: String?,
     val latestReviewStatus: String?,
+    val latestReviewId: String?,
+    val latestReviewAssigneeId: String?,
     val createdAt: Instant,
 )
 

@@ -91,23 +91,20 @@ class AdminApiClient:
             return ""
 
     def fetch_rag_search_logs(self, question_id: str) -> list[str]:
-        """GET /admin/rag-search-logs?question_id= → retrieved document 텍스트 목록."""
+        """GET /admin/questions/{id}/context → retrieved chunk 텍스트 목록."""
         try:
             resp = httpx.get(
-                f"{self.base_url}/admin/rag-search-logs",
-                params={"question_id": question_id},
+                f"{self.base_url}/admin/questions/{question_id}/context",
                 headers=self.headers, timeout=10.0,
             )
             if resp.status_code != 200:
                 return []
             data = resp.json()
-            logs = data.get("items", data) if isinstance(data, dict) else data
             contexts: list[str] = []
-            for log in logs:
-                for doc in log.get("retrievedDocuments", []):
-                    chunk_text = doc.get("chunkText") or doc.get("content") or ""
-                    if chunk_text:
-                        contexts.append(chunk_text)
+            for chunk in data.get("retrievedChunks", []):
+                chunk_text = chunk.get("chunkText") or ""
+                if chunk_text:
+                    contexts.append(chunk_text)
             return contexts
         except Exception as e:
             typer.echo(f"[query] RAG 로그 조회 실패: {e}", err=True)
@@ -196,8 +193,9 @@ def run(
 
 
 def main() -> None:
+    from pathlib import Path
     from dotenv import load_dotenv
-    load_dotenv()
+    load_dotenv(Path(__file__).parents[3] / ".env", override=False)
     app()
 
 

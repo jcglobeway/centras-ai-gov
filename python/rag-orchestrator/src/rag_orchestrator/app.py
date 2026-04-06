@@ -720,9 +720,10 @@ def _compute_ragas_metrics(sample: EvaluationSample) -> EvaluationMetrics:
 
 def main() -> None:
     import uvicorn
+    from pathlib import Path
     from dotenv import load_dotenv
 
-    load_dotenv()
+    load_dotenv(Path(__file__).parents[3] / ".env", override=False)
     uvicorn.run("rag_orchestrator.app:app", host="0.0.0.0", port=8090, reload=False)
 
 

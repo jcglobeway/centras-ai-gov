@@ -1,17 +1,8 @@
 spring:
-  datasource:
-    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
 
   flyway:
     enabled: true
@@ -19,7 +10,7 @@ spring:
     locations:
       - classpath:db/migration
       - classpath:com/publicplatform/ragops/adminapi/migration
-    target: "30"
+    target: "46"
 
   ai:
     ollama:

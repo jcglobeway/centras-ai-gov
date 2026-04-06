@@ -22,6 +22,12 @@ open class ListQuestionsService(
     override fun listAll(scope: ChatScope, from: String?, to: String?): List<QuestionSummary> =
         questionReader.listQuestions(scope).filterByDateRange(from, to)
 
+    override fun listAllWithAnswers(scope: ChatScope, from: String?, to: String?): List<QuestionSummary> =
+        questionReader.listQuestionsWithAnswers(scope).filterByDateRange(from, to)
+
+    override fun listBySession(chatSessionId: String): List<QuestionSummary> =
+        questionReader.listQuestionsWithAnswersBySession(chatSessionId)
+
     override fun listUnresolved(scope: ChatScope, from: String?, to: String?): List<UnresolvedQuestionSummary> {
         val fromInst = from?.let { LocalDate.parse(it).atStartOfDay(ZoneOffset.UTC).toInstant() }
         val toInst = to?.let { LocalDate.parse(it).plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant() }

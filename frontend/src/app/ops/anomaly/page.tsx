@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { PageGuide } from "@/components/ui/PageGuide";
+import { PageFilters, getDaysAgo, getToday } from "@/components/ui/PageFilters";
 import type { ComponentProps } from "react";
 
 type BadgeVariant = ComponentProps<typeof Badge>["variant"];
@@ -19,69 +20,139 @@ type BadgeVariant = ComponentProps<typeof Badge>["variant"];
 interface DuplicateQuestionItem { questionText: string; count: number; }
 interface DuplicateQuestionsResponse { items: DuplicateQuestionItem[]; total: number; }
 
-interface AlertRow {
-  metric: string;
-  current: string;
-  threshold: string;
-  severity: "warn" | "critical";
-  status: "발생 중";
+interface ThresholdItem {
+  metricKey: string;
+  warnValue: number;
+  criticalValue: number;
+  updatedAt: string;
 }
+interface ThresholdsResponse { items: ThresholdItem[]; }
 
-function buildAlerts(latest: DailyMetric | undefined): AlertRow[] {
-  if (!latest) return [];
-  const alerts: AlertRow[] = [];
-  if (latest.fallbackRate != null && latest.fallbackRate > 10) {
-    alerts.push({
-      metric: "Fallback율",
-      current: latest.fallbackRate.toFixed(1) + "%",
-      threshold: "10%",
-      severity: latest.fallbackRate >= 15 ? "critical" : "warn",
-      status: "발생 중",
-    });
-  }
-  if (latest.zeroResultRate != null && latest.zeroResultRate > 5) {
-    alerts.push({
-      metric: "무응답률",
-      current: latest.zeroResultRate.toFixed(1) + "%",
-      threshold: "5%",
-      severity: latest.zeroResultRate >= 8 ? "critical" : "warn",
-      status: "발생 중",
-    });
-  }
-  if (latest.avgResponseTimeMs != null && latest.avgResponseTimeMs > 1500) {
-    alerts.push({
-      metric: "평균 응답시간",
-      current: latest.avgResponseTimeMs.toLocaleString() + "ms",
-      threshold: "1,500ms",
-      severity: latest.avgResponseTimeMs >= 2500 ? "critical" : "warn",
-      status: "발생 중",
-    });
-  }
-  return alerts;
+interface AlertEventItem {
+  id: string;
+  metricKey: string;
+  currentValue: number;
+  severity: "warn" | "critical";
+  triggeredAt: string;
 }
+interface AlertEventsResponse { items: AlertEventItem[]; total: number; }
+
+interface DriftSummaryItem {
+  metricKey: string;
+  rollingAvg: number | null;
+  latestValue: number | null;
+  deviationPct: number | null;
+}
+interface DriftSummaryResponse { items: DriftSummaryItem[]; }
 
 const SEVERITY_VARIANT: Record<"warn" | "critical", BadgeVariant> = {
   warn: "warning",
   critical: "error",
 };
 
-export default function AnomalyPage() {
-  const [warnFallback, setWarnFallback] = useState("10");
-  const [critFallback, setCritFallback] = useState("15");
-  const [warnZero, setWarnZero] = useState("5");
-  const [critZero, setCritZero] = useState("8");
+const METRIC_LABEL: Record<string, string> = {
+  fallback_rate: "Fallback율",
+  zero_result_rate: "무응답률",
+  avg_response_time_ms: "평균 응답시간",
+};
 
-  const { data, isLoading } = useSWR<PagedResponse<DailyMetric>>(
-    `/api/admin/metrics/daily?page_size=14`,
+function formatValue(key: string, value: number): string {
+  if (key === "avg_response_time_ms") return value.toLocaleString() + "ms";
+  return value.toFixed(1) + "%";
+}
+
+export default function AnomalyPage() {
+  const [orgId, setOrgId] = useState("");
+  const [from, setFrom] = useState(() => getDaysAgo(29));
+  const [to, setTo] = useState(getToday);
+
+  const metricsParams = new URLSearchParams({ page_size: "14" });
+  if (orgId) metricsParams.set("organization_id", orgId);
+  if (from) metricsParams.set("from_date", from);
+  if (to) metricsParams.set("to_date", to);
+
+  const dupParams = new URLSearchParams({ min_count: "2", limit: "10" });
+  if (orgId) dupParams.set("organization_id", orgId);
+  if (from) dupParams.set("from_date", from);
+  if (to) dupParams.set("to_date", to);
+
+  const driftParams = new URLSearchParams();
+  if (orgId) driftParams.set("organization_id", orgId);
+
+  const { data: metricsData, isLoading: metricsLoading } = useSWR<PagedResponse<DailyMetric>>(
+    `/api/admin/metrics/daily?${metricsParams}`,
     fetcher
   );
 
   const { data: dupData } = useSWR<DuplicateQuestionsResponse>(
-    `/api/admin/metrics/duplicate-questions?min_count=2&limit=10`,
+    `/api/admin/metrics/duplicate-questions?${dupParams}`,
     fetcher
   );
 
-  if (isLoading) {
+  const { data: thresholdsData, mutate: mutateThresholds } = useSWR<ThresholdsResponse>(
+    `/api/admin/anomaly/thresholds`,
+    fetcher
+  );
+
+  const { data: alertEventsData } = useSWR<AlertEventsResponse>(
+    `/api/admin/anomaly/alert-events?limit=50`,
+    fetcher
+  );
+
+  const { data: driftData } = useSWR<DriftSummaryResponse>(
+    `/api/admin/anomaly/drift-summary?${driftParams}`,
+    fetcher
+  );
+
+  // 임계값 로컬 편집 상태 (API 값으로 초기화)
+  const [editValues, setEditValues] = useState<Record<string, { warn: string; critical: string }>>({});
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState<string | null>(null);
+
+  const thresholds = thresholdsData?.items ?? [];
+
+  function getEdit(key: string, field: "warn" | "critical"): string {
+    const fromEdit = editValues[key]?.[field];
+    if (fromEdit !== undefined) return fromEdit;
+    const t = thresholds.find((t) => t.metricKey === key);
+    return t ? (field === "warn" ? String(t.warnValue) : String(t.criticalValue)) : "";
+  }
+
+  function setEdit(key: string, field: "warn" | "critical", value: string) {
+    setEditValues((prev) => ({
+      ...prev,
+      [key]: { ...(prev[key] ?? {}), [field]: value },
+    }));
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    setSaveMsg(null);
+    try {
+      const payload = thresholds.map((t) => ({
+        metricKey: t.metricKey,
+        warnValue: parseFloat(getEdit(t.metricKey, "warn")),
+        criticalValue: parseFloat(getEdit(t.metricKey, "critical")),
+      }));
+      const res = await fetch("/api/admin/anomaly/thresholds", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ thresholds: payload }),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("저장 실패");
+      setEditValues({});
+      await mutateThresholds();
+      setSaveMsg("저장되었습니다.");
+    } catch {
+      setSaveMsg("저장에 실패했습니다.");
+    } finally {
+      setSaving(false);
+      setTimeout(() => setSaveMsg(null), 3000);
+    }
+  }
+
+  if (metricsLoading) {
     return (
       <div className="flex items-center justify-center h-48">
         <Spinner />
@@ -89,35 +160,20 @@ export default function AnomalyPage() {
     );
   }
 
-  const metrics = data?.items ?? [];
-  const latest = metrics[metrics.length - 1];
-  const alerts = buildAlerts(latest);
+  const metrics = metricsData?.items ?? [];
   const dupItems = dupData?.items ?? [];
+  const alertEvents = alertEventsData?.items ?? [];
+  const driftItems = driftData?.items ?? [];
 
-  // 7일 평균 계산
-  const recent7 = metrics.slice(-7);
-  let queryDrift: string = "-";
-  let recallDeviation: string = "-";
+  const fallbackDrift = driftItems.find((d) => d.metricKey === "fallback_rate");
+  const zeroDrift = driftItems.find((d) => d.metricKey === "zero_result_rate");
 
-  if (recent7.length >= 2) {
-    const prevAvgFallback =
-      recent7.slice(0, -1).reduce((s, m) => s + (m.fallbackRate ?? 0), 0) /
-      (recent7.length - 1);
-    const latestFallback = recent7[recent7.length - 1]?.fallbackRate ?? null;
-    if (latestFallback != null && prevAvgFallback > 0) {
-      const drift = ((latestFallback - prevAvgFallback) / prevAvgFallback) * 100;
-      queryDrift = drift.toFixed(1) + "%";
-    }
-
-    const prevAvgZero =
-      recent7.slice(0, -1).reduce((s, m) => s + (m.zeroResultRate ?? 0), 0) /
-      (recent7.length - 1);
-    const latestZero = recent7[recent7.length - 1]?.zeroResultRate ?? null;
-    if (latestZero != null && prevAvgZero > 0) {
-      const dev = ((latestZero - prevAvgZero) / prevAvgZero) * 100;
-      recallDeviation = dev.toFixed(1) + "%";
-    }
-  }
+  const queryDrift = fallbackDrift?.deviationPct != null
+    ? fallbackDrift.deviationPct.toFixed(1) + "%"
+    : "-";
+  const recallDeviation = zeroDrift?.deviationPct != null
+    ? zeroDrift.deviationPct.toFixed(1) + "%"
+    : "-";
 
   return (
     <div className="space-y-6">
@@ -129,7 +185,14 @@ export default function AnomalyPage() {
           "Webhook 설정(연동 API 관리)으로 임계값 초과 시 Slack 알림을 받을 수 있습니다.",
         ]}
       />
-      <h2 className="text-text-primary font-semibold text-lg">이상 징후 감지</h2>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <h2 className="text-text-primary font-semibold text-lg">이상 징후 감지</h2>
+        <PageFilters
+          orgId={orgId} onOrgChange={setOrgId}
+          from={from}   onFromChange={setFrom}
+          to={to}       onToChange={setTo}
+        />
+      </div>
 
       {/* KPI */}
       <div className="grid grid-cols-2 gap-4">
@@ -176,40 +239,36 @@ export default function AnomalyPage() {
         </Card>
       )}
 
-      {/* 임계값 초과 알림 */}
+      {/* 임계값 초과 알림 이력 */}
       <Card>
         <CardHeader>
-          <CardTitle tag="ALERTS">임계값 초과 알림</CardTitle>
+          <CardTitle tag="ALERTS">임계값 초과 알림 이력</CardTitle>
         </CardHeader>
         <div className="overflow-hidden">
           <Table>
             <Thead>
               <Th>지표</Th>
               <Th>현재값</Th>
-              <Th>임계값</Th>
               <Th>심각도</Th>
-              <Th>상태</Th>
+              <Th>발생 시각</Th>
             </Thead>
             <Tbody>
-              {alerts.map((alert, i) => (
-                <Tr key={i}>
-                  <Td className="text-sm font-medium">{alert.metric}</Td>
-                  <Td className="font-mono text-sm">{alert.current}</Td>
-                  <Td className="font-mono text-sm text-text-muted">{alert.threshold}</Td>
+              {alertEvents.map((event) => (
+                <Tr key={event.id}>
+                  <Td className="text-sm font-medium">{METRIC_LABEL[event.metricKey] ?? event.metricKey}</Td>
+                  <Td className="font-mono text-sm">{formatValue(event.metricKey, event.currentValue)}</Td>
                   <Td>
-                    <Badge variant={SEVERITY_VARIANT[alert.severity]}>
-                      {alert.severity === "critical" ? "긴급" : "경고"}
+                    <Badge variant={SEVERITY_VARIANT[event.severity]}>
+                      {event.severity === "critical" ? "긴급" : "경고"}
                     </Badge>
                   </Td>
-                  <Td>
-                    <Badge variant="error">{alert.status}</Badge>
-                  </Td>
+                  <Td className="text-xs text-text-muted">{new Date(event.triggeredAt).toLocaleString("ko-KR")}</Td>
                 </Tr>
               ))}
-              {alerts.length === 0 && (
+              {alertEvents.length === 0 && (
                 <Tr>
-                  <Td colSpan={5} className="text-center text-text-muted text-sm py-8">
-                    임계값을 초과한 지표가 없습니다. 정상 운영 중입니다.
+                  <Td colSpan={4} className="text-center text-text-muted text-sm py-8">
+                    임계값을 초과한 이력이 없습니다.
                   </Td>
                 </Tr>
               )}
@@ -260,30 +319,56 @@ export default function AnomalyPage() {
           <CardTitle tag="THRESHOLD">임계값 설정</CardTitle>
         </CardHeader>
         <div className="px-4 pb-4 space-y-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {[
-              { label: "Fallback율 경고 (%)", value: warnFallback, onChange: setWarnFallback },
-              { label: "Fallback율 긴급 (%)", value: critFallback, onChange: setCritFallback },
-              { label: "무응답률 경고 (%)",   value: warnZero,     onChange: setWarnZero },
-              { label: "무응답률 긴급 (%)",   value: critZero,     onChange: setCritZero },
-            ].map((field) => (
-              <div key={field.label} className="space-y-1">
-                <label className="text-[10px] font-mono text-text-muted uppercase tracking-wider">
-                  {field.label}
-                </label>
-                <input
-                  type="number"
-                  value={field.value}
-                  onChange={(e) => field.onChange(e.target.value)}
-                  className="w-full bg-bg-base border border-bg-border rounded px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent font-mono"
-                />
-              </div>
-            ))}
+          {thresholds.length > 0 ? (
+            <div className="space-y-3">
+              {thresholds.map((t) => (
+                <div key={t.metricKey} className="grid grid-cols-3 gap-3 items-end">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-mono text-text-muted uppercase tracking-wider">
+                      지표
+                    </label>
+                    <div className="text-sm text-text-primary py-2">{METRIC_LABEL[t.metricKey] ?? t.metricKey}</div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-mono text-text-muted uppercase tracking-wider">
+                      경고(warn)
+                    </label>
+                    <input
+                      type="number"
+                      value={getEdit(t.metricKey, "warn")}
+                      onChange={(e) => setEdit(t.metricKey, "warn", e.target.value)}
+                      className="w-full bg-bg-base border border-bg-border rounded px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent font-mono"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-mono text-text-muted uppercase tracking-wider">
+                      긴급(critical)
+                    </label>
+                    <input
+                      type="number"
+                      value={getEdit(t.metricKey, "critical")}
+                      onChange={(e) => setEdit(t.metricKey, "critical", e.target.value)}
+                      className="w-full bg-bg-base border border-bg-border rounded px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent font-mono"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-text-muted">임계값을 불러오는 중입니다...</p>
+          )}
+          <div className="flex items-center gap-3">
+            <Button onClick={handleSave} disabled={saving || thresholds.length === 0}>
+              {saving ? "저장 중..." : "저장"}
+            </Button>
+            {saveMsg && (
+              <span className={`text-sm ${saveMsg.includes("실패") ? "text-red-400" : "text-green-400"}`}>
+                {saveMsg}
+              </span>
+            )}
           </div>
-          <Button disabled>저장 (API 연동 예정)</Button>
         </div>
       </Card>
-
     </div>
   );
 }

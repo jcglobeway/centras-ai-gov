@@ -8,10 +8,12 @@ package com.publicplatform.ragops.organizationdirectory.adapter.outbound.persist
 import com.publicplatform.ragops.organizationdirectory.domain.Organization
 import com.publicplatform.ragops.organizationdirectory.domain.OrganizationScope
 import com.publicplatform.ragops.organizationdirectory.domain.OrganizationSummary
+import com.publicplatform.ragops.organizationdirectory.domain.Service
 import com.publicplatform.ragops.organizationdirectory.application.port.out.LoadOrganizationPort
 
 open class LoadOrganizationPortAdapter(
     private val jpaRepository: JpaOrganizationRepository,
+    private val jpaServiceRepository: JpaServiceRepository,
 ) : LoadOrganizationPort {
 
     override fun getOrganizations(ids: Set<String>): List<OrganizationSummary> =
@@ -26,4 +28,7 @@ open class LoadOrganizationPortAdapter(
         } else {
             jpaRepository.findAllById(scope.organizationIds).map { it.toModel() }
         }
+
+    override fun listServicesByOrganizationId(organizationId: String): List<Service> =
+        jpaServiceRepository.findByOrganizationId(organizationId).map { it.toModel() }
 }

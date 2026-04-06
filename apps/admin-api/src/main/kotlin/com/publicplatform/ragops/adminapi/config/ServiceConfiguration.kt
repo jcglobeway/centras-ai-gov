@@ -42,8 +42,19 @@ import com.publicplatform.ragops.ingestionops.application.service.RunIngestionJo
 import com.publicplatform.ragops.ingestionops.application.service.TransitionJobService
 import com.publicplatform.ragops.metricsreporting.application.port.out.LoadMetricsPort
 import com.publicplatform.ragops.metricsreporting.application.port.out.SaveMetricsPort
+import com.publicplatform.ragops.metricsreporting.application.port.out.LoadAnomalyThresholdPort
+import com.publicplatform.ragops.metricsreporting.application.port.out.SaveAnomalyThresholdPort
+import com.publicplatform.ragops.metricsreporting.application.port.out.LoadAlertEventPort
 import com.publicplatform.ragops.metricsreporting.application.service.ListMetricsService
 import com.publicplatform.ragops.metricsreporting.application.service.UpsertDailyMetricsService
+import com.publicplatform.ragops.metricsreporting.application.service.GetAnomalyThresholdsService
+import com.publicplatform.ragops.metricsreporting.application.service.UpdateAnomalyThresholdsService
+import com.publicplatform.ragops.metricsreporting.application.service.GetAlertEventsService
+import com.publicplatform.ragops.metricsreporting.application.service.GetDriftSummaryService
+import com.publicplatform.ragops.metricsreporting.application.port.`in`.GetAnomalyThresholdsUseCase
+import com.publicplatform.ragops.metricsreporting.application.port.`in`.UpdateAnomalyThresholdsUseCase
+import com.publicplatform.ragops.metricsreporting.application.port.`in`.GetAlertEventsUseCase
+import com.publicplatform.ragops.metricsreporting.application.port.`in`.GetDriftSummaryUseCase
 import com.publicplatform.ragops.adminapi.evaluation.application.port.`in`.GetRagasEvaluationSummaryUseCase
 import com.publicplatform.ragops.adminapi.evaluation.application.port.`in`.ListRagasEvaluationsUseCase
 import com.publicplatform.ragops.adminapi.evaluation.application.port.`in`.PatchRagasEvaluationUseCase
@@ -64,10 +75,13 @@ import org.springframework.boot.web.client.RestTemplateBuilder
 import com.publicplatform.ragops.identityaccess.application.port.`in`.AdminAuthUseCase
 import com.publicplatform.ragops.identityaccess.application.port.`in`.GetAuditLogsUseCase
 import com.publicplatform.ragops.identityaccess.application.port.`in`.GetAdminUsersUseCase
+import com.publicplatform.ragops.identityaccess.application.port.`in`.RecordAuditLogUseCase
 import com.publicplatform.ragops.identityaccess.application.port.out.LoadAuditLogPort
 import com.publicplatform.ragops.identityaccess.application.port.out.LoadAdminUsersPort
+import com.publicplatform.ragops.identityaccess.application.port.out.RecordAuditLogPort
 import com.publicplatform.ragops.identityaccess.application.service.GetAuditLogsService
 import com.publicplatform.ragops.identityaccess.application.service.GetAdminUsersService
+import com.publicplatform.ragops.identityaccess.application.service.RecordAuditLogService
 import org.springframework.beans.factory.annotation.Value
 import com.publicplatform.ragops.identityaccess.application.port.out.AdminCredentialAuthenticator
 import com.publicplatform.ragops.identityaccess.application.port.out.ManageAdminSessionPort
@@ -81,8 +95,11 @@ import com.publicplatform.ragops.organizationdirectory.ragconfig.application.por
 import com.publicplatform.ragops.organizationdirectory.ragconfig.application.port.out.RecordRagConfigPort
 import com.publicplatform.ragops.organizationdirectory.ragconfig.application.service.GetRagConfigService
 import com.publicplatform.ragops.organizationdirectory.ragconfig.application.service.SaveRagConfigService
+import com.publicplatform.ragops.qareview.application.port.`in`.AssignQAReviewUseCase
 import com.publicplatform.ragops.qareview.application.port.out.LoadQAReviewPort
 import com.publicplatform.ragops.qareview.application.port.out.RecordQAReviewPort
+import com.publicplatform.ragops.qareview.application.port.out.UpdateQAReviewAssigneePort
+import com.publicplatform.ragops.qareview.application.service.AssignQAReviewService
 import com.publicplatform.ragops.qareview.application.service.CreateQAReviewService
 import com.publicplatform.ragops.qareview.application.service.ListQAReviewsService
 import org.springframework.context.ApplicationEventPublisher
@@ -101,6 +118,10 @@ class ServiceConfiguration {
     @Bean
     fun getAuditLogsUseCase(loadAuditLogPort: LoadAuditLogPort): GetAuditLogsUseCase =
         GetAuditLogsService(loadAuditLogPort)
+
+    @Bean
+    fun recordAuditLogService(recordAuditLogPort: RecordAuditLogPort): RecordAuditLogUseCase =
+        RecordAuditLogService(recordAuditLogPort)
 
     @Bean
     fun getAdminUsersUseCase(loadAdminUsersPort: LoadAdminUsersPort): GetAdminUsersUseCase =
@@ -192,6 +213,10 @@ class ServiceConfiguration {
         ListQAReviewsService(qaReviewReader)
 
     @Bean
+    fun assignQAReviewUseCase(updateQAReviewAssigneePort: UpdateQAReviewAssigneePort): AssignQAReviewUseCase =
+        AssignQAReviewService(updateQAReviewAssigneePort)
+
+    @Bean
     fun listDocumentsService(documentReader: LoadDocumentPort): ListDocumentsService =
         ListDocumentsService(documentReader)
 
@@ -206,6 +231,22 @@ class ServiceConfiguration {
     @Bean
     fun listMetricsService(metricsReader: LoadMetricsPort): ListMetricsService =
         ListMetricsService(metricsReader)
+
+    @Bean
+    fun getAnomalyThresholdsUseCase(loadAnomalyThresholdPort: LoadAnomalyThresholdPort): GetAnomalyThresholdsUseCase =
+        GetAnomalyThresholdsService(loadAnomalyThresholdPort)
+
+    @Bean
+    fun updateAnomalyThresholdsUseCase(saveAnomalyThresholdPort: SaveAnomalyThresholdPort): UpdateAnomalyThresholdsUseCase =
+        UpdateAnomalyThresholdsService(saveAnomalyThresholdPort)
+
+    @Bean
+    fun getAlertEventsUseCase(loadAlertEventPort: LoadAlertEventPort): GetAlertEventsUseCase =
+        GetAlertEventsService(loadAlertEventPort)
+
+    @Bean
+    fun getDriftSummaryUseCase(metricsReader: LoadMetricsPort): GetDriftSummaryUseCase =
+        GetDriftSummaryService(metricsReader)
 
     @Bean
     fun upsertDailyMetricsService(metricsWriter: SaveMetricsPort): UpsertDailyMetricsService =

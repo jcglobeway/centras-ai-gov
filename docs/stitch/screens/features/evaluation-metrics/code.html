@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface": "#0b1326",
+                        "primary-container": "#2563eb",
+                        "on-primary": "#002a78",
+                        "inverse-on-surface": "#283044",
+                        "primary-fixed": "#dbe1ff",
+                        "outline": "#8d90a0",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "surface-container-high": "#222a3d",
+                        "on-tertiary-container": "#ffede6",
+                        "surface-container-low": "#131b2e",
+                        "secondary-container": "#33467e",
+                        "secondary-fixed": "#dbe1ff",
+                        "on-primary-container": "#eeefff",
+                        "error": "#ffb4ab",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "on-surface-variant": "#c3c6d7",
+                        "surface-tint": "#b4c5ff",
+                        "surface-bright": "#31394d",
+                        "secondary-fixed-dim": "#b4c5ff",
+                        "on-tertiary": "#581e00",
+                        "on-secondary-fixed-variant": "#31447b",
+                        "on-secondary-fixed": "#00174b",
+                        "on-primary-fixed": "#00174b",
+                        "on-error-container": "#ffdad6",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-tertiary-fixed": "#360f00",
+                        "error-container": "#93000a",
+                        "on-error": "#690005",
+                        "surface-container": "#171f33",
+                        "inverse-primary": "#0053db",
+                        "on-surface": "#dae2fd",
+                        "surface-container-highest": "#2d3449",
+                        "tertiary": "#ffb596",
+                        "tertiary-fixed": "#ffdbcd",
+                        "tertiary-container": "#bc4800",
+                        "surface-variant": "#2d3449",
+                        "surface-dim": "#0b1326",
+                        "background": "#0b1326",
+                        "primary": "#b4c5ff",
+                        "surface-container-lowest": "#060e20",
+                        "secondary": "#b4c5ff",
+                        "outline-variant": "#434655",
+                        "on-secondary": "#182d63",
+                        "on-background": "#dae2fd",
+                        "on-secondary-container": "#a4b6f5",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "inverse-surface": "#dae2fd"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"],
+                        "mono": ["IBM Plex Mono"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'IBM Plex Mono', monospace; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #434655; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface overflow-hidden">
+<!-- Sidebar Wrapper -->
+<aside class="fixed left-0 top-0 h-full flex flex-col z-40 w-[240px] bg-[#0b1326] shadow-[8px_0_24px_rgba(0,0,0,0.4)]">
+<div class="p-6 flex flex-col gap-1">
+<span class="text-lg font-bold tracking-tighter text-slate-100">RAG Ops</span>
+<span class="font-['Inter'] text-xs tracking-tight font-medium text-slate-400">Admin Console</span>
+</div>
+<nav class="flex-1 px-3 space-y-1">
+<!-- Dashboard -->
+<div class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-slate-200 hover:bg-[#171f33] transition-colors duration-150 cursor-pointer rounded-sm group">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="font-['Inter'] text-sm font-medium">Dashboard</span>
+</div>
+<!-- Knowledge Base -->
+<div class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-slate-200 hover:bg-[#171f33] transition-colors duration-150 cursor-pointer rounded-sm group">
+<span class="material-symbols-outlined text-[20px]">database</span>
+<span class="font-['Inter'] text-sm font-medium">Knowledge Base</span>
+</div>
+<!-- Chatbot Settings -->
+<div class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-slate-200 hover:bg-[#171f33] transition-colors duration-150 cursor-pointer rounded-sm group">
+<span class="material-symbols-outlined text-[20px]">smart_toy</span>
+<span class="font-['Inter'] text-sm font-medium">Chatbot Settings</span>
+</div>
+<!-- Quality Management (Active) -->
+<div class="flex items-center gap-3 px-3 py-2 bg-[#222a3d] text-blue-400 border-l-2 border-blue-500 transition-colors duration-150 cursor-pointer rounded-sm group">
+<span class="material-symbols-outlined text-[20px]">verified_user</span>
+<span class="font-['Inter'] text-sm font-medium">Quality Management</span>
+</div>
+<!-- Service Monitoring -->
+<div class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-slate-200 hover:bg-[#171f33] transition-colors duration-150 cursor-pointer rounded-sm group">
+<span class="material-symbols-outlined text-[20px]">monitoring</span>
+<span class="font-['Inter'] text-sm font-medium">Service Monitoring</span>
+</div>
+<!-- Reports -->
+<div class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-slate-200 hover:bg-[#171f33] transition-colors duration-150 cursor-pointer rounded-sm group">
+<span class="material-symbols-outlined text-[20px]">analytics</span>
+<span class="font-['Inter'] text-sm font-medium">Reports</span>
+</div>
+<!-- System & Permissions -->
+<div class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-slate-200 hover:bg-[#171f33] transition-colors duration-150 cursor-pointer rounded-sm group">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="font-['Inter'] text-sm font-medium">System &amp; Permissions</span>
+</div>
+</nav>
+<div class="p-4 bg-[#131b2e] mt-auto flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" data-alt="close-up portrait of a professional male software engineer avatar with glasses and a friendly expression" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDv0Y0EKsRGZ6IgAUzHu4v4X1pbvXDcJLm-lhVGmJI18x8o5WrdxxexxIlnmocVfZRBTROfN_SjsNYQyAwm2RKm-GA1vfnu2unr5OrVCO2Q-3T7QjYPmBBOIBp2BBQxfRT3vLs0ERwtRof-2T2RMdPEZFZga7wen2eD_Gvwy0U1pqOAQHLDDzksKwt4Fn2mcDydiX5wd55-Q4iKSDS7upg6c5oLB1aMQPGCbRongg4-JgqfGfQa1QsSjX8XmT5riXRGYwqLKHhfICFB"/>
+</div>
+<div class="flex flex-col">
+<span class="text-xs font-bold text-on-surface">Admin User</span>
+<span class="text-[10px] text-outline uppercase tracking-wider">Super Administrator</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-[240px] h-screen flex flex-col relative">
+<!-- Filter Bar / Top Nav -->
+<header class="h-14 sticky top-0 right-0 flex items-center justify-between px-6 z-30 bg-[#0b1326]/80 backdrop-blur-md border-b border-white/5">
+<div class="flex items-center gap-4">
+<h1 class="font-bold text-lg tracking-tight text-white">평가 지표</h1>
+<div class="h-4 w-[1px] bg-outline-variant/30"></div>
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">search</span>
+<input class="bg-transparent border-none text-xs focus:ring-0 w-48 placeholder:text-outline/50" placeholder="Search metrics..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-high rounded border border-outline-variant/20 cursor-pointer">
+<span class="font-['Inter'] text-[11px] font-semibold uppercase tracking-widest text-slate-400">Comparison:</span>
+<span class="text-xs font-bold text-blue-400">v2.4.0 (Current) vs v2.3.9</span>
+<span class="material-symbols-outlined text-sm text-outline">expand_more</span>
+</div>
+<button class="bg-primary-container text-white px-4 py-1.5 text-xs font-bold rounded flex items-center gap-2 hover:bg-primary-fixed-dim transition-colors">
+<span class="material-symbols-outlined text-sm">play_arrow</span>
+                    Run Query
+                </button>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-on-surface-variant p-1.5 hover:bg-surface-container-high rounded cursor-pointer">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant p-1.5 hover:bg-surface-container-high rounded cursor-pointer">help_outline</span>
+</div>
+</div>
+</header>
+<!-- Metrics Grid -->
+<div class="flex-1 p-6 overflow-y-auto pr-[32%]">
+<div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
+<!-- Metric Card 1: Faithfulness -->
+<div class="bg-surface-container-low p-5 rounded relative group border border-transparent hover:border-outline-variant/30 transition-all">
+<div class="flex justify-between items-start mb-4">
+<span class="text-[10px] font-bold uppercase tracking-widest text-outline">Faithfulness</span>
+<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20">WARNING</span>
+</div>
+<div class="mono text-4xl font-semibold text-on-surface mb-1">0.942</div>
+<div class="text-[10px] text-outline mb-6">Target: <span class="text-on-surface-variant">0.98</span></div>
+<div class="space-y-1.5">
+<div class="flex justify-between text-[9px] font-mono text-outline">
+<span>CURRENT (v2.4.0)</span>
+<span>PREV (v2.3.9)</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full flex overflow-hidden">
+<div class="h-full bg-blue-500" style="width: 70%"></div>
+<div class="h-full bg-slate-600" style="width: 25%; opacity: 0.5;"></div>
+</div>
+</div>
+</div>
+<!-- Metric Card 2: Hallucination Rate -->
+<div class="bg-surface-container-low p-5 rounded relative group border border-blue-500/30 ring-1 ring-blue-500/10 transition-all">
+<div class="flex justify-between items-start mb-4">
+<span class="text-[10px] font-bold uppercase tracking-widest text-outline">Hallucination Rate</span>
+<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-red-500/10 text-red-500 border border-red-500/20">CRITICAL</span>
+</div>
+<div class="mono text-4xl font-semibold text-on-surface mb-1">2.4%</div>
+<div class="text-[10px] text-outline mb-6">Target: <span class="text-on-surface-variant">1.5%</span></div>
+<div class="space-y-1.5">
+<div class="flex justify-between text-[9px] font-mono text-outline">
+<span>CURRENT (v2.4.0)</span>
+<span>PREV (v2.3.9)</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full flex overflow-hidden">
+<div class="h-full bg-red-500" style="width: 45%"></div>
+<div class="h-full bg-slate-600" style="width: 40%; opacity: 0.5;"></div>
+</div>
+</div>
+<!-- Indicator that this card is the source of the drawer -->
+<div class="absolute -right-1 top-1/2 -translate-y-1/2 w-1 h-8 bg-blue-500 rounded-full"></div>
+</div>
+<!-- Metric Card 3: Recall@K -->
+<div class="bg-surface-container-low p-5 rounded relative group border border-transparent hover:border-outline-variant/30 transition-all">
+<div class="flex justify-between items-start mb-4">
+<span class="text-[10px] font-bold uppercase tracking-widest text-outline">Recall@K</span>
+<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">NORMAL</span>
+</div>
+<div class="mono text-4xl font-semibold text-on-surface mb-1">0.88</div>
+<div class="text-[10px] text-outline mb-6">Target: <span class="text-on-surface-variant">0.85</span></div>
+<div class="space-y-1.5">
+<div class="flex justify-between text-[9px] font-mono text-outline">
+<span>CURRENT (v2.4.0)</span>
+<span>PREV (v2.3.9)</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full flex overflow-hidden">
+<div class="h-full bg-blue-500" style="width: 85%"></div>
+<div class="h-full bg-slate-600" style="width: 10%; opacity: 0.5;"></div>
+</div>
+</div>
+</div>
+<!-- Metric Card 4: Answer Relevance -->
+<div class="bg-surface-container-low p-5 rounded relative group border border-transparent hover:border-outline-variant/30 transition-all">
+<div class="flex justify-between items-start mb-4">
+<span class="text-[10px] font-bold uppercase tracking-widest text-outline">Answer Relevance</span>
+<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20">WARNING</span>
+</div>
+<div class="mono text-4xl font-semibold text-on-surface mb-1">0.91</div>
+<div class="text-[10px] text-outline mb-6">Target: <span class="text-on-surface-variant">0.95</span></div>
+<div class="space-y-1.5">
+<div class="flex justify-between text-[9px] font-mono text-outline">
+<span>CURRENT (v2.4.0)</span>
+<span>PREV (v2.3.9)</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full flex overflow-hidden">
+<div class="h-full bg-blue-500" style="width: 60%"></div>
+<div class="h-full bg-slate-600" style="width: 35%; opacity: 0.5;"></div>
+</div>
+</div>
+</div>
+<!-- Metric Card 5: Citation Correctness -->
+<div class="bg-surface-container-low p-5 rounded relative group border border-transparent hover:border-outline-variant/30 transition-all">
+<div class="flex justify-between items-start mb-4">
+<span class="text-[10px] font-bold uppercase tracking-widest text-outline">Citation Correctness</span>
+<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">NORMAL</span>
+</div>
+<div class="mono text-4xl font-semibold text-on-surface mb-1">0.97</div>
+<div class="text-[10px] text-outline mb-6">Target: <span class="text-on-surface-variant">0.95</span></div>
+<div class="space-y-1.5">
+<div class="flex justify-between text-[9px] font-mono text-outline">
+<span>CURRENT (v2.4.0)</span>
+<span>PREV (v2.3.9)</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full flex overflow-hidden">
+<div class="h-full bg-blue-500" style="width: 92%"></div>
+<div class="h-full bg-slate-600" style="width: 5%; opacity: 0.5;"></div>
+</div>
+</div>
+</div>
+<!-- Metric Card 6: Session Success Rate -->
+<div class="bg-surface-container-low p-5 rounded relative group border border-transparent hover:border-outline-variant/30 transition-all">
+<div class="flex justify-between items-start mb-4">
+<span class="text-[10px] font-bold uppercase tracking-widest text-outline">Session Success Rate</span>
+<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20">WARNING</span>
+</div>
+<div class="mono text-4xl font-semibold text-on-surface mb-1">94.2%</div>
+<div class="text-[10px] text-outline mb-6">Target: <span class="text-on-surface-variant">95%</span></div>
+<div class="space-y-1.5">
+<div class="flex justify-between text-[9px] font-mono text-outline">
+<span>CURRENT (v2.4.0)</span>
+<span>PREV (v2.3.9)</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full flex overflow-hidden">
+<div class="h-full bg-blue-500" style="width: 65%"></div>
+<div class="h-full bg-slate-600" style="width: 30%; opacity: 0.5;"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- AI Processing Indicator (Pulse Component) -->
+<div class="mt-8 bg-surface-container rounded h-24 flex items-center justify-center relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-600 to-indigo-400"></div>
+<div class="flex flex-col items-center gap-2">
+<span class="text-[10px] font-bold uppercase tracking-[0.2em] text-outline">Live Analysis Engine</span>
+<div class="flex gap-1">
+<div class="w-1.5 h-1.5 rounded-full bg-blue-500/50 animate-pulse"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-blue-500/50 animate-pulse delay-75"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-blue-500/50 animate-pulse delay-150"></div>
+</div>
+<span class="text-[10px] mono text-blue-400/70">Scanning real-time traffic for quality drift...</span>
+</div>
+</div>
+</div>
+<!-- Sample Cases Drawer (Partially Open) -->
+<div class="fixed top-14 right-0 bottom-0 w-[30%] bg-surface-container-high shadow-[-12px_0_32px_rgba(0,0,0,0.5)] border-l border-outline-variant/20 z-20 flex flex-col">
+<div class="p-6 border-b border-outline-variant/10">
+<div class="flex justify-between items-center mb-1">
+<h3 class="font-bold text-sm tracking-tight text-white">Sample Cases - Hallucination Rate</h3>
+<span class="material-symbols-outlined text-outline cursor-pointer hover:text-white">close</span>
+</div>
+<p class="text-[10px] text-outline uppercase tracking-wider">Filtered by: <span class="text-red-400 font-bold">FAILURE</span></p>
+</div>
+<div class="flex-1 overflow-y-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-highest">
+<th class="p-3 text-[10px] font-bold uppercase tracking-widest text-outline">Trace ID</th>
+<th class="p-3 text-[10px] font-bold uppercase tracking-widest text-outline">Input Query</th>
+<th class="p-3 text-[10px] font-bold uppercase tracking-widest text-outline">Failure Type</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/5">
+<tr class="hover:bg-surface-container cursor-pointer transition-colors">
+<td class="p-3 mono text-[11px] text-blue-400">TR-88219-X</td>
+<td class="p-3 text-[11px] text-on-surface-variant truncate max-w-[120px]">What is the current policy on remote work for junior developers?</td>
+<td class="p-3">
+<span class="text-[9px] px-2 py-0.5 bg-red-500/10 text-red-400 rounded-sm font-bold uppercase">Fact Conflict</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container cursor-pointer transition-colors">
+<td class="p-3 mono text-[11px] text-blue-400">TR-88224-B</td>
+<td class="p-3 text-[11px] text-on-surface-variant truncate max-w-[120px]">Summarize the Q3 2023 revenue growth figures from the ledger.</td>
+<td class="p-3">
+<span class="text-[9px] px-2 py-0.5 bg-orange-500/10 text-orange-400 rounded-sm font-bold uppercase">Source Omission</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container cursor-pointer transition-colors">
+<td class="p-3 mono text-[11px] text-blue-400">TR-88245-A</td>
+<td class="p-3 text-[11px] text-on-surface-variant truncate max-w-[120px]">List all approved vendors for data storage hardware.</td>
+<td class="p-3">
+<span class="text-[9px] px-2 py-0.5 bg-red-500/10 text-red-400 rounded-sm font-bold uppercase">Fake Entity</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container cursor-pointer transition-colors">
+<td class="p-3 mono text-[11px] text-blue-400">TR-88301-Z</td>
+<td class="p-3 text-[11px] text-on-surface-variant truncate max-w-[120px]">Who is the current head of the IT infrastructure department?</td>
+<td class="p-3">
+<span class="text-[9px] px-2 py-0.5 bg-red-500/10 text-red-400 rounded-sm font-bold uppercase">Fact Conflict</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container cursor-pointer transition-colors">
+<td class="p-3 mono text-[11px] text-blue-400">TR-88312-C</td>
+<td class="p-3 text-[11px] text-on-surface-variant truncate max-w-[120px]">Explain the process for requesting new equipment.</td>
+<td class="p-3">
+<span class="text-[9px] px-2 py-0.5 bg-orange-500/10 text-orange-400 rounded-sm font-bold uppercase">Temporal Error</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-4 bg-surface-container-highest/50 border-t border-outline-variant/10 flex justify-between items-center">
+<span class="text-[10px] mono text-outline">Viewing 1-5 of 14 cases</span>
+<div class="flex gap-2">
+<button class="p-1 hover:bg-surface-container rounded"><span class="material-symbols-outlined text-sm">chevron_left</span></button>
+<button class="p-1 hover:bg-surface-container rounded"><span class="material-symbols-outlined text-sm">chevron_right</span></button>
+</div>
+</div>
+</div>
+</main>
+</body></html>

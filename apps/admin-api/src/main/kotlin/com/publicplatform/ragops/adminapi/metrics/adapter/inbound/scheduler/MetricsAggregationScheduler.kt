@@ -1,7 +1,8 @@
 /**
  * 일별 KPI 지표 자동 집계 스케줄러.
  *
- * 매일 00:05에 전날의 질문·답변 데이터를 집계하여 daily_metrics_org에 upsert한다.
+ * `metrics.aggregation.cron` 설정(기본값: 30분마다)에 따라 직전 30분 단위 시각의
+ * 질문·답변 데이터를 집계하여 daily_metrics_org에 upsert한다.
  * 크로스 모듈 집계를 위해 NamedParameterJdbcTemplate을 사용하며,
  * 모듈 간 순환 의존을 피하고자 JPA 대신 Native SQL로 처리한다.
  */
@@ -21,8 +22,9 @@ class MetricsAggregationScheduler(
     private val metricsWriter: SaveMetricsPort,
 ) {
 
-    // 매일 00:05에 전날 집계 실행
-    @Scheduled(cron = "0 5 0 * * *")
+    // cron 값은 application.yml의 metrics.aggregation.cron으로 외부화되어 있다.
+    // 기본값("0 5 0 * * *")은 설정 누락 시 폴백용으로만 유지한다.
+    @Scheduled(cron = "\${metrics.aggregation.cron:0 5 0 * * *}")
     fun aggregatePreviousDay() {
         aggregate(LocalDate.now().minusDays(1))
     }
@@ -69,14 +71,40 @@ class MetricsAggregationScheduler(
             GROUP BY organization_id, service_id
         """.trimIndent()
 
+        // 활성 기관-서비스 목록 (질문 없는 날도 0-행 생성하기 위해)
+        val activeServicesSql = """
+            SELECT s.organization_id, s.id AS service_id
+            FROM services s
+            JOIN organizations o ON s.organization_id = o.id
+            WHERE o.status = 'active'
+        """.trimIndent()
+        val activeServices = jdbcTemplate.queryForList(activeServicesSql, emptyMap<String, Any>())
+            .map { "${it["organization_id"]}_${it["service_id"]}" to it }
+            .toMap()
+
         val params = mapOf("targetDate" to targetDate)
         val mainRows = jdbcTemplate.queryForList(mainSql, params)
         val feedbackRows = jdbcTemplate.queryForList(feedbackSql, params)
             .associateBy { "${it["organization_id"]}_${it["service_id"]}" }
 
-        for (row in mainRows) {
+        // 실데이터 집계 결과에 없는 활성 서비스는 0-행으로 채움
+        val coveredKeys = mainRows.map { "${it["organization_id"]}_${it["service_id"]}" }.toSet()
+        val zeroRows = activeServices.filterKeys { it !in coveredKeys }.values.map { svc ->
+            mapOf(
+                "organization_id" to svc["organization_id"],
+                "service_id" to svc["service_id"],
+                "total_sessions" to 0L, "total_questions" to 0L,
+                "fallback_count" to 0L, "no_answer_count" to 0L,
+                "avg_response_time_ms" to null,
+                "auto_resolved_count" to 0L, "escalated_count" to 0L,
+                "answered_count" to 0L, "knowledge_gap_count" to 0L,
+                "unanswered_count" to 0L, "after_hours_count" to 0L,
+                "avg_session_turn_count" to null,
+            )
+        }
+
+        for (row in mainRows + zeroRows) {
             val totalQuestions = (row["total_questions"] as Number).toLong()
-            if (totalQuestions == 0L) continue
 
             val totalSessions = (row["total_sessions"] as Number).toLong()
             val fallbackCount  = (row["fallback_count"]    as Number? ?: 0).toLong()
@@ -89,8 +117,8 @@ class MetricsAggregationScheduler(
             val avgTurnCount   = (row["avg_session_turn_count"] as Number?)?.toDouble()
 
             val scale4 = java.math.RoundingMode.HALF_UP
-            fun rate4(n: Long, d: Long) = BigDecimal(n.toDouble() / d).setScale(4, scale4)
-            fun rate2(n: Long, d: Long) = BigDecimal(n * 100.0 / d).setScale(2, scale4)
+            fun rate4(n: Long, d: Long) = if (d == 0L) BigDecimal.ZERO.setScale(4, scale4) else BigDecimal(n.toDouble() / d).setScale(4, scale4)
+            fun rate2(n: Long, d: Long) = if (d == 0L) BigDecimal.ZERO.setScale(2, scale4) else BigDecimal(n * 100.0 / d).setScale(2, scale4)
 
             val orgService = "${row["organization_id"]}_${row["service_id"]}"
             val fb = feedbackRows[orgService]

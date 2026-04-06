@@ -18,7 +18,7 @@ interface MetricsLineChartProps {
   metrics?: Array<keyof DailyMetric>;
 }
 
-const COLORS = ["#4b9eff", "#00c47a", "#f5a623", "#ff4560", "#a78bfa"];
+const COLORS = ["var(--accent)", "#00c47a", "#f5a623", "#ff4560", "#a78bfa"];
 
 const METRIC_LABELS: Partial<Record<keyof DailyMetric, string>> = {
   totalQuestions: "전체 질문",
@@ -37,37 +37,39 @@ export function MetricsLineChart({
   data,
   metrics = ["resolvedRate", "fallbackRate", "zeroResultRate"],
 }: MetricsLineChartProps) {
-  const chartData = data.map((d) => ({
-    ...d,
-    date: format(parseISO(d.metricDate), "MM/dd"),
-  }));
+  const chartData = [...data]
+    .sort((a, b) => a.metricDate.localeCompare(b.metricDate))
+    .map((d) => ({
+      ...d,
+      date: format(parseISO(d.metricDate), "MM/dd"),
+    }));
 
   return (
     <ResponsiveContainer width="100%" height={220}>
       <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#222836" />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--bg-border)" />
         <XAxis
           dataKey="date"
-          tick={{ fill: "#8b93a8", fontSize: 11 }}
-          axisLine={{ stroke: "#222836" }}
+          tick={{ fill: "var(--text-muted)", fontSize: 11 }}
+          axisLine={{ stroke: "var(--bg-border)" }}
           tickLine={false}
         />
         <YAxis
-          tick={{ fill: "#8b93a8", fontSize: 11 }}
+          tick={{ fill: "var(--text-muted)", fontSize: 11 }}
           axisLine={false}
           tickLine={false}
         />
         <Tooltip
           contentStyle={{
-            backgroundColor: "#13171f",
-            border: "1px solid #222836",
+            backgroundColor: "var(--bg-surface)",
+            border: "1px solid var(--bg-border)",
             borderRadius: 8,
           }}
-          labelStyle={{ color: "#dde2ec", fontSize: 12 }}
+          labelStyle={{ color: "var(--text-primary)", fontSize: 12 }}
           itemStyle={{ fontSize: 12 }}
         />
         <Legend
-          wrapperStyle={{ fontSize: 11, color: "#8b93a8" }}
+          wrapperStyle={{ fontSize: 11, color: "var(--text-muted)" }}
         />
         {metrics.map((key, i) => (
           <Line

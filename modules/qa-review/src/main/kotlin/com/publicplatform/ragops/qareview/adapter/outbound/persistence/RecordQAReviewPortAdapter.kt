@@ -43,7 +43,8 @@ open class RecordQAReviewPortAdapter(
             rootCauseCode = command.rootCauseCode?.name?.lowercase(),
             actionType = command.actionType?.name?.lowercase(),
             actionTargetId = command.actionTargetId, reviewComment = command.reviewComment,
-            reviewerId = command.reviewerId, reviewedAt = Instant.now(), createdAt = Instant.now(),
+            reviewerId = command.reviewerId, assigneeId = command.assigneeId,
+            reviewedAt = Instant.now(), createdAt = Instant.now(),
         )
 
         val saved = jpaRepository.save(entity)

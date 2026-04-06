@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kinetic Intelligence - 통합 관제</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "inverse-surface": "#dae2fd",
+                        "secondary-fixed-dim": "#b4c5ff",
+                        "on-error": "#690005",
+                        "secondary-container": "#33467e",
+                        "primary-container": "#2563eb",
+                        "on-secondary-container": "#a4b6f5",
+                        "surface-bright": "#31394d",
+                        "outline-variant": "#434655",
+                        "surface-container-highest": "#2d3449",
+                        "on-tertiary-container": "#ffede6",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "secondary-fixed": "#dbe1ff",
+                        "on-primary-container": "#eeefff",
+                        "on-surface": "#dae2fd",
+                        "surface-tint": "#b4c5ff",
+                        "on-secondary-fixed": "#00174b",
+                        "error": "#ffb4ab",
+                        "on-secondary": "#182d63",
+                        "surface-container-high": "#222a3d",
+                        "background": "#0b1326",
+                        "surface": "#0b1326",
+                        "on-tertiary": "#581e00",
+                        "primary": "#b4c5ff",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed": "#ffdbcd",
+                        "error-container": "#93000a",
+                        "on-tertiary-fixed": "#360f00",
+                        "surface-container-lowest": "#060e20",
+                        "tertiary": "#ffb596",
+                        "tertiary-container": "#bc4800",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "on-primary-fixed": "#00174b",
+                        "surface-dim": "#0b1326",
+                        "primary-fixed": "#dbe1ff",
+                        "outline": "#8d90a0",
+                        "secondary": "#b4c5ff",
+                        "on-surface-variant": "#c3c6d7",
+                        "on-background": "#dae2fd",
+                        "on-primary": "#002a78",
+                        "surface-container": "#171f33",
+                        "inverse-primary": "#0053db",
+                        "surface-variant": "#2d3449",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "surface-container-low": "#131b2e",
+                        "on-secondary-fixed-variant": "#31447b",
+                        "inverse-on-surface": "#283044"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"],
+                        "mono": ["IBM Plex Mono", "monospace"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            background-color: #0b1326;
+            color: #dae2fd;
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="flex min-h-screen">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-screen w-[240px] z-[60] bg-slate-950 dark:bg-[#0b1326] flex flex-col py-4 border-r border-white/5 font-['Inter'] font-medium text-[13px] uppercase tracking-wider">
+<div class="px-6 mb-8 flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-blue-600 flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-lg">settings_input_component</span>
+</div>
+<div>
+<h1 class="text-blue-500 dark:text-[#2563eb] font-black leading-none">RAG Operations</h1>
+<p class="text-[10px] text-slate-500 mt-1">Nerve Center v1.0</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="bg-gradient-to-r from-[#2563eb] to-[#33467e] text-white rounded-md mx-2 flex items-center px-4 py-3 gap-3" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="text-slate-400 dark:text-[#94a3b8] hover:text-white px-4 flex items-center py-3 gap-3 transition-all duration-300 hover:bg-[#171f33] dark:hover:bg-[#171f33]" href="#">
+<span class="material-symbols-outlined" data-icon="database">database</span>
+<span>Knowledge Base</span>
+</a>
+<a class="text-slate-400 dark:text-[#94a3b8] hover:text-white px-4 flex items-center py-3 gap-3 transition-all duration-300 hover:bg-[#171f33] dark:hover:bg-[#171f33]" href="#">
+<span class="material-symbols-outlined" data-icon="smart_toy">smart_toy</span>
+<span>Chatbot Settings</span>
+</a>
+<a class="text-slate-400 dark:text-[#94a3b8] hover:text-white px-4 flex items-center py-3 gap-3 transition-all duration-300 hover:bg-[#171f33] dark:hover:bg-[#171f33]" href="#">
+<span class="material-symbols-outlined" data-icon="verified_user">verified_user</span>
+<span>Quality Management</span>
+</a>
+<a class="text-slate-400 dark:text-[#94a3b8] hover:text-white px-4 flex items-center py-3 gap-3 transition-all duration-300 hover:bg-[#171f33] dark:hover:bg-[#171f33]" href="#">
+<span class="material-symbols-outlined" data-icon="monitoring">monitoring</span>
+<span>Service Monitoring</span>
+</a>
+<a class="text-slate-400 dark:text-[#94a3b8] hover:text-white px-4 flex items-center py-3 gap-3 transition-all duration-300 hover:bg-[#171f33] dark:hover:bg-[#171f33]" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span>Reports</span>
+</a>
+<a class="text-slate-400 dark:text-[#94a3b8] hover:text-white px-4 flex items-center py-3 gap-3 transition-all duration-300 hover:bg-[#171f33] dark:hover:bg-[#171f33]" href="#">
+<span class="material-symbols-outlined" data-icon="admin_panel_settings">admin_panel_settings</span>
+<span>System &amp; Permissions</span>
+</a>
+</nav>
+<div class="mt-auto pt-4 border-t border-white/5 space-y-1">
+<a class="text-slate-400 dark:text-[#94a3b8] hover:text-white px-4 flex items-center py-2 gap-3 transition-all duration-300 hover:bg-[#171f33]" href="#">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span>Documentation</span>
+</a>
+<a class="text-slate-400 dark:text-[#94a3b8] hover:text-white px-4 flex items-center py-2 gap-3 transition-all duration-300 hover:bg-[#171f33]" href="#">
+<span class="material-symbols-outlined" data-icon="contact_support">contact_support</span>
+<span>Support</span>
+</a>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="flex-1 ml-[240px]">
+<!-- TopAppBar -->
+<header class="docked full-width top-0 z-50 bg-slate-900/80 dark:bg-[#0b1326]/80 backdrop-blur-xl bg-[#131b2e] dark:bg-[#131b2e] shadow-[0px_8px_24px_rgba(0,0,0,0.4)] flex justify-between items-center w-full px-6 h-16 sticky">
+<div class="flex items-center gap-8">
+<span class="text-lg font-bold tracking-tighter text-slate-100 dark:text-[#f8fafc]">Kinetic Intelligence</span>
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+<input class="bg-surface-container-lowest border-none outline-none ring-1 ring-outline-variant/20 rounded-lg pl-10 pr-4 py-1.5 text-xs w-full focus:ring-primary/50 transition-all font-body" placeholder="Global Search..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1 border-r border-white/10 pr-4 mr-2">
+<button class="p-2 rounded-full text-slate-400 hover:bg-slate-800/50 transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 rounded-full text-slate-400 hover:bg-slate-800/50 transition-colors">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<button class="p-2 rounded-full text-slate-400 hover:bg-slate-800/50 transition-colors">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</button>
+</div>
+<div class="flex items-center gap-3">
+<div class="text-right">
+<p class="text-xs font-semibold text-on-surface">Admin User</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest">Super Admin</p>
+</div>
+<img alt="Admin profile" class="w-8 h-8 rounded-full border border-primary/20 bg-surface-container" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD16cUHMneSrqt7I0nQorQavyKgHd8Km43halBvYkjyS5ZkpK3bLTt1Ttfwg4dLpu7XuXxHtD4RW-71r5ay4dtXfJMMSfkVorlJ2AFpwGleGPqQ9CuBrroW7DEB3E1Bxk3rsYXPXiotUOf4CVoObSeYn9Qo_KmtpVuJc99j-ayeY6xbJalAcvyq5t7k5uASJHu0HEob0-HDAMfNW4wNeWxVONZpXwDgX802e5NAuVMi1qyuniqa35EoQmlY8rOTO_F8BKQ-AO3fa9nK"/>
+</div>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="p-8 space-y-8">
+<!-- Header Section -->
+<div class="flex justify-between items-end">
+<div>
+<h2 class="text-headline-sm font-bold tracking-tight text-white flex items-center gap-3">
+                        통합 관제
+                        <span class="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-mono rounded tracking-normal">LIVE_SESSION: 0824</span>
+</h2>
+<p class="text-sm text-on-surface-variant mt-1">Real-time performance analytics for the RAG pipeline infrastructure.</p>
+</div>
+<div class="flex gap-2">
+<button class="bg-surface-container-high px-4 py-2 text-xs font-medium rounded hover:bg-surface-container-highest transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">calendar_today</span>
+                        Past 24 Hours
+                    </button>
+<button class="bg-primary-container text-on-primary-container px-4 py-2 text-xs font-bold rounded flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">refresh</span>
+                        FORCE REFRESH
+                    </button>
+</div>
+</div>
+<!-- Top Section: KPI Cards -->
+<div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+<!-- KPI Card 1 -->
+<div class="bg-surface-container-low border border-outline-variant/10 p-5 rounded-lg hover:bg-surface-container transition-all cursor-pointer group relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-primary to-secondary-container"></div>
+<p class="text-[10px] font-mono text-on-surface-variant uppercase tracking-widest mb-3">E2E Latency P95</p>
+<div class="flex items-baseline justify-between">
+<h3 class="text-3xl font-mono font-bold text-white tracking-tighter">1.24<span class="text-sm font-normal text-on-surface-variant ml-1">s</span></h3>
+<span class="flex items-center gap-1 px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            NORMAL
+                        </span>
+</div>
+<p class="text-[11px] text-emerald-500 mt-4 flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-xs">arrow_downward</span>
+                        12.5% vs yesterday
+                    </p>
+</div>
+<!-- KPI Card 2 -->
+<div class="bg-surface-container-low border border-outline-variant/10 p-5 rounded-lg hover:bg-surface-container transition-all cursor-pointer">
+<p class="text-[10px] font-mono text-on-surface-variant uppercase tracking-widest mb-3">Error Rate</p>
+<div class="flex items-baseline justify-between">
+<h3 class="text-3xl font-mono font-bold text-white tracking-tighter">0.02<span class="text-sm font-normal text-on-surface-variant ml-1">%</span></h3>
+<span class="flex items-center gap-1 px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            STABLE
+                        </span>
+</div>
+<p class="text-[11px] text-on-surface-variant mt-4 flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-xs">horizontal_rule</span>
+                        No change vs yesterday
+                    </p>
+</div>
+<!-- KPI Card 3 -->
+<div class="bg-surface-container-low border border-outline-variant/10 p-5 rounded-lg hover:bg-surface-container transition-all cursor-pointer">
+<p class="text-[10px] font-mono text-on-surface-variant uppercase tracking-widest mb-3">Answer Rate</p>
+<div class="flex items-baseline justify-between">
+<h3 class="text-3xl font-mono font-bold text-white tracking-tighter">98.4<span class="text-sm font-normal text-on-surface-variant ml-1">%</span></h3>
+<span class="flex items-center gap-1 px-2 py-0.5 bg-amber-500/10 text-amber-400 text-[10px] font-bold rounded">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                            MONITOR
+                        </span>
+</div>
+<p class="text-[11px] text-rose-500 mt-4 flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-xs">arrow_downward</span>
+                        2.1% vs yesterday
+                    </p>
+</div>
+<!-- KPI Card 4 -->
+<div class="bg-surface-container-low border border-outline-variant/10 p-5 rounded-lg hover:bg-surface-container transition-all cursor-pointer">
+<p class="text-[10px] font-mono text-on-surface-variant uppercase tracking-widest mb-3">Index Freshness</p>
+<div class="flex items-baseline justify-between">
+<h3 class="text-3xl font-mono font-bold text-white tracking-tighter">42<span class="text-sm font-normal text-on-surface-variant ml-1">m</span></h3>
+<span class="flex items-center gap-1 px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            SYNCED
+                        </span>
+</div>
+<p class="text-[11px] text-emerald-500 mt-4 flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-xs">arrow_downward</span>
+                        18m vs yesterday
+                    </p>
+</div>
+<!-- KPI Card 5 -->
+<div class="bg-surface-container-low border border-outline-variant/10 p-5 rounded-lg hover:bg-surface-container transition-all cursor-pointer">
+<p class="text-[10px] font-mono text-on-surface-variant uppercase tracking-widest mb-3">Cost/Query</p>
+<div class="flex items-baseline justify-between">
+<h3 class="text-3xl font-mono font-bold text-white tracking-tighter">0.008<span class="text-sm font-normal text-on-surface-variant ml-1">$</span></h3>
+<span class="flex items-center gap-1 px-2 py-0.5 bg-rose-500/10 text-rose-400 text-[10px] font-bold rounded">
+<span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                            ALERT
+                        </span>
+</div>
+<p class="text-[11px] text-rose-500 mt-4 flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-xs">arrow_upward</span>
+                        15.2% vs yesterday
+                    </p>
+</div>
+</div>
+<!-- Middle Section: Pipeline Latency -->
+<div class="bg-surface-container-low border border-outline-variant/10 rounded-lg p-6">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h4 class="text-sm font-bold text-white uppercase tracking-tight">Pipeline Latency Breakdown</h4>
+<p class="text-[11px] text-on-surface-variant mt-0.5">Mean time per execution stage (N=10k requests)</p>
+</div>
+<div class="flex items-center gap-6 text-[11px] font-mono text-on-surface-variant">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-blue-500"></span> RETRIEVAL
+                        </div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-blue-400"></span> RERANKING
+                        </div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-blue-300"></span> LLM
+                        </div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-slate-400"></span> POST-PROC
+                        </div>
+</div>
+</div>
+<div class="relative pt-4 pb-8">
+<!-- Progress Bar Container -->
+<div class="h-10 w-full bg-surface-container flex rounded-md overflow-hidden ring-1 ring-white/5 shadow-inner">
+<div class="h-full bg-blue-600 flex items-center justify-center border-r border-white/10" style="width: 25%">
+<span class="text-[10px] font-mono font-bold text-white">250ms (25%)</span>
+</div>
+<div class="h-full bg-blue-500 flex items-center justify-center border-r border-white/10" style="width: 15%">
+<span class="text-[10px] font-mono font-bold text-white">150ms (15%)</span>
+</div>
+<div class="h-full bg-blue-400 flex items-center justify-center border-r border-white/10" style="width: 50%">
+<span class="text-[10px] font-mono font-bold text-white">500ms (50%)</span>
+</div>
+<div class="h-full bg-slate-500 flex items-center justify-center" style="width: 10%">
+<span class="text-[10px] font-mono font-bold text-white">100ms (10%)</span>
+</div>
+</div>
+<!-- Labels Below -->
+<div class="flex w-full mt-4 text-[10px] font-mono text-on-surface-variant uppercase">
+<div class="text-center" style="width: 25%">Retrieval</div>
+<div class="text-center border-l border-outline-variant/20" style="width: 15%">Reranking</div>
+<div class="text-center border-l border-outline-variant/20" style="width: 50%">LLM Generation</div>
+<div class="text-center border-l border-outline-variant/20" style="width: 10%">Post-Proc</div>
+</div>
+</div>
+<div class="grid grid-cols-4 gap-4 mt-2">
+<div class="bg-surface-container/50 p-3 rounded border border-outline-variant/5">
+<p class="text-[9px] text-on-surface-variant mb-1">P99 PEAK</p>
+<p class="font-mono text-blue-400">412ms</p>
+</div>
+<div class="bg-surface-container/50 p-3 rounded border border-outline-variant/5">
+<p class="text-[9px] text-on-surface-variant mb-1">CACHE HIT RATE</p>
+<p class="font-mono text-blue-400">84.2%</p>
+</div>
+<div class="bg-surface-container/50 p-3 rounded border border-outline-variant/5">
+<p class="text-[9px] text-on-surface-variant mb-1">TOKEN VELOCITY</p>
+<p class="font-mono text-blue-400">128 t/s</p>
+</div>
+<div class="bg-surface-container/50 p-3 rounded border border-outline-variant/5">
+<p class="text-[9px] text-on-surface-variant mb-1">BUFFER SAT.</p>
+<p class="font-mono text-blue-400">12.5%</p>
+</div>
+</div>
+</div>
+<!-- Bottom Section: Active Alert Log -->
+<div class="bg-surface-container-low border border-outline-variant/10 rounded-lg overflow-hidden">
+<div class="p-6 border-b border-outline-variant/10 flex justify-between items-center">
+<h4 class="text-sm font-bold text-white uppercase tracking-tight flex items-center gap-2">
+<span class="material-symbols-outlined text-rose-500 text-base">emergency_home</span>
+                        Active System Alerts
+                    </h4>
+<span class="text-[10px] font-mono text-rose-400 px-2 py-0.5 bg-rose-400/10 rounded">3 CRITICAL | 12 WARNING</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container-high/30">
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Time</th>
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Metric</th>
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Current Value</th>
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Threshold</th>
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Severity</th>
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/5">
+<tr class="hover:bg-surface-container/30 transition-colors">
+<td class="px-6 py-4 font-mono text-xs text-on-surface">14:22:45</td>
+<td class="px-6 py-4 text-xs font-semibold text-white">LLM_TIMEOUT_RATIO</td>
+<td class="px-6 py-4 font-mono text-xs text-rose-400">4.82%</td>
+<td class="px-6 py-4 font-mono text-xs text-on-surface-variant">1.00%</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 bg-rose-500/10 text-rose-500 text-[10px] font-bold rounded uppercase">Critical</span>
+</td>
+<td class="px-6 py-4 text-xs text-on-surface-variant italic">Retrying...</td>
+</tr>
+<tr class="hover:bg-surface-container/30 transition-colors">
+<td class="px-6 py-4 font-mono text-xs text-on-surface">14:18:12</td>
+<td class="px-6 py-4 text-xs font-semibold text-white">VECTOR_DB_LATENCY</td>
+<td class="px-6 py-4 font-mono text-xs text-amber-400">840ms</td>
+<td class="px-6 py-4 font-mono text-xs text-on-surface-variant">500ms</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 bg-amber-500/10 text-amber-500 text-[10px] font-bold rounded uppercase">Warning</span>
+</td>
+<td class="px-6 py-4 text-xs text-on-surface-variant italic">Investigating</td>
+</tr>
+<tr class="hover:bg-surface-container/30 transition-colors">
+<td class="px-6 py-4 font-mono text-xs text-on-surface">14:05:30</td>
+<td class="px-6 py-4 text-xs font-semibold text-white">COST_LIMIT_EXCEEDED</td>
+<td class="px-6 py-4 font-mono text-xs text-rose-400">$2.40/q</td>
+<td class="px-6 py-4 font-mono text-xs text-on-surface-variant">$0.05/q</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 bg-rose-500/10 text-rose-500 text-[10px] font-bold rounded uppercase">Critical</span>
+</td>
+<td class="px-6 py-4 text-xs text-on-surface-variant italic">Throttle Active</td>
+</tr>
+<tr class="hover:bg-surface-container/30 transition-colors">
+<td class="px-6 py-4 font-mono text-xs text-on-surface">13:58:11</td>
+<td class="px-6 py-4 text-xs font-semibold text-white">RERANK_RECALL_DROPPED</td>
+<td class="px-6 py-4 font-mono text-xs text-amber-400">0.68</td>
+<td class="px-6 py-4 font-mono text-xs text-on-surface-variant">0.75</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 bg-amber-500/10 text-amber-500 text-[10px] font-bold rounded uppercase">Warning</span>
+</td>
+<td class="px-6 py-4 text-xs text-on-surface-variant italic">Scheduled Review</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-4 bg-surface-container-high/20 border-t border-outline-variant/10 text-center">
+<button class="text-[11px] font-bold text-primary hover:underline uppercase tracking-widest">View Complete Audit Log</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating System Status Indicator -->
+<div class="fixed bottom-6 right-6 z-[100] flex flex-col items-end gap-3 pointer-events-none">
+<div class="bg-slate-900 border border-white/10 p-4 rounded-lg shadow-2xl pointer-events-auto backdrop-blur-md">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded bg-primary/20 flex items-center justify-center relative overflow-hidden">
+<span class="material-symbols-outlined text-primary" data-icon="dns" data-weight="fill">dns</span>
+<div class="absolute inset-0 bg-primary/10 animate-pulse"></div>
+</div>
+<div>
+<p class="text-[10px] font-mono text-on-surface-variant mb-1 uppercase">Node Health</p>
+<div class="flex gap-1">
+<div class="w-1.5 h-6 bg-emerald-500 rounded-sm"></div>
+<div class="w-1.5 h-6 bg-emerald-500 rounded-sm"></div>
+<div class="w-1.5 h-6 bg-emerald-500 rounded-sm"></div>
+<div class="w-1.5 h-6 bg-emerald-500 rounded-sm"></div>
+<div class="w-1.5 h-6 bg-amber-500 rounded-sm"></div>
+<div class="w-1.5 h-6 bg-slate-700 rounded-sm"></div>
+</div>
+</div>
+</div>
+<div class="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
+<span class="text-[9px] font-mono text-on-surface-variant">REGION: AP-NORTHEAST-2</span>
+<span class="text-[9px] font-mono text-emerald-400 flex items-center gap-1">
+<span class="w-1 h-1 rounded-full bg-emerald-500"></span> 99.9% UPTIME
+                </span>
+</div>
+</div>
+</div>
+</body></html>

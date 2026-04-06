@@ -8,6 +8,7 @@ import type {
   IngestionJob,
   QAReview,
   UnresolvedQuestion,
+  AdminUser,
   Document,
   DocumentVersion,
   DailyMetric,
@@ -100,18 +101,25 @@ export const qaApi = {
     reviewStatus: string;
     rootCauseCode?: string;
     actionType?: string;
-    reviewNote?: string;
+    reviewComment?: string;
+    assigneeId?: string;
   }) =>
     request<QAReview>("/qa-reviews", {
       method: "POST",
       body: JSON.stringify(body),
     }),
 
-  updateReview: (id: string, body: Partial<QAReview>) =>
-    request<QAReview>(`/qa-reviews/${id}`, {
+  assignReview: (id: string, assigneeId: string | null) =>
+    request<{ qaReviewId: string; assigneeId: string | null }>(`/qa-reviews/${id}`, {
       method: "PATCH",
-      body: JSON.stringify(body),
+      body: JSON.stringify({ assigneeId }),
     }),
+};
+
+// ── 관리자 사용자 ─────────────────────────────────────────────────────────────
+
+export const adminUserApi = {
+  list: () => request<{ items: AdminUser[]; total: number }>("/users"),
 };
 
 // ── 문서 ──────────────────────────────────────────────────────────────────────

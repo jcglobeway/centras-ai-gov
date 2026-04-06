@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import useSWR from "swr";
+import ReactMarkdown from "react-markdown";
 import { fetcher } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
 import { PageGuide } from "@/components/ui/PageGuide";
@@ -13,11 +14,6 @@ interface OrgItem {
 interface ServiceItem {
   serviceId: string;
   name: string;
-}
-interface Message {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
 }
 interface ChunkMeta {
   filename: string;
@@ -31,6 +27,12 @@ interface Metadata {
   confidenceScore: number;
   retrievedChunks: ChunkMeta[];
 }
+interface Message {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  metadata?: Metadata;
+}
 
 function getSessionId(): string | null {
   if (typeof window === "undefined") return null;
@@ -43,6 +45,12 @@ function scoreColor(score: number): string {
   return "text-text-muted";
 }
 
+function scoreBadgeBg(score: number): string {
+  if (score >= 0.8) return "bg-success/10 text-success";
+  if (score >= 0.6) return "bg-warning/10 text-warning";
+  return "bg-bg-border/30 text-text-muted";
+}
+
 export default function SimulatorPage() {
   const [orgId, setOrgId] = useState("");
   const [serviceId, setServiceId] = useState("");
@@ -51,7 +59,8 @@ export default function SimulatorPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [metadata, setMetadata] = useState<Metadata | null>(null);
+  const [selectedMsgId, setSelectedMsgId] = useState<string | null>(null);
+  const [expandedChunks, setExpandedChunks] = useState<Set<number>>(new Set());
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const { data: orgs } = useSWR<{ items: OrgItem[] }>(
@@ -66,6 +75,14 @@ export default function SimulatorPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
+
+  // selectedMsgId가 바뀌면 청크 펼침 상태 초기화
+  useEffect(() => {
+    setExpandedChunks(new Set());
+  }, [selectedMsgId]);
+
+  const selectedMetadata =
+    messages.find((m) => m.id === selectedMsgId)?.metadata ?? null;
 
   async function startSession() {
     setStarting(true);
@@ -94,7 +111,8 @@ export default function SimulatorPage() {
     setServiceId("");
     setMessages([]);
     setInput("");
-    setMetadata(null);
+    setSelectedMsgId(null);
+    setExpandedChunks(new Set());
   }
 
   async function sendMessage(e: React.FormEvent) {
@@ -158,13 +176,19 @@ export default function SimulatorPage() {
               );
             }
             if (parsed.done) {
-              setMetadata({
+              const meta: Metadata = {
                 answerStatus: parsed.answer_status ?? "unknown",
                 responseTimeMs: parsed.response_time_ms ?? 0,
                 citationCount: parsed.citation_count ?? 0,
                 confidenceScore: parsed.confidence_score ?? 0,
                 retrievedChunks: parsed.retrieved_chunks ?? [],
-              });
+              };
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === assistantId ? { ...m, metadata: meta } : m
+                )
+              );
+              setSelectedMsgId(assistantId);
             }
           } catch {
             // incomplete JSON line — skip
@@ -182,6 +206,15 @@ export default function SimulatorPage() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  function toggleChunk(idx: number) {
+    setExpandedChunks((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
+      return next;
+    });
   }
 
   return (
@@ -268,14 +301,24 @@ export default function SimulatorPage() {
                 <span className="text-xs text-text-muted">세션</span>
                 <code className="text-xs text-accent">{chatSessionId}</code>
               </div>
-              {metadata && (
+              {selectedMetadata && (
                 <div className="flex items-center gap-2 font-mono text-[11px] text-text-secondary">
-                  <span>Latency: {metadata.responseTimeMs}ms</span>
+                  <span>{selectedMetadata.responseTimeMs}ms</span>
                   <span className="w-1 h-1 rounded-full bg-bg-border" />
-                  <span>Docs: {metadata.citationCount}</span>
+                  <span>Docs: {selectedMetadata.citationCount}</span>
                   <span className="w-1 h-1 rounded-full bg-bg-border" />
                   <span>
-                    Confidence: {(metadata.confidenceScore * 100).toFixed(0)}%
+                    Conf: {(selectedMetadata.confidenceScore * 100).toFixed(0)}%
+                  </span>
+                  <span className="w-1 h-1 rounded-full bg-bg-border" />
+                  <span
+                    className={
+                      selectedMetadata.answerStatus === "answered"
+                        ? "text-success"
+                        : "text-warning"
+                    }
+                  >
+                    {selectedMetadata.answerStatus}
                   </span>
                 </div>
               )}
@@ -291,19 +334,53 @@ export default function SimulatorPage() {
               {messages.map((m) => (
                 <div
                   key={m.id}
-                  className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+                  className={`flex flex-col ${m.role === "user" ? "items-end" : "items-start"}`}
                 >
                   <div
-                    className={`max-w-[75%] px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap rounded-xl ${
+                    className={`max-w-[75%] px-4 py-3 text-sm leading-relaxed rounded-xl ${
                       m.role === "user"
-                        ? "bg-accent text-white rounded-br-sm"
+                        ? "bg-accent text-white rounded-br-sm whitespace-pre-wrap"
                         : "bg-bg-elevated border border-white/5 text-text-primary rounded-bl-sm"
                     }`}
                   >
-                    {m.content || (
+                    {m.content ? (
+                      m.role === "assistant" ? (
+                        <ReactMarkdown
+                          components={{
+                            p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                            ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-1">{children}</ul>,
+                            ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-1">{children}</ol>,
+                            li: ({ children }) => <li>{children}</li>,
+                            strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                            h1: ({ children }) => <h1 className="text-base font-bold mb-1">{children}</h1>,
+                            h2: ({ children }) => <h2 className="text-sm font-bold mb-1">{children}</h2>,
+                            h3: ({ children }) => <h3 className="text-sm font-semibold mb-1">{children}</h3>,
+                            code: ({ children }) => <code className="bg-bg-base px-1 py-0.5 rounded text-xs font-mono text-accent">{children}</code>,
+                            pre: ({ children }) => <pre className="bg-bg-base p-2 rounded text-xs font-mono overflow-x-auto mb-2">{children}</pre>,
+                          }}
+                        >
+                          {m.content}
+                        </ReactMarkdown>
+                      ) : (
+                        m.content
+                      )
+                    ) : (
                       <span className="text-text-muted text-xs">생성 중...</span>
                     )}
                   </div>
+                  {/* 어시스턴트 메시지의 소스 뱃지 */}
+                  {m.role === "assistant" && m.metadata && (
+                    <button
+                      onClick={() => setSelectedMsgId(m.id)}
+                      className={`mt-1 text-[11px] px-2 py-0.5 rounded-full border transition-colors ${
+                        selectedMsgId === m.id
+                          ? "border-accent text-accent bg-accent/10"
+                          : "border-white/10 text-text-muted hover:border-accent/50 hover:text-accent/70"
+                      }`}
+                    >
+                      소스 {m.metadata.citationCount}개 · {m.metadata.responseTimeMs}ms
+                    </button>
+                  )}
                 </div>
               ))}
               {isLoading && messages.at(-1)?.role === "user" && (
@@ -339,65 +416,115 @@ export default function SimulatorPage() {
           </div>
 
           {/* Retrieved Chunks 패널 */}
-          <div className="w-72 flex-shrink-0 flex flex-col overflow-hidden rounded-lg bg-bg-base border border-white/5">
-            <div className="px-3 py-2.5 bg-bg-surface border-b border-white/5">
+          <div className="w-80 flex-shrink-0 flex flex-col overflow-hidden rounded-lg bg-bg-base border border-white/5">
+            <div className="px-3 py-2.5 bg-bg-surface border-b border-white/5 flex items-center justify-between">
               <span className="text-[11px] font-bold text-text-secondary uppercase tracking-widest">
                 Retrieved Chunks
               </span>
+              {selectedMetadata && (
+                <span className="text-[10px] text-text-muted font-mono">
+                  {selectedMetadata.retrievedChunks.length}개 검색됨
+                </span>
+              )}
             </div>
-            <div className="px-3 py-1.5 border-b border-white/5 flex items-center justify-between">
-              <span className="text-[10px] font-mono text-text-muted">
-                Source Retrieval Trace
-              </span>
-              <div className="flex gap-1">
-                <div className="w-2 h-2 rounded-full bg-error/40" />
-                <div className="w-2 h-2 rounded-full bg-warning/40" />
-                <div className="w-2 h-2 rounded-full bg-success/40" />
+
+            {/* 메타 요약 */}
+            {selectedMetadata && (
+              <div className="px-3 py-2 bg-bg-surface/50 border-b border-white/5 grid grid-cols-3 gap-2">
+                <div className="text-center">
+                  <div className="text-[10px] text-text-muted mb-0.5">Latency</div>
+                  <div className="text-[12px] font-mono text-text-primary">
+                    {selectedMetadata.responseTimeMs}ms
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-[10px] text-text-muted mb-0.5">Confidence</div>
+                  <div
+                    className={`text-[12px] font-mono ${scoreColor(selectedMetadata.confidenceScore)}`}
+                  >
+                    {(selectedMetadata.confidenceScore * 100).toFixed(1)}%
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-[10px] text-text-muted mb-0.5">Status</div>
+                  <div
+                    className={`text-[11px] font-mono ${
+                      selectedMetadata.answerStatus === "answered"
+                        ? "text-success"
+                        : "text-warning"
+                    }`}
+                  >
+                    {selectedMetadata.answerStatus}
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
             <div className="flex-1 overflow-y-auto divide-y divide-white/5">
-              {!metadata ? (
+              {!selectedMetadata ? (
                 <p className="text-[11px] text-text-muted p-4 text-center mt-4">
-                  질문 후 참조 문서가
+                  답변 아래 소스 뱃지를 클릭하면
                   <br />
-                  여기에 표시됩니다
+                  참조 문서가 여기에 표시됩니다
                 </p>
-              ) : metadata.retrievedChunks.length === 0 ? (
+              ) : selectedMetadata.retrievedChunks.length === 0 ? (
                 <p className="text-[11px] text-text-muted p-4 text-center mt-4">
                   검색된 문서가 없습니다
                 </p>
               ) : (
-                metadata.retrievedChunks.map((chunk, i) => (
-                  <div
-                    key={i}
-                    className="p-3 hover:bg-bg-elevated transition-colors"
-                  >
-                    <div className="flex justify-between mb-1.5">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="font-mono text-[11px] text-accent shrink-0">
-                          #{String(i + 1).padStart(3, "0")}
-                        </span>
-                        <span className="text-[10px] text-text-secondary flex items-center gap-0.5 truncate">
-                          <span className="material-symbols-outlined text-[12px] shrink-0">
-                            description
-                          </span>
-                          <span className="truncate">{chunk.filename}</span>
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0 ml-2">
-                        <span className="text-[10px] text-text-muted">Sim:</span>
-                        <span
-                          className={`font-mono text-[11px] font-medium ${scoreColor(chunk.score)}`}
+                selectedMetadata.retrievedChunks.map((chunk, i) => {
+                  const isExpanded = expandedChunks.has(i);
+                  return (
+                    <div key={i} className="hover:bg-bg-elevated transition-colors">
+                      {/* 청크 헤더 (클릭 시 토글) */}
+                      <button
+                        onClick={() => toggleChunk(i)}
+                        className="w-full text-left p-3"
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="font-mono text-[11px] text-accent shrink-0">
+                              #{String(i + 1).padStart(2, "0")}
+                            </span>
+                            <span className="text-[10px] text-text-secondary truncate">
+                              {chunk.filename}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <span
+                              className={`text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded ${scoreBadgeBg(chunk.score)}`}
+                            >
+                              {chunk.score.toFixed(3)}
+                            </span>
+                            <span className="text-[10px] text-text-muted">
+                              {isExpanded ? "▲" : "▼"}
+                            </span>
+                          </div>
+                        </div>
+                        <p
+                          className={`text-[11px] font-mono leading-relaxed text-text-secondary/70 ${
+                            isExpanded ? "" : "line-clamp-2"
+                          }`}
                         >
-                          {chunk.score.toFixed(3)}
-                        </span>
-                      </div>
+                          {chunk.preview}
+                        </p>
+                      </button>
+
+                      {/* 확장 시 추가 정보 */}
+                      {isExpanded && (
+                        <div className="px-3 pb-3 space-y-1.5 border-t border-white/5 pt-2">
+                          <div className="flex gap-3 text-[10px] text-text-muted font-mono">
+                            <span>Sim Score: <span className={scoreColor(chunk.score)}>{chunk.score.toFixed(4)}</span></span>
+                            <span>Rank: #{i + 1}</span>
+                          </div>
+                          <div className="text-[10px] text-text-muted truncate">
+                            파일: {chunk.filename}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <p className="text-[11px] font-mono leading-tight text-text-secondary/60 line-clamp-2">
-                      &ldquo;{chunk.preview}&rdquo;
-                    </p>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>

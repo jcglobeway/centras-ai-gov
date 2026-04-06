@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import math
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Optional
 
@@ -40,6 +41,9 @@ def run(
     eval_results_path: Path = typer.Option(DEFAULT_EVAL_RESULTS, "--eval-results", help="eval_results.json 경로 (contexts/ground_truth 보완용)"),
     from_eval_results: bool = typer.Option(False, "--from-eval-results", help="eval_results.json의 question_id 목록으로 직접 조회 (날짜 필터 무시)"),
     dry_run: bool = typer.Option(False, "--dry-run", help="결과를 전송하지 않고 출력만"),
+    workers: int = typer.Option(4, "--workers", help="citation 지표 병렬 처리 스레드 수"),
+    chunk_size: int = typer.Option(20, "--chunk-size", help="RAGAS evaluate() 1회 처리 질문 수"),
+    skip_citation: bool = typer.Option(False, "--skip-citation", help="citation coverage/correctness 계산 생략 (LLM 호출 ~50% 감소)"),
 ) -> None:
     """지정한 날짜의 질문에 대해 RAGAS 평가를 수행하고 admin-api에 결과를 전송한다."""
     if not from_eval_results and not date_str:
@@ -72,7 +76,6 @@ def run(
     db_url = os.getenv("DATABASE_URL")
 
     if from_eval_results:
-        # eval_results.json의 question_id 목록으로 직접 DB 조회 (날짜 필터 무시)
         question_ids = [item["question_id"] for item in eval_data if item.get("question_id")]
         if not question_ids:
             typer.echo("[eval-runner] eval_results.json에 question_id가 없습니다.", err=True)
@@ -107,7 +110,7 @@ def run(
             merged_lookup[qtext] = eval_lookup[qtext]
 
     typer.echo(f"[eval-runner] 평가 대상: {len(questions)}건 (eval_results 매핑: {len(merged_lookup)}건)")
-    results = evaluate_batch(questions, merged_lookup, client=client, dry_run=dry_run)
+    results = evaluate_batch(questions, merged_lookup, client=client, dry_run=dry_run, workers=workers, chunk_size=chunk_size, skip_citation=skip_citation)
 
     typer.echo(f"[eval-runner] 완료 — {len(results)}건 처리")
 
@@ -185,13 +188,13 @@ def fetch_questions_by_ids(
     try:
         conn = psycopg2.connect(db_url)
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-        # page_size 단위로 분할 조회 (IN 절 크기 제한 회피)
         for offset in range(0, len(question_ids), page_size):
             batch = question_ids[offset:offset + page_size]
             placeholders = ",".join(["%s"] * len(batch))
             cur.execute(f"""
                 SELECT q.id AS "questionId", q.question_text AS "questionText",
-                       a.answer_text AS "answerText", a.answer_status AS "answerStatus"
+                       a.answer_text AS "answerText", a.answer_status AS "answerStatus",
+                       q.organization_id AS "organizationId"
                 FROM questions q
                 LEFT JOIN answers a ON a.question_id = q.id
                 WHERE q.id IN ({placeholders})
@@ -219,7 +222,8 @@ def fetch_questions_from_db(
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         query = """
             SELECT q.id AS "questionId", q.question_text AS "questionText",
-                   a.answer_text AS "answerText", a.answer_status AS "answerStatus"
+                   a.answer_text AS "answerText", a.answer_status AS "answerStatus",
+                   q.organization_id AS "organizationId"
             FROM questions q
             LEFT JOIN answers a ON a.question_id = q.id
             WHERE DATE(q.created_at) = %s
@@ -243,47 +247,168 @@ def evaluate_batch(
     eval_lookup: dict[str, dict] | None = None,
     client: "AdminApiClient | None" = None,
     dry_run: bool = False,
+    workers: int = 4,
+    chunk_size: int = 20,
+    skip_citation: bool = False,
 ) -> list[dict]:
     lookup = eval_lookup or {}
+    judge_model = os.getenv("RAGAS_OLLAMA_MODEL", "qwen3:4b")
+    ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
+
+    # 1. 기존 평가 조회 — 병렬 HTTP
+    typer.echo(f"[eval-runner] 기존 평가 조회 중 ({len(questions)}건)...")
+    existing_map: dict[str, dict | None] = {}
+    if client:
+        with ThreadPoolExecutor(max_workers=min(workers * 2, 20)) as ex:
+            futures = {ex.submit(client.get_evaluation, q["questionId"]): q["questionId"] for q in questions}
+            for fut in as_completed(futures):
+                qid = futures[fut]
+                existing_map[qid] = fut.result()
+    else:
+        for q in questions:
+            existing_map[q["questionId"]] = None
+
+    new_questions = [q for q in questions if existing_map.get(q["questionId"]) is None]
+    patch_questions = [q for q in questions if existing_map.get(q["questionId"]) is not None]
+    typer.echo(f"[eval-runner] 신규: {len(new_questions)}건 / PATCH: {len(patch_questions)}건")
+
+    # 2. LLM / 임베딩 초기화
+    from ragas.metrics import faithfulness, answer_relevancy
+    from ragas import evaluate as ragas_evaluate
+    from ragas.llms import LangchainLLMWrapper
+    from ragas.embeddings import LangchainEmbeddingsWrapper
+    from ragas.run_config import RunConfig
+    from langchain_ollama import ChatOllama, OllamaEmbeddings
+    from datasets import Dataset
+
+    # Ollama 서버 과부하 방지: 동시 요청 수 제한, 타임아웃 충분히 설정
+    run_cfg = RunConfig(max_workers=workers, timeout=120, max_retries=2)
+
+    llm = LangchainLLMWrapper(ChatOllama(base_url=ollama_url, model=judge_model))
+    emb = LangchainEmbeddingsWrapper(OllamaEmbeddings(base_url=ollama_url, model="bge-m3"))
+    faithfulness.llm = llm
+    answer_relevancy.llm = llm
+    answer_relevancy.embeddings = emb
+
     results: list[dict] = []
 
-    for q in questions:
-        question_id = q.get("questionId", "")
-        question_text = q.get("questionText", "")
-        answer_text = q.get("answerText", "")
-        eval_item = lookup.get(question_text, {})
+    # 3. 신규 질문 — chunk_size씩 나눠 배치 evaluate()
+    if new_questions:
+        typer.echo(f"[eval-runner] RAGAS 배치 평가 시작 — {len(new_questions)}건 ({chunk_size}건씩 청크)")
+        fa_scores: dict[str, dict] = {}
+        gt_scores: dict[str, dict] = {}
+        citation_scores: dict[str, dict] = {}
+
+        for chunk_start in range(0, len(new_questions), chunk_size):
+            chunk = new_questions[chunk_start:chunk_start + chunk_size]
+            chunk_end = chunk_start + len(chunk)
+            typer.echo(f"[eval-runner] 청크 {chunk_start+1}~{chunk_end}/{len(new_questions)} 평가 중...")
+
+            q_ids    = [q["questionId"]   for q in chunk]
+            q_texts  = [q["questionText"] for q in chunk]
+            a_texts  = [q["answerText"]   for q in chunk]
+            ctx_list = [(lookup.get(q["questionText"], {}).get("contexts") or [""]) for q in chunk]
+
+            # faithfulness + answer_relevancy
+            try:
+                dataset = Dataset.from_dict({
+                    "question": q_texts,
+                    "answer":   a_texts,
+                    "contexts": ctx_list,
+                })
+                result_df = ragas_evaluate(dataset, metrics=[faithfulness, answer_relevancy], run_config=run_cfg).to_pandas()
+                for i, qid in enumerate(q_ids):
+                    fa_scores[qid] = {
+                        "faithfulness":    _safe(result_df.iloc[i].get("faithfulness")),
+                        "answerRelevancy": _safe(result_df.iloc[i].get("answer_relevancy")),
+                    }
+            except Exception as e:
+                typer.echo(f"[eval-runner] 청크 RAGAS 실패: {e}", err=True)
+                for qid in q_ids:
+                    fa_scores[qid] = {"faithfulness": None, "answerRelevancy": None}
+
+            # context_precision/recall — ground_truth 있는 것만
+            gt_chunk = [q for q in chunk if lookup.get(q["questionText"], {}).get("ground_truth")]
+            if gt_chunk:
+                try:
+                    from ragas.metrics import context_precision, context_recall
+                    context_precision.llm = llm
+                    context_recall.llm = llm
+                    gt_dataset = Dataset.from_dict({
+                        "question":     [q["questionText"] for q in gt_chunk],
+                        "answer":       [q["answerText"]   for q in gt_chunk],
+                        "contexts":     [lookup[q["questionText"]]["contexts"] for q in gt_chunk],
+                        "ground_truth": [lookup[q["questionText"]]["ground_truth"] for q in gt_chunk],
+                    })
+                    gt_df = ragas_evaluate(gt_dataset, metrics=[context_precision, context_recall], run_config=run_cfg).to_pandas()
+                    for i, q in enumerate(gt_chunk):
+                        gt_scores[q["questionId"]] = {
+                            "contextPrecision": _safe(gt_df.iloc[i].get("context_precision")),
+                            "contextRecall":    _safe(gt_df.iloc[i].get("context_recall")),
+                        }
+                except Exception as e:
+                    typer.echo(f"[eval-runner] context 지표 청크 실패: {e}", err=True)
+
+            # citation 메트릭 — --skip-citation 없을 때만, 청크 내에서 병렬
+            if not skip_citation:
+                def _compute_citation(q: dict) -> tuple[str, dict]:
+                    qid = q["questionId"]
+                    ctxs = lookup.get(q["questionText"], {}).get("contexts") or [""]
+                    has_ctx = bool(ctxs and ctxs != [""])
+                    return qid, {
+                        "citationCoverage":    _compute_citation_coverage(llm, q["questionText"], q["answerText"], ctxs) if has_ctx else None,
+                        "citationCorrectness": _compute_citation_correctness(llm, q["answerText"], ctxs) if has_ctx else None,
+                    }
+
+                with ThreadPoolExecutor(max_workers=workers) as ex:
+                    for qid, scores in ex.map(_compute_citation, chunk):
+                        citation_scores[qid] = scores
+
+            # 청크 결과 즉시 전송
+            for q in chunk:
+                qid = q["questionId"]
+                record = {
+                    "questionId":          qid,
+                    "organizationId":      q.get("organizationId"),
+                    "judgeProvider":       "ollama",
+                    "judgeModel":          judge_model,
+                    **fa_scores.get(qid, {"faithfulness": None, "answerRelevancy": None}),
+                    "contextPrecision":    gt_scores.get(qid, {}).get("contextPrecision"),
+                    "contextRecall":       gt_scores.get(qid, {}).get("contextRecall"),
+                    **citation_scores.get(qid, {"citationCoverage": None, "citationCorrectness": None}),
+                }
+                results.append(record)
+                if not dry_run and client:
+                    client.post_evaluation(record)
+                else:
+                    typer.echo(f"[DRY-RUN] POST {qid}: faith={record['faithfulness']}, rel={record['answerRelevancy']}")
+
+    # 4. PATCH 질문 — 누락 필드만 계산
+    for q in patch_questions:
+        qid = q["questionId"]
+        existing = existing_map[qid]
+        qtext = q["questionText"]
+        atext = q["answerText"]
+        eval_item = lookup.get(qtext, {})
         contexts = eval_item.get("contexts") or [""]
         ground_truth = eval_item.get("ground_truth")
 
-        existing = client.get_evaluation(question_id) if client else None
-
-        if existing is None:
-            result = _compute_metrics(
-                question_id=question_id,
-                question_text=question_text,
-                answer_text=answer_text,
-                contexts=contexts,
-                ground_truth=ground_truth,
-            )
-            results.append(result)
-            if not dry_run and client:
-                client.post_evaluation(result)
-            else:
-                typer.echo(f"[DRY-RUN] POST {result}")
+        patch = _compute_missing_metrics(
+            existing=existing,
+            question_id=qid,
+            question_text=qtext,
+            answer_text=atext,
+            contexts=contexts,
+            ground_truth=ground_truth,
+            llm=llm,
+            emb=emb,
+            judge_model=judge_model,
+        )
+        results.append(patch)
+        if not dry_run and client:
+            client.patch_evaluation(qid, patch)
         else:
-            patch_payload = _compute_missing_metrics(
-                existing=existing,
-                question_id=question_id,
-                question_text=question_text,
-                answer_text=answer_text,
-                contexts=contexts,
-                ground_truth=ground_truth,
-            )
-            results.append(patch_payload)
-            if not dry_run and client:
-                client.patch_evaluation(question_id, patch_payload)
-            else:
-                typer.echo(f"[DRY-RUN] PATCH {question_id}: {patch_payload}")
+            typer.echo(f"[DRY-RUN] PATCH {qid}: {patch}")
 
     return results
 
@@ -295,10 +420,11 @@ def _compute_missing_metrics(
     answer_text: str,
     contexts: list[str],
     ground_truth: "str | None",
+    llm: object,
+    emb: object,
+    judge_model: str,
 ) -> dict:
-    """existing 행에서 None인 필드만 계산하여 PATCH payload를 반환한다.
-    컨텍스트가 없으면 RAGAS 지표는 계산 불가 → None 유지 (COALESCE가 기존 null 보존).
-    """
+    """existing 행에서 None인 필드만 계산하여 PATCH payload를 반환한다."""
     need_faithfulness = existing.get("faithfulness") is None
     need_answer_relevancy = existing.get("answerRelevancy") is None
     need_context_precision = existing.get("contextPrecision") is None
@@ -307,36 +433,24 @@ def _compute_missing_metrics(
     need_citation_correctness = existing.get("citationCorrectness") is None
 
     has_contexts = bool(contexts and contexts != [""])
-    judge_model = os.getenv("RAGAS_OLLAMA_MODEL", "qwen2.5:7b")
-    ollama_url = os.getenv("OLLAMA_URL", "http://jcg-office.tailedf4dc.ts.net:11434")
-
     patch: dict = {}
 
     try:
-        llm = None
-        emb = None
-
         if (need_faithfulness or need_answer_relevancy) and has_contexts:
             from ragas.metrics import faithfulness, answer_relevancy
-            from ragas import evaluate
-            from ragas.llms import LangchainLLMWrapper
-            from ragas.embeddings import LangchainEmbeddingsWrapper
-            from langchain_ollama import ChatOllama, OllamaEmbeddings
+            from ragas import evaluate as ragas_evaluate
             from datasets import Dataset
 
-            llm = LangchainLLMWrapper(ChatOllama(base_url=ollama_url, model=judge_model))
-            emb = LangchainEmbeddingsWrapper(OllamaEmbeddings(base_url=ollama_url, model="bge-m3"))
             faithfulness.llm = llm
             answer_relevancy.llm = llm
             answer_relevancy.embeddings = emb
 
-            data = {
+            dataset = Dataset.from_dict({
                 "question": [question_text],
-                "answer": [answer_text],
+                "answer":   [answer_text],
                 "contexts": [contexts],
-            }
-            dataset = Dataset.from_dict(data)
-            result = evaluate(dataset, metrics=[faithfulness, answer_relevancy])
+            })
+            result = ragas_evaluate(dataset, metrics=[faithfulness, answer_relevancy])
             scores = result.to_pandas().iloc[0].to_dict()
 
             if need_faithfulness:
@@ -346,24 +460,19 @@ def _compute_missing_metrics(
 
         if (need_context_precision or need_context_recall) and has_contexts and ground_truth:
             from ragas.metrics import context_precision, context_recall
-            from ragas import evaluate
-            from ragas.llms import LangchainLLMWrapper
-            from langchain_ollama import ChatOllama
+            from ragas import evaluate as ragas_evaluate
             from datasets import Dataset
 
-            if llm is None:
-                llm = LangchainLLMWrapper(ChatOllama(base_url=ollama_url, model=judge_model))
             context_precision.llm = llm
             context_recall.llm = llm
 
-            data_gt = {
-                "question": [question_text],
-                "answer": [answer_text],
-                "contexts": [contexts],
+            ds_gt = Dataset.from_dict({
+                "question":     [question_text],
+                "answer":       [answer_text],
+                "contexts":     [contexts],
                 "ground_truth": [ground_truth],
-            }
-            ds_gt = Dataset.from_dict(data_gt)
-            result_gt = evaluate(ds_gt, metrics=[context_precision, context_recall])
+            })
+            result_gt = ragas_evaluate(ds_gt, metrics=[context_precision, context_recall])
             gt_scores = result_gt.to_pandas().iloc[0].to_dict()
 
             if need_context_precision:
@@ -372,12 +481,6 @@ def _compute_missing_metrics(
                 patch["contextRecall"] = _safe(gt_scores.get("context_recall"))
 
         if (need_citation_coverage or need_citation_correctness) and has_contexts:
-            from ragas.llms import LangchainLLMWrapper
-            from langchain_ollama import ChatOllama
-
-            if llm is None:
-                llm = LangchainLLMWrapper(ChatOllama(base_url=ollama_url, model=judge_model))
-
             if need_citation_coverage:
                 patch["citationCoverage"] = _compute_citation_coverage(llm, question_text, answer_text, contexts)
             if need_citation_correctness:
@@ -387,89 +490,6 @@ def _compute_missing_metrics(
         typer.echo(f"[eval-runner] missing metrics 계산 실패 ({question_id}): {e}", err=True)
 
     return patch
-
-
-def _compute_metrics(
-    question_id: str,
-    question_text: str,
-    answer_text: str,
-    contexts: list[str] | None = None,
-    ground_truth: str | None = None,
-) -> dict:
-    judge_model = os.getenv("RAGAS_OLLAMA_MODEL", "qwen2.5:7b")
-    ollama_url = os.getenv("OLLAMA_URL", "http://jcg-office.tailedf4dc.ts.net:11434")
-    effective_contexts = contexts if contexts else [""]
-
-    try:
-        from ragas.metrics import faithfulness, answer_relevancy
-        from ragas import evaluate
-        from ragas.llms import LangchainLLMWrapper
-        from ragas.embeddings import LangchainEmbeddingsWrapper
-        from langchain_ollama import ChatOllama, OllamaEmbeddings
-        from datasets import Dataset
-
-        llm = LangchainLLMWrapper(ChatOllama(base_url=ollama_url, model=judge_model))
-        emb = LangchainEmbeddingsWrapper(OllamaEmbeddings(base_url=ollama_url, model="bge-m3"))
-        faithfulness.llm = llm
-        answer_relevancy.llm = llm
-        answer_relevancy.embeddings = emb
-
-        metrics = [faithfulness, answer_relevancy]
-
-        data: dict = {
-            "question": [question_text],
-            "answer": [answer_text],
-            "contexts": [effective_contexts],
-        }
-
-        # context_precision·context_recall은 ground_truth가 있을 때만 계산
-        ctx_precision_score: float | None = None
-        ctx_recall_score: float | None = None
-        if ground_truth:
-            try:
-                from ragas.metrics import context_precision, context_recall
-                context_precision.llm = llm
-                context_recall.llm = llm
-                data_with_gt = {**data, "ground_truth": [ground_truth]}
-                ds_gt = Dataset.from_dict(data_with_gt)
-                result_gt = evaluate(ds_gt, metrics=[context_precision, context_recall])
-                gt_scores = result_gt.to_pandas().iloc[0].to_dict()
-                ctx_precision_score = _safe(gt_scores.get("context_precision"))
-                ctx_recall_score = _safe(gt_scores.get("context_recall"))
-            except Exception as e:
-                typer.echo(f"[eval-runner] context 지표 계산 실패 ({question_id}): {e}", err=True)
-
-        dataset = Dataset.from_dict(data)
-        result = evaluate(dataset, metrics=metrics)
-        scores = result.to_pandas().iloc[0].to_dict()
-
-        citation_coverage = _compute_citation_coverage(llm, question_text, answer_text, effective_contexts)
-        citation_correctness = _compute_citation_correctness(llm, answer_text, effective_contexts)
-
-        return {
-            "questionId": question_id,
-            "faithfulness": _safe(scores.get("faithfulness")),
-            "answerRelevancy": _safe(scores.get("answer_relevancy")),
-            "contextPrecision": ctx_precision_score,
-            "contextRecall": ctx_recall_score,
-            "citationCoverage": citation_coverage,
-            "citationCorrectness": citation_correctness,
-            "judgeProvider": "ollama",
-            "judgeModel": judge_model,
-        }
-    except Exception as e:
-        typer.echo(f"[eval-runner] 평가 실패 ({question_id}): {e}", err=True)
-        return {
-            "questionId": question_id,
-            "faithfulness": None,
-            "answerRelevancy": None,
-            "contextPrecision": None,
-            "contextRecall": None,
-            "citationCoverage": None,
-            "citationCorrectness": None,
-            "judgeProvider": "ollama",
-            "judgeModel": judge_model,
-        }
 
 
 def _compute_citation_coverage(llm: object, question: str, answer: str, contexts: list[str]) -> "float | None":
@@ -525,8 +545,9 @@ def _safe(v: object) -> "float | None":
 
 
 def main() -> None:
+    from pathlib import Path
     from dotenv import load_dotenv
-    load_dotenv()
+    load_dotenv(Path(__file__).parents[3] / ".env", override=False)
     app()
 
 

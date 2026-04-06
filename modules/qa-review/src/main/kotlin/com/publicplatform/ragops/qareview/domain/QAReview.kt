@@ -21,6 +21,7 @@ data class QAReviewSummary(
     val actionTargetId: String?,
     val reviewComment: String?,
     val reviewerId: String,
+    val assigneeId: String?,
     val reviewedAt: Instant,
 )
 
@@ -32,4 +33,5 @@ data class CreateQAReviewCommand(
     val actionTargetId: String?,
     val reviewComment: String?,
     val reviewerId: String,
+    val assigneeId: String? = null,
 )

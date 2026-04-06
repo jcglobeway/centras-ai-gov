@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .IBM-Plex-Mono { font-family: 'IBM Plex Mono', monospace; }
+        .Inter { font-family: 'Inter', sans-serif; }
+        body { background-color: #0b1326; color: #dae2fd; }
+        .glass-gradient { background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(37, 99, 235, 0) 100%); }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "inverse-surface": "#dae2fd",
+                        "secondary-container": "#3a4a5f",
+                        "error-container": "#93000a",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "surface-container": "#171f33",
+                        "surface-container-low": "#131b2e",
+                        "tertiary-fixed": "#6ffbbe",
+                        "on-secondary-fixed": "#0b1c30",
+                        "on-tertiary-fixed": "#002113",
+                        "surface-bright": "#31394d",
+                        "on-surface-variant": "#c3c6d7",
+                        "background": "#0b1326",
+                        "error": "#ffb4ab",
+                        "secondary": "#b7c8e1",
+                        "surface-variant": "#2d3449",
+                        "tertiary": "#4edea3",
+                        "on-primary-container": "#eeefff",
+                        "on-error-container": "#ffdad6",
+                        "surface-tint": "#b4c5ff",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "surface-dim": "#0b1326",
+                        "on-primary-fixed": "#00174b",
+                        "on-tertiary": "#003824",
+                        "on-primary": "#002a78",
+                        "on-tertiary-container": "#bdffdb",
+                        "on-secondary": "#213145",
+                        "surface": "#0b1326",
+                        "primary-fixed": "#dbe1ff",
+                        "surface-container-high": "#222a3d",
+                        "surface-container-lowest": "#060e20",
+                        "on-background": "#dae2fd",
+                        "outline": "#8d90a0",
+                        "on-surface": "#dae2fd",
+                        "on-error": "#690005",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "secondary-fixed": "#d3e4fe",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "inverse-primary": "#0053db",
+                        "primary-container": "#2563eb",
+                        "on-secondary-container": "#a9bad3",
+                        "surface-container-highest": "#2d3449",
+                        "tertiary-container": "#007d55",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "inverse-on-surface": "#283044",
+                        "primary": "#b4c5ff",
+                        "outline-variant": "#434655",
+                        "tertiary-fixed-dim": "#4edea3"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="Inter antialiased">
+<!-- SideNavBar (Authority: Shared Components JSON) -->
+<aside class="bg-[#0b1326] dark:bg-[#0b1326] w-[240px] h-screen fixed left-0 top-0 border-r-0 flex flex-col py-6 z-50">
+<div class="px-6 mb-10">
+<h1 class="text-xl font-bold tracking-tighter text-slate-100 IBM-Plex-Mono">Sovereign AI</h1>
+<p class="IBM-Plex-Mono text-[10px] tracking-tight text-slate-500 uppercase">RAG Operations Control</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="text-slate-400 hover:text-slate-100 px-6 py-3 flex items-center gap-3 hover:bg-[#171f33] transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-lg">dashboard</span>
+<span class="IBM-Plex-Mono text-xs tracking-tight">Dashboard</span>
+</a>
+<a class="text-slate-400 hover:text-slate-100 px-6 py-3 flex items-center gap-3 hover:bg-[#171f33] transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-lg">database</span>
+<span class="IBM-Plex-Mono text-xs tracking-tight">Knowledge Base</span>
+</a>
+<a class="text-slate-400 hover:text-slate-100 px-6 py-3 flex items-center gap-3 hover:bg-[#171f33] transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-lg">smart_toy</span>
+<span class="IBM-Plex-Mono text-xs tracking-tight">Chatbot Settings</span>
+</a>
+<a class="text-slate-400 hover:text-slate-100 px-6 py-3 flex items-center gap-3 hover:bg-[#171f33] transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-lg">verified_user</span>
+<span class="IBM-Plex-Mono text-xs tracking-tight">Quality Management</span>
+</a>
+<a class="text-slate-400 hover:text-slate-100 px-6 py-3 flex items-center gap-3 hover:bg-[#171f33] transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-lg">monitoring</span>
+<span class="IBM-Plex-Mono text-xs tracking-tight">Service Monitoring</span>
+</a>
+<!-- Active State: Reports (Logic: Page is Cost Analysis) -->
+<a class="bg-[#131b2e] text-white border-l-[3px] border-[#2563eb] px-6 py-3 flex items-center gap-3 transition-all" href="#">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="IBM-Plex-Mono text-xs tracking-tight">Reports</span>
+</a>
+<a class="text-slate-400 hover:text-slate-100 px-6 py-3 flex items-center gap-3 hover:bg-[#171f33] transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-lg">settings_input_component</span>
+<span class="IBM-Plex-Mono text-xs tracking-tight">System &amp; Permissions</span>
+</a>
+</nav>
+</aside>
+<!-- TopNavBar (Authority: Shared Components JSON) -->
+<header class="fixed top-0 right-0 left-[240px] h-16 z-40 bg-[#0b1326]/80 backdrop-blur-md flex justify-between items-center px-8 border-b border-slate-800/50">
+<div class="flex items-center gap-6">
+<span class="text-slate-100 font-bold tracking-tight text-lg">Cost Analysis</span>
+<div class="h-4 w-px bg-slate-700"></div>
+<div class="flex items-center gap-4 text-xs IBM-Plex-Mono">
+<button class="text-[#2563eb] font-bold border-b-2 border-[#2563eb] pb-1">Global Filters</button>
+<button class="text-slate-400 font-medium hover:text-slate-200 transition-colors pb-1">Date Range</button>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative group">
+<span class="material-symbols-outlined text-slate-400 cursor-pointer group-hover:text-slate-100 transition-colors">notifications</span>
+<span class="absolute -top-1 -right-1 w-2 h-2 bg-error rounded-full ring-2 ring-[#0b1326]"></span>
+</div>
+<div class="flex items-center gap-3 pl-4 border-l border-slate-800">
+<div class="text-right">
+<p class="text-[10px] IBM-Plex-Mono text-slate-500 uppercase tracking-widest">Admin</p>
+<p class="text-xs font-semibold text-slate-200">System Control</p>
+</div>
+<span class="material-symbols-outlined text-slate-300 text-3xl">account_circle</span>
+</div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="ml-[240px] mt-16 p-8 space-y-8 bg-[#0b1326] min-h-screen">
+<!-- KPI Cards Grid -->
+<section class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<div class="bg-[#171f33] p-6 border-b border-slate-800/50 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-16 h-16 glass-gradient opacity-20 -mr-8 -mt-8 rounded-full"></div>
+<p class="text-[10px] IBM-Plex-Mono text-slate-500 uppercase tracking-widest mb-1">Cost/Query</p>
+<div class="flex items-end gap-2">
+<h2 class="text-2xl font-bold text-white IBM-Plex-Mono">$0.0042</h2>
+<span class="text-tertiary text-[10px] IBM-Plex-Mono mb-1 flex items-center">
+<span class="material-symbols-outlined text-xs">trending_down</span> 8%
+                    </span>
+</div>
+</div>
+<div class="bg-[#171f33] p-6 border-b border-slate-800/50 relative overflow-hidden">
+<p class="text-[10px] IBM-Plex-Mono text-slate-500 uppercase tracking-widest mb-1">Total Daily Cost</p>
+<div class="flex items-end gap-2">
+<h2 class="text-2xl font-bold text-white IBM-Plex-Mono">$1,284.50</h2>
+<span class="text-error text-[10px] IBM-Plex-Mono mb-1 flex items-center">
+<span class="material-symbols-outlined text-xs">trending_up</span> 12%
+                    </span>
+</div>
+</div>
+<div class="bg-[#171f33] p-6 border-b border-slate-800/50 relative overflow-hidden">
+<p class="text-[10px] IBM-Plex-Mono text-slate-500 uppercase tracking-widest mb-1">Cache Hit Rate</p>
+<div class="flex items-end gap-2">
+<h2 class="text-2xl font-bold text-white IBM-Plex-Mono">42.8%</h2>
+<span class="text-slate-400 text-[10px] IBM-Plex-Mono mb-1">Target: 60%</span>
+</div>
+</div>
+<div class="bg-[#171f33] p-6 border-b border-slate-800/50 relative overflow-hidden">
+<p class="text-[10px] IBM-Plex-Mono text-slate-500 uppercase tracking-widest mb-1">Token Usage Avg</p>
+<div class="flex items-end gap-2">
+<h2 class="text-2xl font-bold text-white IBM-Plex-Mono">1.4k</h2>
+<span class="text-slate-400 text-[10px] IBM-Plex-Mono mb-1">/request</span>
+</div>
+</div>
+</section>
+<!-- Alert Notification -->
+<div class="bg-surface-container-low border-l-4 border-[#f59e0b] p-4 flex items-center gap-4">
+<span class="material-symbols-outlined text-[#f59e0b]">warning</span>
+<div class="flex-1">
+<span class="text-sm font-medium text-slate-200">캐시 적중률이 낮습니다 — RAG 파라미터 튜닝을 검토하세요</span>
+</div>
+<button class="text-xs IBM-Plex-Mono text-slate-500 hover:text-white underline">VIEW PARAMETERS</button>
+</div>
+<!-- Middle Chart: Stacked Bar Chart Area -->
+<section class="bg-[#131b2e] p-8">
+<div class="flex justify-between items-center mb-10">
+<div>
+<h3 class="text-lg font-bold text-white">Daily Cost Breakdown</h3>
+<p class="text-xs text-slate-500 IBM-Plex-Mono uppercase mt-1">Last 30 Days Periodical analysis</p>
+</div>
+<div class="flex gap-4">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 bg-[#10b981]"></span>
+<span class="text-[10px] IBM-Plex-Mono text-slate-400">LLM</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 bg-[#2563eb]"></span>
+<span class="text-[10px] IBM-Plex-Mono text-slate-400">Embedding</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 bg-[#a855f7]"></span>
+<span class="text-[10px] IBM-Plex-Mono text-slate-400">Reranker</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 bg-[#f59e0b]"></span>
+<span class="text-[10px] IBM-Plex-Mono text-slate-400">Infra</span>
+</div>
+</div>
+</div>
+<!-- Chart Mockup (Stacked Bars) -->
+<div class="h-[280px] w-full flex items-end justify-between gap-2 px-2 border-b border-slate-800 pb-2">
+<!-- Bar Item Repeated -->
+<div class="flex-1 flex flex-col gap-[1px]">
+<div class="bg-[#f59e0b] h-8 w-full opacity-80"></div>
+<div class="bg-[#a855f7] h-6 w-full opacity-80"></div>
+<div class="bg-[#2563eb] h-10 w-full opacity-80"></div>
+<div class="bg-[#10b981] h-24 w-full opacity-80"></div>
+</div>
+<div class="flex-1 flex flex-col gap-[1px]">
+<div class="bg-[#f59e0b] h-4 w-full opacity-80"></div>
+<div class="bg-[#a855f7] h-8 w-full opacity-80"></div>
+<div class="bg-[#2563eb] h-12 w-full opacity-80"></div>
+<div class="bg-[#10b981] h-32 w-full opacity-80"></div>
+</div>
+<div class="flex-1 flex flex-col gap-[1px]">
+<div class="bg-[#f59e0b] h-6 w-full opacity-80"></div>
+<div class="bg-[#a855f7] h-6 w-full opacity-80"></div>
+<div class="bg-[#2563eb] h-10 w-full opacity-80"></div>
+<div class="bg-[#10b981] h-28 w-full opacity-80"></div>
+</div>
+<div class="flex-1 flex flex-col gap-[1px]">
+<div class="bg-[#f59e0b] h-10 w-full opacity-80"></div>
+<div class="bg-[#a855f7] h-12 w-full opacity-80"></div>
+<div class="bg-[#2563eb] h-14 w-full opacity-80"></div>
+<div class="bg-[#10b981] h-40 w-full opacity-80"></div>
+</div>
+<div class="flex-1 flex flex-col gap-[1px]">
+<div class="bg-[#f59e0b] h-4 w-full opacity-80"></div>
+<div class="bg-[#a855f7] h-6 w-full opacity-80"></div>
+<div class="bg-[#2563eb] h-12 w-full opacity-80"></div>
+<div class="bg-[#10b981] h-36 w-full opacity-80"></div>
+</div>
+<div class="flex-1 flex flex-col gap-[1px]">
+<div class="bg-[#f59e0b] h-8 w-full opacity-80"></div>
+<div class="bg-[#a855f7] h-14 w-full opacity-80"></div>
+<div class="bg-[#2563eb] h-16 w-full opacity-80"></div>
+<div class="bg-[#10b981] h-48 w-full opacity-80"></div>
+</div>
+<div class="flex-1 flex flex-col gap-[1px]">
+<div class="bg-[#f59e0b] h-2 w-full opacity-80"></div>
+<div class="bg-[#a855f7] h-4 w-full opacity-80"></div>
+<div class="bg-[#2563eb] h-8 w-full opacity-80"></div>
+<div class="bg-[#10b981] h-20 w-full opacity-80"></div>
+</div>
+<!-- ... Repeated bars ... -->
+<div class="flex-1 flex flex-col gap-[1px]">
+<div class="bg-[#f59e0b] h-8 w-full opacity-80"></div>
+<div class="bg-[#a855f7] h-6 w-full opacity-80"></div>
+<div class="bg-[#2563eb] h-10 w-full opacity-80"></div>
+<div class="bg-[#10b981] h-44 w-full opacity-80"></div>
+</div>
+</div>
+<div class="flex justify-between mt-4 text-[10px] IBM-Plex-Mono text-slate-500">
+<span>01 SEP</span>
+<span>08 SEP</span>
+<span>15 SEP</span>
+<span>22 SEP</span>
+<span>30 SEP</span>
+</div>
+</section>
+<!-- Bottom Trends Grid -->
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<!-- Token Usage Trend -->
+<div class="bg-[#131b2e] p-6">
+<h4 class="text-sm font-bold text-slate-200 mb-6">Token Usage Trend</h4>
+<div class="h-[120px] relative">
+<!-- Line Mockup -->
+<svg class="w-full h-full" viewbox="0 0 400 100">
+<path d="M0,80 Q50,40 100,60 T200,30 T300,70 T400,20" fill="none" stroke="#2563eb" stroke-width="2"></path>
+<path d="M0,80 Q50,40 100,60 T200,30 T300,70 T400,20 L400,100 L0,100 Z" fill="url(#grad1)" opacity="0.1"></path>
+<defs>
+<lineargradient id="grad1" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:#2563eb;stop-opacity:1"></stop>
+<stop offset="100%" style="stop-color:#2563eb;stop-opacity:0"></stop>
+</lineargradient>
+</defs>
+</svg>
+</div>
+<div class="flex justify-between mt-2 IBM-Plex-Mono text-[9px] text-slate-600">
+<span>00:00</span>
+<span>12:00</span>
+<span>23:59</span>
+</div>
+</div>
+<!-- Cache Hit Rate Trend -->
+<div class="bg-[#131b2e] p-6">
+<h4 class="text-sm font-bold text-slate-200 mb-6">Cache Hit Rate Stability</h4>
+<div class="h-[120px] relative">
+<svg class="w-full h-full" viewbox="0 0 400 100">
+<line stroke="#334155" stroke-dasharray="4" x1="0" x2="400" y1="50" y2="50"></line>
+<path d="M0,70 L40,65 L80,75 L120,60 L160,80 L200,85 L240,70 L280,60 L320,55 L360,50 L400,45" fill="none" stroke="#4edea3" stroke-width="2"></path>
+</svg>
+</div>
+<div class="flex justify-between mt-2 IBM-Plex-Mono text-[9px] text-slate-600">
+<span>00:00</span>
+<span>12:00</span>
+<span>23:59</span>
+</div>
+</div>
+</section>
+<!-- Customer Table Section -->
+<section class="bg-[#131b2e] overflow-hidden">
+<div class="px-8 py-6 border-b border-slate-800 flex justify-between items-center">
+<h3 class="text-sm font-bold text-white uppercase tracking-tight">Customer cost breakdown</h3>
+<button class="material-symbols-outlined text-slate-400 hover:text-white">download</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-[#171f33] text-[10px] IBM-Plex-Mono text-slate-500 uppercase">
+<tr>
+<th class="px-8 py-4 font-medium">Customer ID</th>
+<th class="px-8 py-4 font-medium">Tokens consumed</th>
+<th class="px-8 py-4 font-medium">Requests</th>
+<th class="px-8 py-4 font-medium">Cache Efficiency</th>
+<th class="px-8 py-4 font-medium text-right">Estimated Cost</th>
+</tr>
+</thead>
+<tbody class="text-xs IBM-Plex-Mono text-slate-300 divide-y divide-slate-800">
+<tr class="hover:bg-[#171f33] transition-colors">
+<td class="px-8 py-4 font-semibold text-white">CORP-A-9921</td>
+<td class="px-8 py-4">42,801,220</td>
+<td class="px-8 py-4">12,402</td>
+<td class="px-8 py-4 text-tertiary">82.1%</td>
+<td class="px-8 py-4 text-right font-bold text-white">$420.21</td>
+</tr>
+<tr class="hover:bg-[#171f33] transition-colors">
+<td class="px-8 py-4 font-semibold text-white">GLOBAL-FIN-X</td>
+<td class="px-8 py-4">28,122,900</td>
+<td class="px-8 py-4">8,912</td>
+<td class="px-8 py-4 text-error">12.5%</td>
+<td class="px-8 py-4 text-right font-bold text-white">$218.44</td>
+</tr>
+<tr class="hover:bg-[#171f33] transition-colors">
+<td class="px-8 py-4 font-semibold text-white">STARTUP-NEXUS</td>
+<td class="px-8 py-4">12,044,110</td>
+<td class="px-8 py-4">3,204</td>
+<td class="px-8 py-4 text-slate-400">45.0%</td>
+<td class="px-8 py-4 text-right font-bold text-white">$104.90</td>
+</tr>
+<tr class="hover:bg-[#171f33] transition-colors">
+<td class="px-8 py-4 font-semibold text-white">EDU-PORTAL-KR</td>
+<td class="px-8 py-4">8,220,102</td>
+<td class="px-8 py-4">15,910</td>
+<td class="px-8 py-4 text-tertiary">91.2%</td>
+<td class="px-8 py-4 text-right font-bold text-white">$72.15</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-4 bg-[#171f33]/30 flex justify-center">
+<button class="text-[10px] IBM-Plex-Mono text-slate-500 hover:text-white uppercase tracking-widest">Load More Data Items</button>
+</div>
+</section>
+</main>
+<!-- Contextual FAB (Hidden as per hierarchy rules for Reports/Details screens) -->
+</body></html>

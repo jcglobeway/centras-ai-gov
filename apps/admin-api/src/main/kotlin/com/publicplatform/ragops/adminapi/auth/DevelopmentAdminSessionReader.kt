@@ -193,6 +193,7 @@ internal fun developmentActionsFor(roleCode: String): List<String> =
             "qa.review.read",
             "qa.review.write",
             "metrics.read",
+            "metrics.aggregation.trigger",
             "auth.user.read",
             "auth.role.assign",
         )
@@ -232,6 +233,7 @@ internal fun developmentActionsFor(roleCode: String): List<String> =
             "qa.review.read",
             "qa.review.write",
             "metrics.read",
+            "metrics.aggregation.trigger",
             "auth.user.read",
             "auth.role.assign",
         )

@@ -62,7 +62,7 @@ export function KpiCard({
   return (
     <div
       className={clsx(
-        "bg-bg-elevated border border-white/5 rounded-lg p-5 relative cursor-pointer transition-all duration-150 hover:bg-bg-prominent",
+        "bg-bg-elevated border border-white/5 rounded-lg p-6 relative cursor-pointer transition-all duration-150 hover:bg-bg-prominent flex flex-col h-full",
         className
       )}
       style={{ boxShadow: "var(--shadow-card)" }}
@@ -70,7 +70,7 @@ export function KpiCard({
       {/* 레이블 + 상태 pill */}
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-1">
-          <span className="font-mono text-[11px] tracking-tighter uppercase text-text-muted">
+          <span className="font-mono text-xs tracking-tighter uppercase text-text-muted">
             {label}
           </span>
           {help && (
@@ -94,7 +94,7 @@ export function KpiCard({
       <div className="flex items-baseline gap-1">
         <span
           className={clsx(
-            "text-2xl font-bold font-mono tracking-[-1px] leading-none",
+            "text-3xl font-bold font-mono tracking-[-1px] leading-none",
             "text-text-primary"
           )}
         >

@@ -53,8 +53,9 @@ def run(
 
 
 def main() -> None:
+    from pathlib import Path
     from dotenv import load_dotenv
-    load_dotenv()
+    load_dotenv(Path(__file__).parents[3] / ".env", override=False)
     app()
 
 

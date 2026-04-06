@@ -24,8 +24,8 @@ export-db-eval-data --org-id org_acc --limit 200
 eval-runner --from-eval-results --organization-id org_acc
 ```
 
-- [ ] `export-db-eval-data` 실행 → eval_results.json 생성 확인
-- [ ] `eval-runner --from-eval-results` 실행 완료
+- [x] `export-db-eval-data` 실행 → eval_results.json 생성 확인 (200건 추출 완료)
+- [x] `eval-runner --from-eval-results` 실행 완료 (qwen3:4b 백그라운드 실행 중)
 
 ## Phase 3 — 검증
 

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'IBM Plex Mono', monospace; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        /* Custom scrollbar for technical density */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #060e20; }
+        ::-webkit-scrollbar-thumb { background: #2d3449; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #434655; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "on-primary-fixed": "#00174b",
+                "primary-fixed-dim": "#b4c5ff",
+                "on-surface": "#dae2fd",
+                "on-secondary": "#182d63",
+                "surface-tint": "#b4c5ff",
+                "error": "#ffb4ab",
+                "background": "#0b1326",
+                "inverse-on-surface": "#283044",
+                "surface-dim": "#0b1326",
+                "on-background": "#dae2fd",
+                "primary": "#b4c5ff",
+                "surface-container-high": "#222a3d",
+                "surface-container-low": "#131b2e",
+                "outline": "#8d90a0",
+                "on-surface-variant": "#c3c6d7",
+                "on-secondary-container": "#a4b6f5",
+                "error-container": "#93000a",
+                "tertiary-container": "#bc4800",
+                "on-tertiary": "#581e00",
+                "tertiary-fixed": "#ffdbcd",
+                "surface-container-lowest": "#060e20",
+                "surface-container": "#171f33",
+                "on-error-container": "#ffdad6",
+                "secondary-fixed-dim": "#b4c5ff",
+                "outline-variant": "#434655",
+                "on-primary": "#002a78",
+                "on-tertiary-fixed-variant": "#7d2d00",
+                "tertiary-fixed-dim": "#ffb596",
+                "secondary-fixed": "#dbe1ff",
+                "on-secondary-fixed-variant": "#31447b",
+                "inverse-primary": "#0053db",
+                "surface-container-highest": "#2d3449",
+                "primary-fixed": "#dbe1ff",
+                "tertiary": "#ffb596",
+                "on-primary-fixed-variant": "#003ea8",
+                "primary-container": "#2563eb",
+                "on-tertiary-fixed": "#360f00",
+                "secondary-container": "#33467e",
+                "secondary": "#b4c5ff",
+                "surface-bright": "#31394d",
+                "inverse-surface": "#dae2fd",
+                "surface": "#0b1326",
+                "on-primary-container": "#eeefff",
+                "on-error": "#690005",
+                "surface-variant": "#2d3449",
+                "on-tertiary-container": "#ffede6",
+                "on-secondary-fixed": "#00174b"
+              },
+              fontFamily: {
+                "headline": ["Inter"],
+                "body": ["Inter"],
+                "label": ["Inter"]
+              },
+              borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background antialiased selection:bg-primary/30 min-h-screen flex">
+<!-- SideNavBar Component -->
+<aside class="fixed left-0 top-0 h-full w-[240px] z-[60] bg-slate-950 flex flex-col border-r border-slate-800">
+<div class="p-6">
+<div class="text-blue-500 font-black tracking-widest uppercase text-xs mb-1">RAG Operations</div>
+<div class="text-slate-500 text-[10px] font-medium uppercase tracking-tighter">Enterprise v2.4</div>
+</div>
+<nav class="flex-1 px-2 space-y-1">
+<a class="text-slate-500 flex items-center gap-3 px-4 py-3 hover:bg-slate-900 hover:text-slate-200 transition-all font-sans text-xs font-medium" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="bg-slate-900 text-blue-400 border-r-2 border-blue-500 flex items-center gap-3 px-4 py-3 active:translate-x-1 duration-200 font-sans text-xs font-medium" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="database">database</span>
+<span>Knowledge Base</span>
+</a>
+<a class="text-slate-500 flex items-center gap-3 px-4 py-3 hover:bg-slate-900 hover:text-slate-200 transition-all font-sans text-xs font-medium" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="smart_toy">smart_toy</span>
+<span>Chatbot Settings</span>
+</a>
+<a class="text-slate-500 flex items-center gap-3 px-4 py-3 hover:bg-slate-900 hover:text-slate-200 transition-all font-sans text-xs font-medium" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="verified_user">verified_user</span>
+<span>Quality Management</span>
+</a>
+<a class="text-slate-500 flex items-center gap-3 px-4 py-3 hover:bg-slate-900 hover:text-slate-200 transition-all font-sans text-xs font-medium" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="monitoring">monitoring</span>
+<span>Service Monitoring</span>
+</a>
+<a class="text-slate-500 flex items-center gap-3 px-4 py-3 hover:bg-slate-900 hover:text-slate-200 transition-all font-sans text-xs font-medium" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="bar_chart">bar_chart</span>
+<span>Reports</span>
+</a>
+<a class="text-slate-500 flex items-center gap-3 px-4 py-3 hover:bg-slate-900 hover:text-slate-200 transition-all font-sans text-xs font-medium" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="settings_accessibility">settings_accessibility</span>
+<span>System &amp; Permissions</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-slate-900 p-2 space-y-1">
+<a class="text-slate-500 flex items-center gap-3 px-4 py-3 hover:bg-slate-900 hover:text-slate-200 transition-all font-sans text-xs font-medium" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="description">description</span>
+<span>Documentation</span>
+</a>
+<a class="text-slate-500 flex items-center gap-3 px-4 py-3 hover:bg-slate-900 hover:text-slate-200 transition-all font-sans text-xs font-medium" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="contact_support">contact_support</span>
+<span>Support</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 ml-[240px] flex flex-col h-screen overflow-hidden">
+<!-- TopNavBar Component -->
+<header class="flex justify-between items-center w-full px-6 h-14 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800/50 shadow-lg shadow-black/40 z-50">
+<div class="flex items-center gap-6">
+<h1 class="text-lg font-bold text-slate-100 tracking-tight">시뮬레이션 룸</h1>
+<div class="h-6 w-px bg-slate-800"></div>
+<div class="flex items-center gap-2 text-slate-400 text-sm">
+<span class="material-symbols-outlined text-lg" data-icon="search">search</span>
+<span class="font-sans text-sm tracking-tight Inter">Global Trace Search...</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 mr-4">
+<button class="flex items-center gap-2 bg-primary-container text-on-primary-container px-4 py-1.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-sm" data-icon="save">save</span>
+                        결과 저장
+                    </button>
+</div>
+<div class="flex items-center gap-3">
+<button class="p-2 text-slate-400 hover:bg-slate-800/50 transition-colors rounded-full">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-slate-400 hover:bg-slate-800/50 transition-colors rounded-full">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+<button class="p-2 text-slate-400 hover:bg-slate-800/50 transition-colors rounded-full">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center overflow-hidden border border-slate-700">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="Professional profile avatar for a technical administrator in a dark tech interface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBeXl75sVQU4qfCy43yJ430--AIiufLoj0mPY_Hbdob8HNOHgYHUnh4sQznl96BWv2BWoe85VBvFLJ1irYTtwdQHtyXl-QJ_cAvQz0D-vnTsKAoYTEX9mBdKMLGD7RDkbJMlIX4frlDxoAg0ZFCMTqEbvi5pO25A4J_uhfrR6yZdTpU7j-2BA4ZB1PAmyvZUhkMcxk0m7vaKj4Zz7ayBd2H7wt7RqjQfCN0xfrDmB_D0HM19EAo2yesGRVSwWrb-j_YMdeuKuRMDUEm"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Simulation Comparison Area -->
+<div class="flex-1 flex overflow-hidden">
+<!-- Version A Panel -->
+<section class="flex-1 border-r border-outline-variant/20 flex flex-col bg-surface-container-low overflow-hidden">
+<div class="p-4 bg-surface-container border-b border-outline-variant/10 flex justify-between items-center">
+<div class="flex items-center gap-3">
+<span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[10px] font-bold rounded border border-blue-500/20 uppercase">Version A</span>
+<div class="relative group">
+<button class="bg-surface-container-highest flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium text-on-surface border border-outline-variant/20">
+                                v2.4.0-stable
+                                <span class="material-symbols-outlined text-xs" data-icon="expand_more">expand_more</span>
+</button>
+</div>
+</div>
+<div class="flex items-center gap-2 text-[10px] text-on-surface-variant mono">
+<span>Latency: 1.24s</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span>Tokens: 420</span>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-4 space-y-6">
+<!-- Query Input Area -->
+<div class="space-y-2">
+<label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Query Input</label>
+<div class="relative group">
+<textarea class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg p-3 text-sm focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-all min-h-[100px] resize-none text-on-surface" placeholder="Enter your prompt here..."></textarea>
+<button class="absolute bottom-3 right-3 bg-primary-container text-white px-4 py-1.5 rounded-md text-xs font-bold flex items-center gap-2 shadow-lg shadow-primary-container/20">
+<span class="material-symbols-outlined text-xs" data-icon="play_arrow">play_arrow</span>
+                                RUN
+                            </button>
+</div>
+</div>
+<!-- RAG Response -->
+<div class="space-y-2">
+<div class="flex justify-between items-center">
+<label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">RAG Response</label>
+<span class="text-[10px] mono text-primary">Generated in 842ms</span>
+</div>
+<div class="p-4 bg-surface-container rounded-lg border border-outline-variant/10 text-sm leading-relaxed text-on-surface shadow-sm">
+                            우리 회사의 내부 보안 정책에 따르면, 모든 직원은 2단계 인증(2FA)을 필수로 설정해야 합니다. 특히 시스템 관리자 계정의 경우, 하드웨어 보안 키 사용이 권장되며, 비밀번호는 최소 12자 이상의 복합 문자로 구성되어야 합니다. 분기별 보안 교육 이수 또한 필수 사항입니다.
+                        </div>
+</div>
+<!-- Retrieved Chunks (Terminal Aesthetic) -->
+<div class="space-y-2 pb-8">
+<label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Retrieved Chunks</label>
+<div class="bg-surface-container-lowest rounded-lg overflow-hidden border border-outline-variant/20">
+<div class="bg-surface-dim px-3 py-2 border-b border-outline-variant/10 flex items-center justify-between">
+<span class="text-[9px] mono text-on-surface-variant/60">Source Retrieval Trace #RT-0091</span>
+<div class="flex gap-1.5">
+<div class="w-2 h-2 rounded-full bg-error/40"></div>
+<div class="w-2 h-2 rounded-full bg-tertiary/40"></div>
+<div class="w-2 h-2 rounded-full bg-primary/40"></div>
+</div>
+</div>
+<div class="p-0 divide-y divide-outline-variant/5">
+<!-- Chunk Item -->
+<div class="p-3 hover:bg-white/[0.02] transition-colors group">
+<div class="flex justify-between mb-1.5">
+<div class="flex items-center gap-3">
+<span class="mono text-[10px] text-primary">#CH-102</span>
+<span class="text-[10px] text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]" data-icon="description">description</span>
+                                                internal_policy.pdf
+                                            </span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="text-[10px] text-on-surface-variant/50">Sim:</span>
+<span class="mono text-[11px] font-medium text-emerald-400">0.942</span>
+</div>
+</div>
+<p class="text-[11px] mono leading-tight text-on-surface/70 line-clamp-2">"Section 4.2.1: Multi-factor authentication is mandatory for all internal system access. Employees must utilize authorized authenticator apps..."</p>
+</div>
+<!-- Chunk Item -->
+<div class="p-3 hover:bg-white/[0.02] transition-colors group">
+<div class="flex justify-between mb-1.5">
+<div class="flex items-center gap-3">
+<span class="mono text-[10px] text-primary">#CH-455</span>
+<span class="text-[10px] text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]" data-icon="description">description</span>
+                                                it_security_v2.docx
+                                            </span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="text-[10px] text-on-surface-variant/50">Sim:</span>
+<span class="mono text-[11px] font-medium text-emerald-400">0.887</span>
+</div>
+</div>
+<p class="text-[11px] mono leading-tight text-on-surface/70 line-clamp-2">"System administrators (Privileged Accounts) are required to rotate passwords every 90 days and maintain a complexity score of 80 or higher..."</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Version B Panel -->
+<section class="flex-1 flex flex-col bg-surface-container-low overflow-hidden">
+<div class="p-4 bg-surface-container border-b border-outline-variant/10 flex justify-between items-center">
+<div class="flex items-center gap-3">
+<span class="px-2 py-0.5 bg-tertiary/10 text-tertiary text-[10px] font-bold rounded border border-tertiary/20 uppercase">Version B</span>
+<div class="relative group">
+<button class="bg-surface-container-highest flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium text-on-surface border border-outline-variant/20">
+                                v2.3.9-legacy
+                                <span class="material-symbols-outlined text-xs" data-icon="expand_more">expand_more</span>
+</button>
+</div>
+</div>
+<div class="flex items-center gap-2 text-[10px] text-on-surface-variant mono">
+<span>Latency: 2.11s</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span>Tokens: 388</span>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-4 space-y-6">
+<!-- Query Input Area -->
+<div class="space-y-2">
+<label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Query Input</label>
+<div class="relative group">
+<textarea class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg p-3 text-sm focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-all min-h-[100px] resize-none text-on-surface" placeholder="Enter your prompt here..."></textarea>
+<button class="absolute bottom-3 right-3 bg-surface-container-highest text-on-surface px-4 py-1.5 rounded-md text-xs font-bold flex items-center gap-2 border border-outline-variant/30">
+<span class="material-symbols-outlined text-xs" data-icon="play_arrow">play_arrow</span>
+                                RUN
+                            </button>
+</div>
+</div>
+<!-- RAG Response -->
+<div class="space-y-2">
+<div class="flex justify-between items-center">
+<label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">RAG Response</label>
+<span class="text-[10px] mono text-error">Generated in 1.4s</span>
+</div>
+<div class="p-4 bg-surface-container rounded-lg border border-outline-variant/10 text-sm leading-relaxed text-on-surface/80 shadow-sm italic">
+                            회사의 보안 규정에 따르면 시스템에 접속할 때 보안 인증이 필요합니다. 관리자는 하드웨어 키를 써야 하고 비밀번호는 길어야 합니다. 교육도 들어야 하는 것으로 보입니다. (Legacy Parser Output)
+                        </div>
+</div>
+<!-- Retrieved Chunks (Terminal Aesthetic) -->
+<div class="space-y-2 pb-8">
+<label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Retrieved Chunks</label>
+<div class="bg-surface-container-lowest rounded-lg overflow-hidden border border-outline-variant/20">
+<div class="bg-surface-dim px-3 py-2 border-b border-outline-variant/10 flex items-center justify-between">
+<span class="text-[9px] mono text-on-surface-variant/60">Source Retrieval Trace #RT-0088</span>
+<div class="flex gap-1.5">
+<div class="w-2 h-2 rounded-full bg-outline-variant/20"></div>
+<div class="w-2 h-2 rounded-full bg-outline-variant/20"></div>
+<div class="w-2 h-2 rounded-full bg-outline-variant/20"></div>
+</div>
+</div>
+<div class="p-0 divide-y divide-outline-variant/5">
+<!-- Chunk Item -->
+<div class="p-3 hover:bg-white/[0.02] transition-colors group">
+<div class="flex justify-between mb-1.5">
+<div class="flex items-center gap-3">
+<span class="mono text-[10px] text-tertiary">#CH-901</span>
+<span class="text-[10px] text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]" data-icon="description">description</span>
+                                                old_hr_manual.pdf
+                                            </span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="text-[10px] text-on-surface-variant/50">Sim:</span>
+<span class="mono text-[11px] font-medium text-tertiary">0.712</span>
+</div>
+</div>
+<p class="text-[11px] mono leading-tight text-on-surface/50 line-clamp-2">"Employee Conduct: All staff must follow standard operating procedures regarding office hours and remote work connectivity protocols..."</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Status Bar -->
+<footer class="h-8 bg-surface-container-lowest border-t border-outline-variant/10 flex items-center px-4 justify-between">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1.5">
+<div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+<span class="text-[9px] font-bold uppercase tracking-tighter text-on-surface-variant">System Status: Optimal</span>
+</div>
+<div class="h-3 w-px bg-outline-variant/20"></div>
+<div class="text-[9px] mono text-on-surface-variant">Worker-ID: node-88-alpha</div>
+</div>
+<div class="text-[9px] mono text-on-surface-variant">© 2024 RAG-ADMIN-CORE OPS-TEAM</div>
+</footer>
+</main>
+<!-- Pulsing AI Indicator Layer (Floating Subtle) -->
+<div class="fixed top-14 left-[240px] right-0 h-[2px] z-50 overflow-hidden">
+<div class="h-full bg-gradient-to-r from-transparent via-primary to-transparent w-full -translate-x-full animate-[shimmer_2s_infinite]"></div>
+</div>
+<style>
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+    </style>
+</body></html>

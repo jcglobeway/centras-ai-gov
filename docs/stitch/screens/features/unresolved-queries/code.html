@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>미해결 질의 (Unresolved Queries) - Kinetic AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-container": "#ffede6",
+              "surface-dim": "#0b1326",
+              "on-tertiary": "#581e00",
+              "inverse-surface": "#dae2fd",
+              "primary": "#b4c5ff",
+              "on-secondary": "#182d63",
+              "on-primary": "#002a78",
+              "on-background": "#dae2fd",
+              "tertiary": "#ffb596",
+              "surface-container-high": "#222a3d",
+              "on-error": "#690005",
+              "error-container": "#93000a",
+              "secondary-fixed": "#dbe1ff",
+              "secondary-container": "#33467e",
+              "tertiary-fixed-dim": "#ffb596",
+              "surface-tint": "#b4c5ff",
+              "surface-container-lowest": "#060e20",
+              "inverse-on-surface": "#283044",
+              "surface": "#0b1326",
+              "on-primary-container": "#eeefff",
+              "on-secondary-fixed-variant": "#31447b",
+              "on-surface-variant": "#c3c6d7",
+              "inverse-primary": "#0053db",
+              "surface-container-highest": "#2d3449",
+              "secondary": "#b4c5ff",
+              "secondary-fixed-dim": "#b4c5ff",
+              "tertiary-container": "#bc4800",
+              "surface-bright": "#31394d",
+              "primary-fixed": "#dbe1ff",
+              "primary-container": "#2563eb",
+              "outline-variant": "#434655",
+              "on-tertiary-fixed": "#360f00",
+              "primary-fixed-dim": "#b4c5ff",
+              "outline": "#8d90a0",
+              "error": "#ef4444",
+              "background": "#0b1326",
+              "on-secondary-container": "#a4b6f5",
+              "on-primary-fixed": "#00174b",
+              "tertiary-fixed": "#ffdbcd",
+              "surface-container-low": "#131b2e",
+              "on-error-container": "#ffdad6",
+              "on-primary-fixed-variant": "#003ea8",
+              "on-surface": "#dae2fd",
+              "surface-container": "#171f33",
+              "on-secondary-fixed": "#00174b",
+              "surface-variant": "#2d3449",
+              "on-tertiary-fixed-variant": "#7d2d00"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"],
+              "mono": ["IBM Plex Mono"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+            font-size: 1.25rem;
+        }
+        body {
+            background-color: #0b1326;
+            color: #dae2fd;
+            font-family: 'Inter', sans-serif;
+        }
+        .data-mono {
+            font-family: 'IBM Plex Mono', monospace;
+        }
+        /* Custom scrollbar for technical feel */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #0b1326; }
+        ::-webkit-scrollbar-thumb { background: #2d3449; border-radius: 2px; }
+    </style>
+</head>
+<body class="flex min-h-screen">
+<!-- SideNavBar (Authority: JSON & Design System) -->
+<aside class="w-[240px] h-screen fixed left-0 top-0 overflow-y-auto bg-slate-900 dark:bg-[#0b1326] flex flex-col py-6 border-r border-white/5 z-50">
+<div class="px-6 mb-8">
+<h1 class="text-xl font-bold tracking-tighter text-slate-100 dark:text-[#f8fafc]">Kinetic AI</h1>
+<p class="text-[10px] font-bold uppercase tracking-widest text-blue-500 mt-1">Ops Nerve Center</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="text-slate-400 hover:text-slate-100 px-4 py-2 mx-2 transition-colors flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-xs font-bold uppercase tracking-wider">Dashboard</span>
+</a>
+<a class="text-slate-400 hover:text-slate-100 px-4 py-2 mx-2 transition-colors flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">database</span>
+<span class="text-xs font-bold uppercase tracking-wider">Knowledge Base</span>
+</a>
+<a class="text-slate-400 hover:text-slate-100 px-4 py-2 mx-2 transition-colors flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">smart_toy</span>
+<span class="text-xs font-bold uppercase tracking-wider">Chatbot Settings</span>
+</a>
+<!-- ACTIVE: Quality Management -->
+<a class="bg-[#2563eb] text-white rounded-md mx-2 px-4 py-2 transition-colors flex items-center gap-3" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<span class="text-xs font-bold uppercase tracking-wider">Quality Management</span>
+</a>
+<a class="text-slate-400 hover:text-slate-100 px-4 py-2 mx-2 transition-colors flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="text-xs font-bold uppercase tracking-wider">Service Monitoring</span>
+</a>
+<a class="text-slate-400 hover:text-slate-100 px-4 py-2 mx-2 transition-colors flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-xs font-bold uppercase tracking-wider">Reports</span>
+</a>
+<a class="text-slate-400 hover:text-slate-100 px-4 py-2 mx-2 transition-colors flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">admin_panel_settings</span>
+<span class="text-xs font-bold uppercase tracking-wider">System &amp; Permissions</span>
+</a>
+</nav>
+<div class="mt-auto px-6 pt-6 border-t border-white/5 flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">person</span>
+</div>
+<div class="overflow-hidden">
+<p class="text-[11px] font-bold text-on-surface truncate">Admin Root</p>
+<p class="text-[9px] text-outline truncate">admin@kinetic-ai.ops</p>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 ml-[240px] flex flex-col min-h-screen">
+<!-- TopNavBar (Authority: JSON) -->
+<header class="fixed top-0 right-0 left-[240px] h-16 z-40 bg-slate-900/80 dark:bg-[#0b1326]/80 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-6">
+<div class="flex items-center gap-4">
+<h2 class="text-sm font-bold tracking-tight text-on-surface">미해결 질의 (Unresolved Queries)</h2>
+<div class="h-4 w-px bg-outline-variant/30"></div>
+<div class="flex gap-4">
+<span class="text-[11px] font-bold uppercase tracking-widest text-[#2563eb]">Last 24h</span>
+<span class="text-[11px] font-bold uppercase tracking-widest text-slate-400">Production Cluster</span>
+<span class="text-[11px] font-bold uppercase tracking-widest text-slate-400">Global Tenant</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<button class="p-2 hover:bg-slate-800/50 rounded transition-colors text-slate-400">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<button class="p-2 hover:bg-slate-800/50 rounded transition-colors text-slate-400">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+</button>
+<button class="p-2 hover:bg-slate-800/50 rounded transition-colors text-slate-400">
+<span class="material-symbols-outlined text-[20px]">help_outline</span>
+</button>
+</div>
+<button class="bg-primary-container text-white px-4 py-1.5 text-xs font-bold rounded hover:bg-blue-700 transition-colors">
+                    Deploy Changes
+                </button>
+</div>
+</header>
+<!-- Page Canvas -->
+<div class="mt-16 p-6 space-y-6">
+<!-- Filters Section -->
+<section class="grid grid-cols-12 gap-4 bg-surface-container-low p-4 rounded-lg shadow-sm">
+<div class="col-span-3">
+<label class="block text-[10px] font-bold uppercase tracking-wider text-outline mb-1.5">Category</label>
+<div class="relative">
+<select class="w-full bg-surface-container-lowest border-outline-variant/20 text-xs rounded-sm py-2 px-3 focus:ring-primary focus:border-primary appearance-none">
+<option>All Categories</option>
+<option>General</option>
+<option>Technical</option>
+<option>Pricing</option>
+<option>Compliance</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-2 text-sm pointer-events-none">expand_more</span>
+</div>
+</div>
+<div class="col-span-3">
+<label class="block text-[10px] font-bold uppercase tracking-wider text-outline mb-1.5">Status Filter</label>
+<div class="flex gap-2">
+<button class="flex-1 py-2 text-[11px] font-bold rounded-sm border border-outline-variant/20 bg-surface-container-highest text-on-surface">미처리</button>
+<button class="flex-1 py-2 text-[11px] font-bold rounded-sm border border-outline-variant/20 bg-surface-container-lowest text-outline hover:text-on-surface">인입</button>
+<button class="flex-1 py-2 text-[11px] font-bold rounded-sm border border-outline-variant/20 bg-surface-container-lowest text-outline hover:text-on-surface">완료</button>
+</div>
+</div>
+<div class="col-span-4">
+<label class="block text-[10px] font-bold uppercase tracking-wider text-outline mb-1.5">Date Range</label>
+<div class="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant/20 rounded-sm px-3 py-2">
+<span class="material-symbols-outlined text-sm text-outline">calendar_today</span>
+<span class="text-xs text-on-surface-variant">2023.10.01 — 2023.10.31</span>
+</div>
+</div>
+<div class="col-span-2 flex items-end">
+<button class="w-full h-[38px] flex items-center justify-center gap-2 border border-primary/30 text-primary text-[11px] font-bold uppercase tracking-widest hover:bg-primary/5 transition-colors rounded-sm">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                        Apply Filters
+                    </button>
+</div>
+</section>
+<!-- Main Table Section -->
+<section class="bg-surface-container-low rounded-lg overflow-hidden shadow-sm">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-high/50">
+<th class="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-outline border-b border-white/5">Query Text</th>
+<th class="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-outline border-b border-white/5">Category</th>
+<th class="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-outline border-b border-white/5 text-center">Count</th>
+<th class="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-outline border-b border-white/5">First Occurred</th>
+<th class="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-outline border-b border-white/5">Assignee</th>
+<th class="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-outline border-b border-white/5">Status</th>
+<th class="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-outline border-b border-white/5 text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-white/5">
+<!-- Row 1: Unprocessed -->
+<tr class="hover:bg-surface-container-high/30 transition-colors border-l-4 border-error">
+<td class="px-6 py-4 text-xs font-medium text-on-surface">우리 회사 휴가 규정에 대해 알려줘</td>
+<td class="px-4 py-4">
+<span class="px-2 py-0.5 bg-surface-container-highest text-[9px] font-bold uppercase tracking-tighter text-on-surface-variant rounded">#HR</span>
+</td>
+<td class="px-4 py-4 text-center text-xs data-mono text-primary">124</td>
+<td class="px-4 py-4 text-[11px] data-mono text-outline">2023-10-24 14:22:01</td>
+<td class="px-4 py-4">
+<div class="flex items-center gap-2">
+<div class="w-5 h-5 rounded-full bg-blue-900 flex items-center justify-center text-[10px]">K</div>
+<span class="text-xs text-on-surface-variant">Kim S.</span>
+</div>
+</td>
+<td class="px-4 py-4">
+<span class="flex items-center gap-1.5 text-[11px] font-bold text-error">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+                                        미처리
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="bg-primary-container text-[10px] font-bold px-3 py-1.5 rounded-sm hover:opacity-90 transition-opacity">지식베이스 추가</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="px-6 py-4 text-xs font-medium text-on-surface">복지 포인트 사용 방법은?</td>
+<td class="px-4 py-4">
+<span class="px-2 py-0.5 bg-surface-container-highest text-[9px] font-bold uppercase tracking-tighter text-on-surface-variant rounded">#Benefits</span>
+</td>
+<td class="px-4 py-4 text-center text-xs data-mono text-primary">89</td>
+<td class="px-4 py-4 text-[11px] data-mono text-outline">2023-10-24 10:15:44</td>
+<td class="px-4 py-4">
+<span class="text-xs text-outline italic">Unassigned</span>
+</td>
+<td class="px-4 py-4">
+<span class="flex items-center gap-1.5 text-[11px] font-bold text-tertiary">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                                        인입
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="bg-primary-container text-[10px] font-bold px-3 py-1.5 rounded-sm hover:opacity-90 transition-opacity">지식베이스 추가</button>
+</td>
+</tr>
+<!-- Row 3: Unprocessed -->
+<tr class="hover:bg-surface-container-high/30 transition-colors border-l-4 border-error">
+<td class="px-6 py-4 text-xs font-medium text-on-surface">MacBook M3 개발 환경 세팅 가이드가 있나요?</td>
+<td class="px-4 py-4">
+<span class="px-2 py-0.5 bg-surface-container-highest text-[9px] font-bold uppercase tracking-tighter text-on-surface-variant rounded">#IT</span>
+</td>
+<td class="px-4 py-4 text-center text-xs data-mono text-primary">56</td>
+<td class="px-4 py-4 text-[11px] data-mono text-outline">2023-10-23 16:45:12</td>
+<td class="px-4 py-4">
+<div class="flex items-center gap-2">
+<div class="w-5 h-5 rounded-full bg-surface-container-highest flex items-center justify-center text-[10px]">P</div>
+<span class="text-xs text-on-surface-variant">Park J.</span>
+</div>
+</td>
+<td class="px-4 py-4">
+<span class="flex items-center gap-1.5 text-[11px] font-bold text-error">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+                                        미처리
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="bg-primary-container text-[10px] font-bold px-3 py-1.5 rounded-sm hover:opacity-90 transition-opacity">지식베이스 추가</button>
+</td>
+</tr>
+<!-- Multiple Mock Rows for density -->
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="px-6 py-4 text-xs font-medium text-on-surface">사내 보안 교육 이수 기한이 언제까지인가요?</td>
+<td class="px-4 py-4"><span class="px-2 py-0.5 bg-surface-container-highest text-[9px] font-bold text-on-surface-variant rounded">#Compliance</span></td>
+<td class="px-4 py-4 text-center text-xs data-mono text-primary">42</td>
+<td class="px-4 py-4 text-[11px] data-mono text-outline">2023-10-23 09:12:33</td>
+<td class="px-4 py-4"><span class="text-xs text-on-surface-variant">Lee M.</span></td>
+<td class="px-4 py-4"><span class="flex items-center gap-1.5 text-[11px] font-bold text-[#10b981]"><span class="w-1.5 h-1.5 rounded-full bg-[#10b981]"></span>완료</span></td>
+<td class="px-6 py-4 text-right">
+<button class="bg-surface-container-highest text-on-surface text-[10px] font-bold px-3 py-1.5 rounded-sm border border-outline-variant/30 opacity-50 cursor-not-allowed">지식베이스 추가</button>
+</td>
+</tr>
+<!-- Repeat visual pattern for more rows -->
+<tr class="hover:bg-surface-container-high/30 transition-colors border-l-4 border-error">
+<td class="px-6 py-4 text-xs font-medium text-on-surface">비용 정산 시 증빙 서류 규정 문의</td>
+<td class="px-4 py-4"><span class="px-2 py-0.5 bg-surface-container-highest text-[9px] font-bold text-on-surface-variant rounded">#Finance</span></td>
+<td class="px-4 py-4 text-center text-xs data-mono text-primary">31</td>
+<td class="px-4 py-4 text-[11px] data-mono text-outline">2023-10-22 18:22:11</td>
+<td class="px-4 py-4"><span class="text-xs text-outline italic">Unassigned</span></td>
+<td class="px-4 py-4"><span class="flex items-center gap-1.5 text-[11px] font-bold text-error"><span class="w-1.5 h-1.5 rounded-full bg-error"></span>미처리</span></td>
+<td class="px-6 py-4 text-right"><button class="bg-primary-container text-[10px] font-bold px-3 py-1.5 rounded-sm">지식베이스 추가</button></td>
+</tr>
+<!-- Visual placeholder for more rows -->
+<tr class="opacity-40"><td class="px-6 py-4 text-center text-[10px] tracking-widest uppercase text-outline" colspan="7">... Continued high-density dataset (20 rows total) ...</td></tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<div class="px-6 py-4 bg-surface-container-highest/30 flex items-center justify-between">
+<p class="text-[10px] text-outline uppercase tracking-wider">Showing <span class="data-mono">1-5</span> of <span class="data-mono">248</span> unresolved queries</p>
+<div class="flex items-center gap-1">
+<button class="p-1 hover:bg-surface-container-high rounded transition-colors disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="w-6 h-6 flex items-center justify-center text-[10px] font-bold rounded-sm bg-primary text-on-primary">1</button>
+<button class="w-6 h-6 flex items-center justify-center text-[10px] font-bold rounded-sm hover:bg-surface-container-high text-outline">2</button>
+<button class="w-6 h-6 flex items-center justify-center text-[10px] font-bold rounded-sm hover:bg-surface-container-high text-outline">3</button>
+<span class="text-outline px-1">...</span>
+<button class="w-6 h-6 flex items-center justify-center text-[10px] font-bold rounded-sm hover:bg-surface-container-high text-outline">10</button>
+<button class="p-1 hover:bg-surface-container-high rounded transition-colors">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Bottom Action Cards (Bento Style) -->
+<section class="grid grid-cols-12 gap-6">
+<div class="col-span-8 bg-surface-container-low p-6 rounded-lg relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-secondary-container"></div>
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="text-sm font-bold text-on-surface">Auto-Clustering Report</h3>
+<p class="text-[11px] text-outline-variant mt-1">AI has identified 3 new recurring clusters from unresolved queries.</p>
+</div>
+<span class="material-symbols-outlined text-primary">auto_awesome</span>
+</div>
+<div class="space-y-3">
+<div class="bg-surface-container-lowest p-3 rounded flex items-center justify-between border-l-2 border-primary">
+<div>
+<p class="text-xs font-bold text-on-surface">New Policy Inquiries</p>
+<p class="text-[10px] text-outline">Related to "Work from Home 2024" updates</p>
+</div>
+<p class="data-mono text-xs font-bold text-primary">42 hits</p>
+</div>
+<div class="bg-surface-container-lowest p-3 rounded flex items-center justify-between border-l-2 border-tertiary">
+<div>
+<p class="text-xs font-bold text-on-surface">API Connection Errors</p>
+<p class="text-[10px] text-outline">Mobile client authentication failures</p>
+</div>
+<p class="data-mono text-xs font-bold text-tertiary">18 hits</p>
+</div>
+</div>
+</div>
+<div class="col-span-4 bg-surface-container-low p-6 rounded-lg border border-outline-variant/10 flex flex-col justify-center items-center text-center">
+<div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
+<span class="material-symbols-outlined text-primary">lightbulb</span>
+</div>
+<h3 class="text-sm font-bold text-on-surface">Optimization Tip</h3>
+<p class="text-[11px] text-outline mt-2 leading-relaxed">
+                        Adding tags to #HR related queries can reduce unresolved rates by up to <span class="data-mono font-bold text-primary">22%</span> based on historical data.
+                    </p>
+<button class="mt-4 text-[10px] font-bold uppercase tracking-widest text-primary border-b border-primary/30 hover:border-primary transition-all">
+                        View Analytics
+                    </button>
+</div>
+</section>
+</div>
+</main>
+</body></html>

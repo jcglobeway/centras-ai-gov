@@ -1,9 +1,12 @@
+export const runtime = "edge";
+
 const RAG_URL = process.env.RAG_ORCHESTRATOR_URL ?? "http://localhost:8090";
 
 export async function POST(req: Request) {
   const body = await req.json();
   const messages: { role: string; content: string }[] = body.messages ?? [];
   const questionText = messages.at(-1)?.content ?? "";
+  const conversationHistory = messages.slice(0, -1); // 마지막 질문 제외한 이전 대화
   const organizationId: string = body.organizationId ?? "";
   const serviceId: string = body.serviceId ?? "";
 
@@ -17,6 +20,7 @@ export async function POST(req: Request) {
         question_text: questionText,
         organization_id: organizationId,
         service_id: serviceId,
+        conversation_history: conversationHistory,
       }),
     });
   } catch {
@@ -25,29 +29,8 @@ export async function POST(req: Request) {
     });
   }
 
-  // NDJSON 스트림에서 content 토큰만 추출해 plain text stream으로 변환
-  const textStream = ragRes.body!.pipeThrough(
-    new TransformStream<Uint8Array, Uint8Array>({
-      transform(chunk, controller) {
-        const text = new TextDecoder().decode(chunk);
-        for (const line of text.split("\n").filter(Boolean)) {
-          try {
-            const parsed = JSON.parse(line);
-            if (typeof parsed.content === "string") {
-              controller.enqueue(new TextEncoder().encode(parsed.content));
-            }
-          } catch {
-            // non-JSON line 무시
-          }
-        }
-      },
-    })
-  );
-
-  return new Response(textStream, {
-    headers: {
-      "Content-Type": "text/plain; charset=utf-8",
-      "X-Vercel-AI-Data-Stream": "v1",
-    },
+  // NDJSON 스트림을 그대로 전달 — 프론트엔드가 content/done 패킷을 직접 파싱
+  return new Response(ragRes.body, {
+    headers: { "Content-Type": "application/x-ndjson; charset=utf-8" },
   });
 }

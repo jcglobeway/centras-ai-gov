@@ -27,6 +27,7 @@ class QAReviewEntity(
     @Column(name = "action_target_id") val actionTargetId: String?,
     @Column(name = "review_comment", columnDefinition = "TEXT") val reviewComment: String?,
     @Column(name = "reviewer_id", nullable = false) val reviewerId: String,
+    @Column(name = "assignee_id") val assigneeId: String?,
     @Column(name = "reviewed_at", nullable = false) val reviewedAt: Instant,
     @Column(name = "created_at", nullable = false) val createdAt: Instant = Instant.now(),
 )
@@ -36,7 +37,7 @@ fun QAReviewEntity.toSummary(): QAReviewSummary =
         id = id, questionId = questionId, reviewStatus = reviewStatus.toReviewStatus(),
         rootCauseCode = rootCauseCode?.toRootCauseCode(), actionType = actionType?.toActionType(),
         actionTargetId = actionTargetId, reviewComment = reviewComment,
-        reviewerId = reviewerId, reviewedAt = reviewedAt,
+        reviewerId = reviewerId, assigneeId = assigneeId, reviewedAt = reviewedAt,
     )
 
 fun QAReviewSummary.toEntity(): QAReviewEntity =
@@ -44,7 +45,7 @@ fun QAReviewSummary.toEntity(): QAReviewEntity =
         id = id, questionId = questionId, reviewStatus = reviewStatus.name.lowercase(),
         rootCauseCode = rootCauseCode?.name?.lowercase(), actionType = actionType?.name?.lowercase(),
         actionTargetId = actionTargetId, reviewComment = reviewComment,
-        reviewerId = reviewerId, reviewedAt = reviewedAt, createdAt = Instant.now(),
+        reviewerId = reviewerId, assigneeId = assigneeId, reviewedAt = reviewedAt, createdAt = Instant.now(),
     )
 
 private fun String.toReviewStatus(): QAReviewStatus = when (this) {

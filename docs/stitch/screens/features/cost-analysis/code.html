@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>비용 분석 | Kinetic Intelligence</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "inverse-surface": "#dae2fd",
+                        "tertiary": "#ffb596",
+                        "primary": "#b4c5ff",
+                        "on-secondary-container": "#a4b6f5",
+                        "primary-fixed": "#dbe1ff",
+                        "on-tertiary": "#581e00",
+                        "on-background": "#dae2fd",
+                        "tertiary-container": "#bc4800",
+                        "on-primary-container": "#eeefff",
+                        "surface-bright": "#31394d",
+                        "on-primary": "#002a78",
+                        "surface": "#0b1326",
+                        "on-secondary-fixed": "#00174b",
+                        "primary-container": "#2563eb",
+                        "on-surface-variant": "#c3c6d7",
+                        "surface-tint": "#b4c5ff",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-tertiary-container": "#ffede6",
+                        "secondary": "#b4c5ff",
+                        "on-tertiary-fixed": "#360f00",
+                        "on-secondary": "#182d63",
+                        "outline": "#8d90a0",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-low": "#131b2e",
+                        "surface-container-highest": "#2d3449",
+                        "surface-container": "#171f33",
+                        "tertiary-fixed": "#ffdbcd",
+                        "secondary-fixed": "#dbe1ff",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "inverse-on-surface": "#283044",
+                        "on-error": "#690005",
+                        "error": "#ffb4ab",
+                        "outline-variant": "#434655",
+                        "on-surface": "#dae2fd",
+                        "surface-variant": "#2d3449",
+                        "background": "#0b1326",
+                        "surface-container-lowest": "#060e20",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "secondary-fixed-dim": "#b4c5ff",
+                        "surface-container-high": "#222a3d",
+                        "surface-dim": "#0b1326",
+                        "secondary-container": "#33467e",
+                        "inverse-primary": "#0053db",
+                        "error-container": "#93000a",
+                        "on-primary-fixed": "#00174b",
+                        "on-secondary-fixed-variant": "#31447b",
+                        "on-primary-fixed-variant": "#003ea8"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"],
+                        "mono": ["IBM Plex Mono"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { background-color: #0b1326; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="font-body text-on-surface antialiased">
+<!-- SideNavBar Anchor -->
+<aside class="w-[240px] h-screen fixed left-0 top-0 bg-[#0b1326] shadow-[8px_0px_24px_rgba(0,0,0,0.4)] flex flex-col overflow-y-auto z-50">
+<div class="p-6">
+<div class="text-lg font-bold tracking-tight text-slate-100 mb-1">Kinetic Admin</div>
+<div class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">AI Operations Center</div>
+</div>
+<nav class="flex-1 px-3 space-y-1">
+<a class="flex items-center px-3 py-2 text-slate-400 hover:text-slate-200 hover:bg-[#171f33] transition-colors duration-200 rounded-lg group" href="#">
+<span class="material-symbols-outlined mr-3 text-xl">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center px-3 py-2 bg-[#222a3d] text-white font-semibold rounded-lg" href="#">
+<span class="material-symbols-outlined mr-3 text-xl">monitoring</span>
+<span class="text-sm">Analytics</span>
+</a>
+<a class="flex items-center px-3 py-2 text-slate-400 hover:text-slate-200 hover:bg-[#171f33] transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined mr-3 text-xl">database</span>
+<span class="text-sm">Data Sources</span>
+</a>
+<a class="flex items-center px-3 py-2 text-slate-400 hover:text-slate-200 hover:bg-[#171f33] transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined mr-3 text-xl">schema</span>
+<span class="text-sm">RAG Pipeline</span>
+</a>
+<a class="flex items-center px-3 py-2 text-slate-400 hover:text-slate-200 hover:bg-[#171f33] transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined mr-3 text-xl">settings_input_component</span>
+<span class="text-sm">Model Config</span>
+</a>
+<a class="flex items-center px-3 py-2 text-slate-400 hover:text-slate-200 hover:bg-[#171f33] transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined mr-3 text-xl">terminal</span>
+<span class="text-sm">Trace Logs</span>
+</a>
+<a class="flex items-center px-3 py-2 text-slate-400 hover:text-slate-200 hover:bg-[#171f33] transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined mr-3 text-xl">settings</span>
+<span class="text-sm">Settings</span>
+</a>
+</nav>
+<div class="p-3 border-t border-outline-variant/10">
+<a class="flex items-center px-3 py-2 text-slate-400 hover:text-slate-200 hover:bg-[#171f33] rounded-lg" href="#">
+<span class="material-symbols-outlined mr-3 text-xl">help_outline</span>
+<span class="text-sm">Support</span>
+</a>
+<a class="flex items-center px-3 py-2 text-slate-400 hover:text-slate-200 hover:bg-[#171f33] rounded-lg" href="#">
+<span class="material-symbols-outlined mr-3 text-xl">description</span>
+<span class="text-sm">Documentation</span>
+</a>
+</div>
+</aside>
+<!-- TopNavBar Anchor -->
+<header class="fixed top-0 right-0 left-[240px] h-16 z-40 bg-[#131b2e]/80 backdrop-blur-md flex justify-between items-center px-8 border-b border-outline-variant/5">
+<div class="flex items-center space-x-8">
+<h1 class="text-xl font-extrabold tracking-tight text-on-surface">비용 분석</h1>
+<nav class="flex space-x-6">
+<a class="text-sm text-[#2563eb] border-b-2 border-[#2563eb] pb-5 mt-5" href="#">Global Filter</a>
+<a class="text-sm text-slate-400 hover:text-slate-100 transition-opacity duration-200" href="#">Date Range</a>
+<a class="text-sm text-slate-400 hover:text-slate-100 transition-opacity duration-200" href="#">Namespace</a>
+</nav>
+</div>
+<div class="flex items-center space-x-4">
+<button class="bg-primary-container text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">Deploy Model</button>
+<div class="flex space-x-2 text-slate-400">
+<span class="material-symbols-outlined cursor-pointer hover:text-white">notifications</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-white">account_circle</span>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-[240px] pt-24 p-8 min-h-screen space-y-6 bg-[#0f172a]">
+<!-- KPI Cards Row -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<!-- Cost/Query -->
+<div class="bg-surface-container p-4 rounded-lg shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold uppercase tracking-wider text-outline">Cost / Query</span>
+<span class="material-symbols-outlined text-sm text-outline">info</span>
+</div>
+<div class="font-mono text-2xl font-semibold text-primary">$0.0042</div>
+<div class="text-[10px] text-emerald-400 flex items-center mt-1">
+<span class="material-symbols-outlined text-xs mr-1">trending_down</span>
+                    12% vs last 7d
+                </div>
+</div>
+<!-- Total Daily Cost -->
+<div class="bg-surface-container p-4 rounded-lg shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold uppercase tracking-wider text-outline">Total Daily Cost</span>
+<span class="material-symbols-outlined text-sm text-outline">payments</span>
+</div>
+<div class="font-mono text-2xl font-semibold text-on-surface">$1,248.50</div>
+<div class="text-[10px] text-slate-400 flex items-center mt-1">
+                    Current budget: $45k/mo
+                </div>
+</div>
+<!-- Cache Hit Rate (Warning State) -->
+<div class="bg-surface-container p-4 rounded-lg shadow-sm ring-1 ring-error/20">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold uppercase tracking-wider text-error">Cache Hit Rate</span>
+<span class="material-symbols-outlined text-sm text-error" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<div class="font-mono text-2xl font-semibold text-error">12.8%</div>
+<div class="text-[10px] text-error/80 flex items-center mt-1">
+                    Threshold: 45.0%
+                </div>
+</div>
+<!-- Token Usage (Avg) -->
+<div class="bg-surface-container p-4 rounded-lg shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold uppercase tracking-wider text-outline">Token Usage (Avg)</span>
+<span class="material-symbols-outlined text-sm text-outline">database</span>
+</div>
+<div class="font-mono text-2xl font-semibold text-on-secondary-container">1,842.0</div>
+<div class="text-[10px] text-slate-400 flex items-center mt-1">
+                    Per transaction
+                </div>
+</div>
+</div>
+<!-- 30-Day Stacked Bar Chart Area -->
+<div class="bg-surface-container-low p-6 rounded-lg">
+<div class="flex justify-between items-center mb-6">
+<div>
+<h3 class="text-sm font-semibold text-on-surface">Daily Cost Distribution (Last 30 Days)</h3>
+<p class="text-[10px] text-outline">Infrastructure vs inference breakdown in USD</p>
+</div>
+<div class="flex items-center space-x-4">
+<div class="flex items-center space-x-2"><div class="w-2 h-2 rounded-full bg-emerald-500"></div><span class="text-[10px]">LLM API</span></div>
+<div class="flex items-center space-x-2"><div class="w-2 h-2 rounded-full bg-blue-500"></div><span class="text-[10px]">Embedding</span></div>
+<div class="flex items-center space-x-2"><div class="w-2 h-2 rounded-full bg-purple-500"></div><span class="text-[10px]">Reranker</span></div>
+<div class="flex items-center space-x-2"><div class="w-2 h-2 rounded-full bg-amber-500"></div><span class="text-[10px]">Infrastructure</span></div>
+</div>
+</div>
+<div class="h-[240px] flex items-end justify-between space-x-1">
+<!-- Mock Chart Bars -->
+<div class="w-full h-full flex items-end space-x-[2px]">
+<div class="flex-1 flex flex-col justify-end space-y-[1px]">
+<div class="bg-emerald-500/80 w-full h-[40%] rounded-t-sm"></div>
+<div class="bg-blue-500/80 w-full h-[15%]"></div>
+<div class="bg-purple-500/80 w-full h-[10%]"></div>
+<div class="bg-amber-500/80 w-full h-[5%]"></div>
+</div>
+<div class="flex-1 flex flex-col justify-end space-y-[1px]">
+<div class="bg-emerald-500/80 w-full h-[45%] rounded-t-sm"></div>
+<div class="bg-blue-500/80 w-full h-[12%]"></div>
+<div class="bg-purple-500/80 w-full h-[8%]"></div>
+<div class="bg-amber-500/80 w-full h-[5%]"></div>
+</div>
+<!-- Repeating simulation of 30 bars with varied heights -->
+<div class="flex-1 flex flex-col justify-end space-y-[1px]">
+<div class="bg-emerald-500/80 w-full h-[38%] rounded-t-sm"></div>
+<div class="bg-blue-500/80 w-full h-[20%]"></div>
+<div class="bg-purple-500/80 w-full h-[12%]"></div>
+<div class="bg-amber-500/80 w-full h-[5%]"></div>
+</div>
+<div class="flex-1 flex flex-col justify-end space-y-[1px]">
+<div class="bg-emerald-500/80 w-full h-[50%] rounded-t-sm"></div>
+<div class="bg-blue-500/80 w-full h-[15%]"></div>
+<div class="bg-purple-500/80 w-full h-[5%]"></div>
+<div class="bg-amber-500/80 w-full h-[5%]"></div>
+</div>
+<!-- Simplified Visual Representation of the rest -->
+<div class="flex-[26] flex items-end space-x-[2px]">
+<div class="flex-1 flex flex-col justify-end space-y-[1px] opacity-80" style="height: 60%">
+<div class="bg-emerald-500 w-full h-[60%] rounded-t-sm"></div>
+<div class="bg-blue-500 w-full h-[10%]"></div>
+<div class="bg-amber-500 w-full h-[30%]"></div>
+</div>
+<div class="flex-1 flex flex-col justify-end space-y-[1px] opacity-90" style="height: 75%">
+<div class="bg-emerald-500 w-full h-[50%] rounded-t-sm"></div>
+<div class="bg-blue-500 w-full h-[20%]"></div>
+<div class="bg-purple-500 w-full h-[10%]"></div>
+<div class="bg-amber-500 w-full h-[20%]"></div>
+</div>
+<!-- ... many more bars ... -->
+<div class="flex-[24] bg-surface-container-high/20 h-full rounded-sm flex items-end space-x-[2px]">
+<div class="flex-1 bg-emerald-500/40 h-[60%]"></div><div class="flex-1 bg-emerald-500/40 h-[65%]"></div><div class="flex-1 bg-emerald-500/40 h-[55%]"></div><div class="flex-1 bg-emerald-500/40 h-[70%]"></div><div class="flex-1 bg-emerald-500/40 h-[80%]"></div><div class="flex-1 bg-emerald-500/40 h-[75%]"></div><div class="flex-1 bg-emerald-500/40 h-[60%]"></div><div class="flex-1 bg-emerald-500/40 h-[50%]"></div><div class="flex-1 bg-emerald-500/40 h-[65%]"></div><div class="flex-1 bg-emerald-500/40 h-[72%]"></div>
+<div class="flex-1 bg-emerald-500/40 h-[60%]"></div><div class="flex-1 bg-emerald-500/40 h-[65%]"></div><div class="flex-1 bg-emerald-500/40 h-[55%]"></div><div class="flex-1 bg-emerald-500/40 h-[70%]"></div><div class="flex-1 bg-emerald-500/40 h-[80%]"></div><div class="flex-1 bg-emerald-500/40 h-[75%]"></div><div class="flex-1 bg-emerald-500/40 h-[60%]"></div><div class="flex-1 bg-emerald-500/40 h-[50%]"></div><div class="flex-1 bg-emerald-500/40 h-[65%]"></div><div class="flex-1 bg-emerald-500/40 h-[72%]"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-4 flex justify-between text-[10px] font-mono text-outline uppercase tracking-widest border-t border-outline-variant/10 pt-2">
+<span>30 Days Ago</span>
+<span>Today</span>
+</div>
+</div>
+<!-- Warning Tip Card -->
+<div class="bg-error-container/20 border-l-4 border-error p-4 flex items-center justify-between group cursor-pointer hover:bg-error-container/30 transition-colors">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-error mr-3">emergency_home</span>
+<div>
+<span class="text-sm font-semibold text-error">캐시 적중률이 낮습니다 — RAG 파라미터 튜닝을 검토하세요</span>
+<p class="text-[10px] text-on-surface/60">현재 적중률 12.8%는 운영 표준(45%)보다 크게 낮아 토큰 비용이 3.2배 증가하고 있습니다.</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-error group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+<!-- Secondary Charts Row -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<!-- Token Usage Trend -->
+<div class="bg-surface-container p-6 rounded-lg">
+<div class="flex justify-between items-start mb-6">
+<h3 class="text-sm font-semibold">Token Usage Trend</h3>
+<div class="flex items-center space-x-3 text-[10px]">
+<span class="flex items-center"><div class="w-3 h-[2px] bg-primary mr-1"></div> Input</span>
+<span class="flex items-center"><div class="w-3 h-[2px] bg-tertiary mr-1"></div> Output</span>
+</div>
+</div>
+<div class="h-[180px] w-full relative">
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none">
+<!-- Input Line -->
+<path class="text-primary" d="M0,80 Q50,60 100,100 T200,40 T300,90 T400,20 T500,60" fill="none" stroke="currentColor" stroke-width="2"></path>
+<!-- Output Line -->
+<path class="text-tertiary" d="M0,140 Q50,130 100,150 T200,120 T300,160 T400,130 T500,150" fill="none" stroke="currentColor" stroke-width="2"></path>
+</svg>
+<!-- Y-Axis Ticks -->
+<div class="absolute left-0 top-0 h-full flex flex-col justify-between text-[8px] font-mono text-outline/50">
+<span>50k</span>
+<span>25k</span>
+<span>0</span>
+</div>
+</div>
+</div>
+<!-- Cache Hit Rate Trend -->
+<div class="bg-surface-container p-6 rounded-lg">
+<div class="flex justify-between items-start mb-6">
+<h3 class="text-sm font-semibold">Cache Hit Rate Decay</h3>
+<span class="text-[10px] font-mono text-error">-18.4% WoW</span>
+</div>
+<div class="h-[180px] w-full relative">
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none">
+<!-- Downward Trending Path -->
+<path class="text-error" d="M0,20 L50,30 L100,25 L150,50 L200,45 L250,80 L300,100 L350,90 L400,140 L450,130 L500,150" fill="none" stroke="currentColor" stroke-width="2"></path>
+<lineargradient id="fade" x1="0" x2="0" y1="0" y2="1">
+<stop class="text-error" offset="0%" stop-color="currentColor" stop-opacity="0.2"></stop>
+<stop class="text-error" offset="100%" stop-color="currentColor" stop-opacity="0"></stop>
+</lineargradient>
+<path d="M0,20 L50,30 L100,25 L150,50 L200,45 L250,80 L300,100 L350,90 L400,140 L450,130 L500,150 L500,180 L0,180 Z" fill="url(#fade)"></path>
+</svg>
+</div>
+</div>
+</div>
+<!-- Customer Breakdown Table -->
+<div class="bg-surface-container-low rounded-lg overflow-hidden shadow-xl">
+<div class="px-6 py-4 border-b border-outline-variant/10">
+<h3 class="text-sm font-semibold">Cost Breakdown by Customer</h3>
+</div>
+<table class="w-full text-left text-xs">
+<thead class="bg-surface-container-high/50 text-outline uppercase tracking-wider font-bold">
+<tr>
+<th class="px-6 py-3">Customer Name</th>
+<th class="px-6 py-3">LLM Cost</th>
+<th class="px-6 py-3">Embed Cost</th>
+<th class="px-6 py-3">Total</th>
+<th class="px-6 py-3">% of Budget</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/5">
+<tr class="hover:bg-surface-container transition-colors group">
+<td class="px-6 py-4 font-medium text-on-surface">Nexus Dynamics</td>
+<td class="px-6 py-4 font-mono">$12,402.00</td>
+<td class="px-6 py-4 font-mono">$842.12</td>
+<td class="px-6 py-4 font-mono font-bold">$13,244.12</td>
+<td class="px-6 py-4">
+<div class="flex items-center">
+<span class="font-mono mr-3">29.4%</span>
+<div class="flex-1 bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[29.4%]"></div>
+</div>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container transition-colors group">
+<td class="px-6 py-4 font-medium text-on-surface">Aether Logistics</td>
+<td class="px-6 py-4 font-mono">$8,120.50</td>
+<td class="px-6 py-4 font-mono">$450.00</td>
+<td class="px-6 py-4 font-mono font-bold">$8,570.50</td>
+<td class="px-6 py-4">
+<div class="flex items-center">
+<span class="font-mono mr-3">19.0%</span>
+<div class="flex-1 bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[19.0%]"></div>
+</div>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container transition-colors group">
+<td class="px-6 py-4 font-medium text-on-surface">Titan Global</td>
+<td class="px-6 py-4 font-mono">$5,400.20</td>
+<td class="px-6 py-4 font-mono">$1,200.00</td>
+<td class="px-6 py-4 font-mono font-bold">$6,600.20</td>
+<td class="px-6 py-4">
+<div class="flex items-center">
+<span class="font-mono mr-3">14.6%</span>
+<div class="flex-1 bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[14.6%]"></div>
+</div>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container transition-colors group">
+<td class="px-6 py-4 font-medium text-on-surface">Vanguard Systems</td>
+<td class="px-6 py-4 font-mono">$3,200.00</td>
+<td class="px-6 py-4 font-mono">$150.80</td>
+<td class="px-6 py-4 font-mono font-bold">$3,350.80</td>
+<td class="px-6 py-4">
+<div class="flex items-center">
+<span class="font-mono mr-3">7.4%</span>
+<div class="flex-1 bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[7.4%]"></div>
+</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</main>
+<!-- Signature Pulse Component -->
+<div class="fixed top-16 left-[240px] right-0 h-[2px] z-50 overflow-hidden">
+<div class="h-full w-full bg-gradient-to-r from-primary via-secondary to-primary animate-[pulse_3s_infinite]" style="background-size: 200% 100%;"></div>
+</div>
+</body></html>

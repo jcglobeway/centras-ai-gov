@@ -13,8 +13,10 @@ import com.publicplatform.ragops.identityaccess.domain.AuthorizationCheck
 import com.publicplatform.ragops.organizationdirectory.application.port.`in`.GetOrganizationsUseCase
 import com.publicplatform.ragops.organizationdirectory.domain.Organization
 import com.publicplatform.ragops.organizationdirectory.domain.OrganizationScope
+import com.publicplatform.ragops.organizationdirectory.domain.Service
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.time.Instant
@@ -33,9 +35,29 @@ class OrganizationController(
         val items = getOrganizationsUseCase.listOrganizations(session.toScope()).map { it.toResponse() }
         return OrganizationListResponse(items = items, total = items.size)
     }
+
+    @GetMapping("/organizations/{id}/services")
+    fun listServices(
+        @PathVariable id: String,
+        request: HttpServletRequest,
+    ): ServiceListResponse {
+        val session = adminRequestSessionResolver.resolve(request)
+        adminAuthorizationPolicy.requireAuthorized(session, AuthorizationCheck(actionCode = "organization.read"))
+        val items = getOrganizationsUseCase.listServices(id).map { it.toResponse() }
+        return ServiceListResponse(items = items, total = items.size)
+    }
 }
 
 data class OrganizationListResponse(val items: List<OrganizationResponse>, val total: Int)
+data class ServiceListResponse(val items: List<ServiceResponse>, val total: Int)
+
+data class ServiceResponse(
+    val serviceId: String,
+    val organizationId: String,
+    val name: String,
+    val channelType: String,
+    val status: String,
+)
 
 data class OrganizationResponse(
     val organizationId: String,
@@ -49,6 +71,14 @@ data class OrganizationResponse(
 private fun AdminSessionSnapshot.toScope() = OrganizationScope(
     organizationIds = roleAssignments.mapNotNull { it.organizationId }.toSet(),
     globalAccess = roleAssignments.any { it.organizationId == null },
+)
+
+private fun Service.toResponse() = ServiceResponse(
+    serviceId = id,
+    organizationId = organizationId,
+    name = name,
+    channelType = channelType,
+    status = status,
 )
 
 private fun Organization.toResponse() = OrganizationResponse(

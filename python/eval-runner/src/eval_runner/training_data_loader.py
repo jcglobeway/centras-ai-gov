@@ -71,6 +71,9 @@ def iter_qa_pairs(
                     task_cat = item.get("task_category", "")
                     if not question or not answer:
                         continue
+                    # 상담 분석형 질문 제외 (민원인 관점이 아닌 상담 내용 분석)
+                    if _is_analysis_question(question):
+                        continue
 
                     yield {
                         "question": question,
@@ -159,6 +162,31 @@ def _split_text(text: str, chunk_size: int) -> list[str]:
         chunks.append(text[start:end])
         start = end
     return chunks
+
+
+# ── 분석형 질문 필터 ─────────────────────────────────────────────────────────
+
+_ANALYSIS_SUFFIXES = ("니?", "냐?", "니까?", "했니?", "이니?", "였니?", "하니?", "누구야?", "누구니?", "누구냐?")
+_ANALYSIS_PREFIXES = (
+    "고객은 ", "고객이 ", "상담사는 ", "상담원은 ", "상담사가 ",
+    "민원인은 ", "민원인이 ", "민원인의 ", "다음 내용에서",
+)
+
+
+def _is_analysis_question(question: str) -> bool:
+    """
+    상담 내용을 분석하는 형식의 질문인지 판별한다.
+
+    민원인이 직접 묻는 질문이 아니라, 상담 내용을 제3자 관점에서
+    분석하는 질문(예: "고객이 예매한 공연은 연극 아트이니?")을 걸러낸다.
+    """
+    for suffix in _ANALYSIS_SUFFIXES:
+        if question.endswith(suffix):
+            return True
+    for prefix in _ANALYSIS_PREFIXES:
+        if question.startswith(prefix):
+            return True
+    return False
 
 
 # ── 편의 함수 ────────────────────────────────────────────────────────────────

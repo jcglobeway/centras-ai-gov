@@ -6,6 +6,7 @@ import com.publicplatform.ragops.identityaccess.domain.AdminAuthorizationPolicy
 import com.publicplatform.ragops.identityaccess.domain.AdminSessionSnapshot
 import com.publicplatform.ragops.identityaccess.domain.AuthorizationCheck
 import com.publicplatform.ragops.identityaccess.domain.AuthorizationFailureReason
+import com.publicplatform.ragops.qareview.application.port.`in`.AssignQAReviewUseCase
 import com.publicplatform.ragops.qareview.application.port.`in`.CreateQAReviewUseCase
 import com.publicplatform.ragops.qareview.application.port.`in`.ListQAReviewsUseCase
 import com.publicplatform.ragops.qareview.domain.ActionType
@@ -19,6 +20,8 @@ import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -40,6 +43,7 @@ class QAReviewController(
     private val adminAuthorizationPolicy: AdminAuthorizationPolicy,
     private val createQAReviewUseCase: CreateQAReviewUseCase,
     private val listQAReviewsUseCase: ListQAReviewsUseCase,
+    private val assignQAReviewUseCase: AssignQAReviewUseCase,
 ) {
 
     @PostMapping("/qa-reviews")
@@ -61,6 +65,7 @@ class QAReviewController(
                     actionTargetId = request.actionTargetId,
                     reviewComment = request.reviewComment,
                     reviewerId = session.user.id,
+                    assigneeId = request.assigneeId,
                 ),
             )
         } catch (exception: InvalidQAReviewException) {
@@ -92,6 +97,18 @@ class QAReviewController(
         return QAReviewListResponse(items = reviews.map { it.toResponse() }, total = reviews.size)
     }
 
+    @PatchMapping("/qa-reviews/{id}")
+    fun assignReview(
+        @PathVariable id: String,
+        @RequestBody request: AssignReviewRequest,
+        servletRequest: HttpServletRequest,
+    ): QAReviewAssignResponse {
+        val session = adminRequestSessionResolver.resolve(servletRequest)
+        requireAuthorized(session, "qa.review.write")
+        assignQAReviewUseCase.execute(id, request.assigneeId)
+        return QAReviewAssignResponse(qaReviewId = id, assigneeId = request.assigneeId)
+    }
+
     private fun requireAuthorized(session: AdminSessionSnapshot, actionCode: String) {
         try {
             adminAuthorizationPolicy.requireAuthorized(session, AuthorizationCheck(actionCode))
@@ -112,23 +129,27 @@ data class CreateQAReviewRequest(
     val actionType: String?,
     val actionTargetId: String?,
     val reviewComment: String?,
+    val assigneeId: String? = null,
 )
 
+data class AssignReviewRequest(val assigneeId: String?)
+
 data class QAReviewCreateResponse(val qaReviewId: String, val questionId: String, val reviewStatus: String)
+data class QAReviewAssignResponse(val qaReviewId: String, val assigneeId: String?)
 data class QAReviewListResponse(val items: List<QAReviewResponse>, val total: Int)
 
 data class QAReviewResponse(
     val id: String, val questionId: String, val reviewStatus: String,
     val rootCauseCode: String?, val actionType: String?,
     val actionTargetId: String?, val reviewComment: String?,
-    val reviewerId: String, val reviewedAt: Instant,
+    val reviewerId: String, val assigneeId: String?, val reviewedAt: Instant,
 )
 
 private fun QAReviewSummary.toResponse() = QAReviewResponse(
     id = id, questionId = questionId, reviewStatus = reviewStatus.toApiValue(),
     rootCauseCode = rootCauseCode?.toApiValue(), actionType = actionType?.toApiValue(),
     actionTargetId = actionTargetId, reviewComment = reviewComment,
-    reviewerId = reviewerId, reviewedAt = reviewedAt,
+    reviewerId = reviewerId, assigneeId = assigneeId, reviewedAt = reviewedAt,
 )
 
 private fun String.toReviewStatus(): QAReviewStatus =

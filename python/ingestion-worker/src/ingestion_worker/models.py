@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel
 
@@ -47,3 +47,25 @@ class IngestionJob(BaseModel):
     trigger_type: str
     attempt_count: int
     error_code: Optional[str] = None
+
+
+class CrawledPage(BaseModel):
+    url: str
+    title: str
+    content: str
+    links: list[str]
+    depth: int
+    parent_url: Optional[str] = None
+    page_type: str = "general"
+    content_hash: int = 0
+    metadata: dict[str, Any] = {}
+
+
+class TextChunk(BaseModel):
+    chunk_key: str
+    chunk_text: str
+    chunk_order: int
+    token_count: int
+    source_url: str
+    heading: Optional[str] = None
+    metadata: dict[str, Any] = {}

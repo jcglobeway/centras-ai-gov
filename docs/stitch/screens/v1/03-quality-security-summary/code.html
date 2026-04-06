@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b1326;
+            color: #dae2fd;
+            -webkit-font-smoothing: antialiased;
+        }
+        .mono {
+            font-family: 'IBM Plex Mono', monospace;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "surface-tint": "#b4c5ff",
+                "on-secondary-fixed-variant": "#31447b",
+                "on-secondary-container": "#a4b6f5",
+                "primary-container": "#2563eb",
+                "surface-dim": "#0b1326",
+                "surface-container": "#171f33",
+                "secondary-fixed": "#dbe1ff",
+                "on-tertiary-fixed-variant": "#7d2d00",
+                "primary": "#b4c5ff",
+                "inverse-surface": "#dae2fd",
+                "on-secondary": "#182d63",
+                "on-error-container": "#ffdad6",
+                "primary-fixed-dim": "#b4c5ff",
+                "surface-bright": "#31394d",
+                "on-surface": "#dae2fd",
+                "on-error": "#690005",
+                "tertiary-fixed": "#ffdbcd",
+                "tertiary-container": "#bc4800",
+                "background": "#0b1326",
+                "on-primary-fixed-variant": "#003ea8",
+                "outline": "#8d90a0",
+                "secondary-container": "#33467e",
+                "surface-container-low": "#131b2e",
+                "surface-container-highest": "#2d3449",
+                "error": "#ffb4ab",
+                "tertiary-fixed-dim": "#ffb596",
+                "on-tertiary-fixed": "#360f00",
+                "primary-fixed": "#dbe1ff",
+                "secondary-fixed-dim": "#b4c5ff",
+                "secondary": "#b4c5ff",
+                "on-tertiary": "#581e00",
+                "on-primary-fixed": "#00174b",
+                "tertiary": "#ffb596",
+                "on-primary": "#002a78",
+                "surface-variant": "#2d3449",
+                "on-background": "#dae2fd",
+                "error-container": "#93000a",
+                "surface-container-high": "#222a3d",
+                "surface": "#0b1326",
+                "inverse-on-surface": "#283044",
+                "on-secondary-fixed": "#00174b",
+                "on-primary-container": "#eeefff",
+                "surface-container-lowest": "#060e20",
+                "on-tertiary-container": "#ffede6",
+                "inverse-primary": "#0053db",
+                "outline-variant": "#434655",
+                "on-surface-variant": "#c3c6d7"
+              },
+              fontFamily: {
+                "headline": ["Inter"],
+                "body": ["Inter"],
+                "label": ["Inter"]
+              },
+              borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+            },
+          },
+        }
+      </script>
+</head>
+<body class="flex min-h-screen">
+<!-- SideNavBar (Shared Component) -->
+<aside class="fixed left-0 top-0 h-full w-[240px] z-50 bg-[#0b1326] flex flex-col shadow-[0px_8px_24px_rgba(0,0,0,0.4)]">
+<div class="text-[#2563eb] font-bold text-lg px-6 py-4">Obsidian Nerve Center</div>
+<div class="px-6 mb-6">
+<p class="text-[0.6875rem] uppercase tracking-wider text-[#94a3b8] font-semibold">AI Operations</p>
+</div>
+<nav class="flex-1 px-3 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-[#94a3b8] hover:bg-[#171f33] hover:text-[#f8fafc] transition-colors duration-200 rounded" href="#">
+<span class="material-symbols-outlined text-lg">dashboard</span>
+<span class="text-[0.6875rem] uppercase tracking-wider font-semibold">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#94a3b8] hover:bg-[#171f33] hover:text-[#f8fafc] transition-colors duration-200 rounded" href="#">
+<span class="material-symbols-outlined text-lg">database</span>
+<span class="text-[0.6875rem] uppercase tracking-wider font-semibold">Knowledge Base</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#94a3b8] hover:bg-[#171f33] hover:text-[#f8fafc] transition-colors duration-200 rounded" href="#">
+<span class="material-symbols-outlined text-lg">smart_toy</span>
+<span class="text-[0.6875rem] uppercase tracking-wider font-semibold">Chatbot Settings</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-[#222a3d] text-[#ffffff] font-medium border-r-2 border-[#2563eb] rounded" href="#">
+<span class="material-symbols-outlined text-lg">verified_user</span>
+<span class="text-[0.6875rem] uppercase tracking-wider font-semibold">Quality Management</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#94a3b8] hover:bg-[#171f33] hover:text-[#f8fafc] transition-colors duration-200 rounded" href="#">
+<span class="material-symbols-outlined text-lg">monitoring</span>
+<span class="text-[0.6875rem] uppercase tracking-wider font-semibold">Service Monitoring</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#94a3b8] hover:bg-[#171f33] hover:text-[#f8fafc] transition-colors duration-200 rounded" href="#">
+<span class="material-symbols-outlined text-lg">analytics</span>
+<span class="text-[0.6875rem] uppercase tracking-wider font-semibold">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#94a3b8] hover:bg-[#171f33] hover:text-[#f8fafc] transition-colors duration-200 rounded" href="#">
+<span class="material-symbols-outlined text-lg">settings</span>
+<span class="text-[0.6875rem] uppercase tracking-wider font-semibold">System &amp; Permissions</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-[#434655]/15 p-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-[#94a3b8] hover:bg-[#171f33] transition-colors rounded" href="#">
+<span class="material-symbols-outlined text-lg">help</span>
+<span class="text-[0.6875rem] uppercase tracking-wider font-semibold">Support</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#94a3b8] hover:bg-[#171f33] transition-colors rounded" href="#">
+<span class="material-symbols-outlined text-lg">logout</span>
+<span class="text-[0.6875rem] uppercase tracking-wider font-semibold">Log Out</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 ml-[240px] flex flex-col">
+<!-- TopNavBar (Shared Component) -->
+<header class="h-14 bg-[#0b1326]/80 backdrop-blur-xl flex items-center justify-between px-6 border-b border-[#434655]/15 sticky top-0 z-40">
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="bg-surface-container-lowest border border-outline-variant/20 rounded-lg pl-10 pr-4 py-1.5 text-xs mono focus:outline-none focus:ring-1 focus:ring-primary/50 w-64" placeholder="Search operations..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-on-surface-variant">
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors">notifications</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors">history</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors">account_circle</span>
+</div>
+<button class="bg-primary-container text-white px-4 py-1.5 rounded-lg text-xs font-semibold hover:opacity-90 transition-opacity">
+                    Deploy Model
+                </button>
+</div>
+</header>
+<!-- Page Canvas -->
+<div class="p-8 max-w-[1400px] mx-auto w-full">
+<!-- Page Header -->
+<div class="mb-8">
+<h1 class="text-2xl font-bold tracking-tight text-on-surface headline-sm">품질/보안 요약</h1>
+<p class="text-sm text-on-surface-variant mono mt-1 uppercase tracking-widest">RAG PERFORMANCE &amp; SAFETY MONITORING</p>
+</div>
+<!-- Dashboard Grid -->
+<div class="grid grid-cols-12 gap-4">
+<!-- 1. Faithfulness Score -->
+<section class="col-span-12 md:col-span-4 bg-surface-container border border-outline-variant/10 p-5 rounded-lg relative overflow-hidden group hover:bg-surface-container-high transition-colors">
+<div class="flex justify-between items-start mb-4">
+<span class="text-[0.6875rem] font-semibold text-on-surface-variant uppercase tracking-wider">Faithfulness Score</span>
+<span class="material-symbols-outlined text-sm text-on-surface-variant cursor-pointer hover:text-primary">arrow_outward</span>
+</div>
+<div class="flex flex-col">
+<span class="text-4xl font-semibold mono text-primary">0.942</span>
+<div class="flex items-center gap-2 mt-1">
+<span class="text-[#10b981] text-xs font-semibold flex items-center">
+<span class="material-symbols-outlined text-sm">trending_up</span> 2.4%
+                            </span>
+<span class="text-[0.625rem] text-on-surface-variant mono">vs last 7d</span>
+</div>
+</div>
+<!-- Sparkline Placeholder -->
+<div class="mt-6 h-12 w-full flex items-end gap-1">
+<div class="flex-1 bg-primary/20 h-[40%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary/20 h-[55%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary/20 h-[45%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary/20 h-[70%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary/20 h-[65%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary/20 h-[85%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary h-[95%] rounded-t-sm"></div>
+</div>
+</section>
+<!-- 2. Hallucination Rate -->
+<section class="col-span-12 md:col-span-4 bg-surface-container border border-outline-variant/10 p-5 rounded-lg relative overflow-hidden group hover:bg-surface-container-high transition-colors">
+<div class="flex justify-between items-start mb-4">
+<span class="text-[0.6875rem] font-semibold text-on-surface-variant uppercase tracking-wider">Hallucination Rate</span>
+<span class="material-symbols-outlined text-sm text-on-surface-variant cursor-pointer hover:text-primary">arrow_outward</span>
+</div>
+<div class="flex flex-col">
+<span class="text-4xl font-semibold mono text-error">2.4%</span>
+<div class="flex items-center gap-2 mt-1">
+<span class="text-error text-xs font-semibold flex items-center">
+<span class="material-symbols-outlined text-sm">trending_up</span> 0.8%
+                            </span>
+<span class="text-[0.625rem] text-on-surface-variant mono">vs last 7d</span>
+</div>
+</div>
+<!-- Sparkline Placeholder (Red) -->
+<div class="mt-6 h-12 w-full flex items-end gap-1">
+<div class="flex-1 bg-error/20 h-[20%] rounded-t-sm"></div>
+<div class="flex-1 bg-error/20 h-[35%] rounded-t-sm"></div>
+<div class="flex-1 bg-error/20 h-[25%] rounded-t-sm"></div>
+<div class="flex-1 bg-error/20 h-[50%] rounded-t-sm"></div>
+<div class="flex-1 bg-error/20 h-[40%] rounded-t-sm"></div>
+<div class="flex-1 bg-error/20 h-[70%] rounded-t-sm"></div>
+<div class="flex-1 bg-error h-[80%] rounded-t-sm"></div>
+</div>
+</section>
+<!-- 3. PII Detection -->
+<section class="col-span-12 md:col-span-4 bg-surface-container border border-outline-variant/10 p-5 rounded-lg relative group hover:bg-surface-container-high transition-colors">
+<div class="flex justify-between items-start mb-4">
+<span class="text-[0.6875rem] font-semibold text-on-surface-variant uppercase tracking-wider">PII Detection</span>
+<span class="material-symbols-outlined text-sm text-on-surface-variant cursor-pointer hover:text-primary">arrow_outward</span>
+</div>
+<div class="flex flex-col gap-6">
+<div>
+<span class="text-4xl font-semibold mono text-on-surface">14</span>
+<span class="text-xs text-on-surface-variant ml-2 uppercase">Events this month</span>
+</div>
+<div class="bg-surface-container-lowest p-3 rounded-lg border border-outline-variant/5">
+<div class="text-[0.625rem] text-on-surface-variant uppercase font-bold tracking-tighter mb-1">Last Detected Event</div>
+<div class="mono text-xs text-[#f59e0b] flex items-center gap-2">
+<span class="material-symbols-outlined text-[10px]" style="font-variation-settings: 'FILL' 1;">warning</span>
+                                2024-05-24 14:12:08
+                            </div>
+</div>
+</div>
+</section>
+<!-- 4. User Feedback Section -->
+<section class="col-span-12 bg-surface-container border border-outline-variant/10 p-6 rounded-lg relative">
+<div class="flex justify-between items-center mb-8">
+<div>
+<h2 class="text-lg font-semibold text-on-surface">User Feedback Analysis</h2>
+<p class="text-xs text-on-surface-variant mono">Aggregation of explicit sentiment signals</p>
+</div>
+<span class="material-symbols-outlined text-sm text-on-surface-variant cursor-pointer hover:text-primary">arrow_outward</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Sentiment Ratio -->
+<div class="md:col-span-1 flex flex-col justify-center">
+<div class="flex justify-between text-xs mono mb-2">
+<span class="text-[#10b981]">Positive (82%)</span>
+<span class="text-error">Negative (18%)</span>
+</div>
+<!-- Segmented Bar -->
+<div class="h-3 w-full bg-surface-container-lowest rounded-full overflow-hidden flex">
+<div class="h-full bg-[#10b981]" style="width: 82%;"></div>
+<div class="h-full bg-error" style="width: 18%;"></div>
+</div>
+<div class="mt-4 flex gap-4">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-[#10b981]"></div>
+<span class="text-[0.6875rem] text-on-surface-variant">4.2k Upvotes</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-error"></div>
+<span class="text-[0.6875rem] text-on-surface-variant">912 Downvotes</span>
+</div>
+</div>
+</div>
+<!-- Feedback Trend Line (Placeholder via CSS Layout) -->
+<div class="md:col-span-2 relative h-40 bg-surface-container-lowest/30 rounded-lg p-4 border border-outline-variant/5">
+<div class="absolute inset-0 p-6 flex items-end justify-between">
+<!-- Simulated graph bars -->
+<div class="w-8 bg-primary/10 hover:bg-primary/30 transition-colors cursor-pointer h-[40%] rounded-t-sm" title="Mon: 124"></div>
+<div class="w-8 bg-primary/10 hover:bg-primary/30 transition-colors cursor-pointer h-[55%] rounded-t-sm" title="Tue: 189"></div>
+<div class="w-8 bg-primary/10 hover:bg-primary/30 transition-colors cursor-pointer h-[75%] rounded-t-sm" title="Wed: 245"></div>
+<div class="w-8 bg-primary/10 hover:bg-primary/30 transition-colors cursor-pointer h-[60%] rounded-t-sm" title="Thu: 210"></div>
+<div class="w-8 bg-primary/10 hover:bg-primary/30 transition-colors cursor-pointer h-[85%] rounded-t-sm" title="Fri: 298"></div>
+<div class="w-8 bg-primary/10 hover:bg-primary/30 transition-colors cursor-pointer h-[95%] rounded-t-sm" title="Sat: 342"></div>
+<div class="w-8 bg-primary/40 hover:bg-primary/60 transition-colors cursor-pointer h-[70%] rounded-t-sm" title="Sun: 230"></div>
+</div>
+<div class="absolute bottom-1 left-0 right-0 px-6 flex justify-between text-[0.625rem] text-on-surface-variant mono uppercase">
+<span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+</div>
+<div class="absolute top-2 right-4 text-[0.625rem] text-on-surface-variant mono">Weekly Feedback Volume</div>
+</div>
+</div>
+</section>
+<!-- Secondary Data Layer (Asymmetric Bento Component) -->
+<section class="col-span-12 md:col-span-8 bg-surface-container border border-outline-variant/10 rounded-lg p-6">
+<h3 class="text-sm font-semibold mb-4 text-on-surface uppercase tracking-widest">Latency vs Faithfulness (Trace Logs)</h3>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="text-[0.625rem] text-on-surface-variant uppercase tracking-wider mono border-b border-outline-variant/10">
+<th class="pb-3">Trace ID</th>
+<th class="pb-3">Latency</th>
+<th class="pb-3">Score</th>
+<th class="pb-3 text-right">Status</th>
+</tr>
+</thead>
+<tbody class="text-xs mono">
+<tr class="hover:bg-surface-container-high transition-colors">
+<td class="py-3 text-on-surface-variant">0x8f2d...4a1e</td>
+<td class="py-3">1.2s</td>
+<td class="py-3 text-[#10b981]">0.98</td>
+<td class="py-3 text-right"><span class="inline-block w-1.5 h-1.5 rounded-full bg-[#10b981] mr-2"></span>Optimal</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-colors">
+<td class="py-3 text-on-surface-variant">0x3b1c...9f22</td>
+<td class="py-3">3.4s</td>
+<td class="py-3 text-[#f59e0b]">0.84</td>
+<td class="py-3 text-right"><span class="inline-block w-1.5 h-1.5 rounded-full bg-[#f59e0b] mr-2"></span>Warning</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-colors">
+<td class="py-3 text-on-surface-variant">0x1a7e...2d33</td>
+<td class="py-3">0.8s</td>
+<td class="py-3 text-[#10b981]">0.95</td>
+<td class="py-3 text-right"><span class="inline-block w-1.5 h-1.5 rounded-full bg-[#10b981] mr-2"></span>Optimal</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Quick Action Sidebar in Canvas -->
+<section class="col-span-12 md:col-span-4 space-y-4">
+<div class="bg-primary-container p-6 rounded-lg text-white">
+<h4 class="font-bold text-sm mb-2">Security Audit Required</h4>
+<p class="text-xs opacity-90 mb-4 leading-relaxed">3 PII events were detected in the last hour from production endpoints. Run compliance check?</p>
+<button class="w-full py-2 bg-white text-primary-container text-xs font-bold rounded hover:bg-on-primary transition-colors">
+                            Initiate Deep Scan
+                        </button>
+</div>
+<div class="bg-surface-container border border-outline-variant/10 p-4 rounded-lg">
+<div class="flex items-center gap-3 text-on-surface">
+<span class="material-symbols-outlined text-primary">auto_awesome</span>
+<span class="text-xs font-semibold">AI Assistant Insight</span>
+</div>
+<p class="text-[0.6875rem] text-on-surface-variant mt-2 leading-relaxed">
+                            "Reducing Temperature by 0.1 may lower hallucination rate based on recent feedback trends."
+                        </p>
+</div>
+</section>
+</div>
+<!-- Footer Meta -->
+<footer class="mt-12 flex justify-between items-center border-t border-outline-variant/10 pt-6">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-[#10b981] animate-pulse"></span>
+<span class="text-[0.625rem] mono text-on-surface-variant uppercase">System Live</span>
+</div>
+<span class="text-[0.625rem] mono text-on-surface-variant">NODE: KR-SEOUL-01</span>
+</div>
+<div class="text-[0.625rem] mono text-on-surface-variant">
+                    © 2024 OBSIDIAN NERVE CENTER. v2.4.1-STABLE
+                </div>
+</footer>
+</div>
+</main>
+<!-- AI Pulse Component (Signature) -->
+<div class="fixed top-0 left-0 right-0 h-[2px] z-[60] bg-gradient-to-r from-primary via-secondary-container to-primary bg-[length:200%_100%] animate-[gradient_3s_linear_infinite]"></div>
+<style>
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+    </style>
+</body></html>

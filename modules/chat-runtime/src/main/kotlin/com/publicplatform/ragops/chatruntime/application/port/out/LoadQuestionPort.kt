@@ -12,5 +12,7 @@ import com.publicplatform.ragops.chatruntime.domain.UnresolvedQuestionSummary
 
 interface LoadQuestionPort {
     fun listQuestions(scope: ChatScope): List<QuestionSummary>
+    fun listQuestionsWithAnswers(scope: ChatScope): List<QuestionSummary>
     fun listUnresolvedQuestions(scope: ChatScope): List<UnresolvedQuestionSummary>
+    fun listQuestionsWithAnswersBySession(chatSessionId: String): List<QuestionSummary>
 }

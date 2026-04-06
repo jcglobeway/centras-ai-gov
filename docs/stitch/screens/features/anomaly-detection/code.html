@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface": "#0b1326",
+              "on-tertiary": "#581e00",
+              "on-error": "#690005",
+              "on-primary-fixed": "#00174b",
+              "on-error-container": "#ffdad6",
+              "outline": "#8d90a0",
+              "secondary-fixed": "#dbe1ff",
+              "surface-variant": "#2d3449",
+              "tertiary": "#ffb596",
+              "primary": "#b4c5ff",
+              "surface-container-high": "#222a3d",
+              "inverse-primary": "#0053db",
+              "tertiary-container": "#bc4800",
+              "secondary-container": "#33467e",
+              "on-secondary-fixed": "#00174b",
+              "tertiary-fixed": "#ffdbcd",
+              "inverse-on-surface": "#283044",
+              "surface-bright": "#31394d",
+              "on-secondary-container": "#a4b6f5",
+              "on-tertiary-fixed-variant": "#7d2d00",
+              "on-primary": "#002a78",
+              "inverse-surface": "#dae2fd",
+              "primary-fixed-dim": "#b4c5ff",
+              "on-tertiary-container": "#ffede6",
+              "on-secondary": "#182d63",
+              "surface-container-lowest": "#060e20",
+              "secondary-fixed-dim": "#b4c5ff",
+              "on-primary-fixed-variant": "#003ea8",
+              "secondary": "#b4c5ff",
+              "error": "#ffb4ab",
+              "on-background": "#dae2fd",
+              "surface-tint": "#b4c5ff",
+              "tertiary-fixed-dim": "#ffb596",
+              "surface-dim": "#0b1326",
+              "on-primary-container": "#eeefff",
+              "primary-fixed": "#dbe1ff",
+              "background": "#0b1326",
+              "surface-container": "#171f33",
+              "on-tertiary-fixed": "#360f00",
+              "on-surface": "#dae2fd",
+              "surface-container-low": "#131b2e",
+              "error-container": "#93000a",
+              "on-surface-variant": "#c3c6d7",
+              "surface-container-highest": "#2d3449",
+              "primary-container": "#2563eb",
+              "outline-variant": "#434655",
+              "on-secondary-fixed-variant": "#31447b"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"],
+              "mono": ["IBM Plex Mono"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        vertical-align: middle;
+      }
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .chart-threshold-line { border-top: 1px dashed #ef4444; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary/30">
+<!-- SideNavBar Shell -->
+<aside class="fixed left-0 top-0 h-full w-[240px] z-50 bg-[#0b1326] flex flex-col py-6 px-4">
+<div class="mb-10 px-2">
+<h1 class="text-lg font-bold tracking-tighter text-slate-100">Kinetic AI</h1>
+<p class="text-[10px] font-mono uppercase tracking-[0.2em] text-primary/60">Ops Console</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded transition-colors duration-150 text-slate-400 hover:text-slate-100 hover:bg-[#171f33]" href="#">
+<span class="material-symbols-outlined text-sm">dashboard</span>
+<span class="font-medium text-sm tracking-tight">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded transition-colors duration-150 text-slate-400 hover:text-slate-100 hover:bg-[#171f33]" href="#">
+<span class="material-symbols-outlined text-sm">database</span>
+<span class="font-medium text-sm tracking-tight">Knowledge Base</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded transition-colors duration-150 text-slate-400 hover:text-slate-100 hover:bg-[#171f33]" href="#">
+<span class="material-symbols-outlined text-sm">smart_toy</span>
+<span class="font-medium text-sm tracking-tight">Chatbot Settings</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded transition-colors duration-150 bg-[#222a3d] text-white font-semibold" href="#">
+<span class="material-symbols-outlined text-sm">verified_user</span>
+<span class="font-medium text-sm tracking-tight">Quality Management</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded transition-colors duration-150 text-slate-400 hover:text-slate-100 hover:bg-[#171f33]" href="#">
+<span class="material-symbols-outlined text-sm">monitoring</span>
+<span class="font-medium text-sm tracking-tight">Service Monitoring</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded transition-colors duration-150 text-slate-400 hover:text-slate-100 hover:bg-[#171f33]" href="#">
+<span class="material-symbols-outlined text-sm">analytics</span>
+<span class="font-medium text-sm tracking-tight">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded transition-colors duration-150 text-slate-400 hover:text-slate-100 hover:bg-[#171f33]" href="#">
+<span class="material-symbols-outlined text-sm">settings</span>
+<span class="font-medium text-sm tracking-tight">System &amp; Permissions</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-slate-100 text-sm" href="#">
+<span class="material-symbols-outlined text-sm">help_outline</span>
+<span>Support</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-slate-100 text-sm" href="#">
+<span class="material-symbols-outlined text-sm">description</span>
+<span>Documentation</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-[240px] min-h-screen">
+<!-- TopNavBar -->
+<header class="sticky top-0 right-0 w-full z-40 bg-[#0b1326]/80 backdrop-blur-md border-b border-slate-800/50 flex items-center justify-between px-8 h-16">
+<div class="flex items-center gap-4">
+<h2 class="font-headline font-extrabold text-xl tracking-tight text-white">이상 징후 감지</h2>
+<div class="h-4 w-[1px] bg-slate-700"></div>
+<span class="font-mono text-[10px] text-primary bg-primary/10 px-2 py-0.5 rounded">RAG-ANOMALY-v4</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center bg-surface-container-lowest px-3 py-1.5 rounded border border-outline-variant/20">
+<span class="material-symbols-outlined text-slate-400 text-sm mr-2">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-xs w-48 font-mono text-slate-300" placeholder="Trace ID or Metric..." type="text"/>
+</div>
+<div class="flex items-center gap-3 text-slate-400">
+<button class="hover:text-white transition-colors"><span class="material-symbols-outlined">notifications</span></button>
+<button class="hover:text-white transition-colors"><span class="material-symbols-outlined">history</span></button>
+<button class="hover:text-white transition-colors"><span class="material-symbols-outlined">account_circle</span></button>
+</div>
+<button class="bg-primary-container text-white px-4 py-1.5 rounded text-xs font-bold uppercase tracking-wider hover:brightness-110 transition-all">Deploy Changes</button>
+</div>
+</header>
+<!-- Page Content -->
+<div class="p-8 space-y-8">
+<!-- Filter / Subheader Bar -->
+<div class="flex items-center justify-between bg-surface-container-low p-4 rounded-lg">
+<div class="flex items-center gap-6">
+<div class="flex flex-col">
+<span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Time Range</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-primary">calendar_today</span>
+<span class="text-sm font-medium">Last 30 Days</span>
+</div>
+</div>
+<div class="w-px h-8 bg-slate-800"></div>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Detection Sensitivity</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-primary">tune</span>
+<span class="text-sm font-medium">Balanced (0.75)</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-high rounded text-xs font-medium text-on-surface-variant hover:text-white transition-colors">
+<span class="material-symbols-outlined text-sm">filter_list</span> Filter Tags
+                    </button>
+<button class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-high rounded text-xs font-medium text-on-surface-variant hover:text-white transition-colors">
+<span class="material-symbols-outlined text-sm">download</span> Export
+                    </button>
+</div>
+</div>
+<!-- 2x2 Grid of Charts -->
+<div class="grid grid-cols-12 gap-6">
+<!-- 1. Query Drift -->
+<div class="col-span-12 lg:col-span-6 bg-surface-container p-5 rounded-xl flex flex-col min-h-[320px]">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-sm font-bold text-slate-200">Query Drift</h3>
+<p class="text-[10px] text-slate-500 font-mono">Metric: JS_Divergence_Vector</p>
+</div>
+<div class="text-right">
+<span class="text-lg font-mono text-primary">0.082</span>
+<p class="text-[10px] text-emerald-500">▼ 2.4% vs prev</p>
+</div>
+</div>
+<div class="flex-1 relative mt-2 flex items-end gap-1">
+<!-- Simulated Line Chart -->
+<div class="absolute inset-x-0 bottom-[40%] h-px border-t border-error/40 border-dashed z-10 flex items-center justify-end">
+<span class="bg-surface-container px-1 text-[8px] font-mono text-error -mr-12">THRESHOLD 0.10</span>
+</div>
+<div class="flex-1 h-full flex items-end gap-[2%]">
+<!-- Visualizing trend -->
+<div class="flex-1 bg-primary/10 h-[30%] rounded-t-sm relative group hover:bg-primary/30 transition-all"></div>
+<div class="flex-1 bg-primary/10 h-[35%] rounded-t-sm relative group hover:bg-primary/30 transition-all"></div>
+<div class="flex-1 bg-primary/10 h-[28%] rounded-t-sm relative group hover:bg-primary/30 transition-all"></div>
+<div class="flex-1 bg-primary/10 h-[45%] rounded-t-sm relative group hover:bg-primary/30 transition-all"></div>
+<div class="flex-1 bg-primary/10 h-[38%] rounded-t-sm relative group hover:bg-primary/30 transition-all"></div>
+<div class="flex-1 bg-primary/10 h-[20%] rounded-t-sm relative group hover:bg-primary/30 transition-all"></div>
+<div class="flex-1 bg-error/20 h-[55%] rounded-t-sm relative group hover:bg-error/40 transition-all"></div>
+<div class="flex-1 bg-primary/10 h-[42%] rounded-t-sm relative group hover:bg-primary/30 transition-all"></div>
+<div class="flex-1 bg-primary/10 h-[30%] rounded-t-sm relative group hover:bg-primary/30 transition-all"></div>
+<div class="flex-1 bg-primary/10 h-[25%] rounded-t-sm relative group hover:bg-primary/30 transition-all"></div>
+<div class="flex-1 bg-primary/10 h-[33%] rounded-t-sm relative group hover:bg-primary/30 transition-all"></div>
+<div class="flex-1 bg-primary/10 h-[38%] rounded-t-sm relative group hover:bg-primary/30 transition-all"></div>
+</div>
+</div>
+<div class="flex justify-between mt-2 text-[9px] font-mono text-slate-500 uppercase tracking-widest">
+<span>30 Days ago</span>
+<span>Now</span>
+</div>
+</div>
+<!-- 2. Recall Baseline Deviation -->
+<div class="col-span-12 lg:col-span-6 bg-surface-container p-5 rounded-xl flex flex-col min-h-[320px]">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-sm font-bold text-slate-200">Recall Baseline Deviation</h3>
+<p class="text-[10px] text-slate-500 font-mono">Delta from 7D Rolling Mean</p>
+</div>
+<div class="flex gap-2">
+<div class="bg-surface-container-lowest p-2 rounded flex flex-col items-center min-w-[60px]">
+<span class="text-[8px] text-slate-500 font-bold uppercase tracking-tighter">Current</span>
+<span class="font-mono text-xs text-white">-0.04</span>
+</div>
+</div>
+</div>
+<div class="flex-1 flex flex-col justify-center gap-4 px-4">
+<!-- Center-line zero based deviation chart -->
+<div class="relative h-32 w-full">
+<div class="absolute inset-x-0 top-1/2 h-px bg-slate-700"></div>
+<!-- Deviation Points -->
+<div class="absolute inset-0 flex items-center justify-between">
+<div class="w-2 h-2 rounded-full bg-primary/60" style="margin-bottom: 20px;"></div>
+<div class="w-2 h-2 rounded-full bg-primary/60" style="margin-bottom: -10px;"></div>
+<div class="w-2 h-2 rounded-full bg-error" style="margin-bottom: 40px;"></div>
+<div class="w-2 h-2 rounded-full bg-primary/60" style="margin-bottom: 10px;"></div>
+<div class="w-2 h-2 rounded-full bg-primary/60" style="margin-bottom: 5px;"></div>
+<div class="w-2 h-2 rounded-full bg-primary/60" style="margin-bottom: -15px;"></div>
+<div class="w-2 h-2 rounded-full bg-primary/60" style="margin-bottom: -5px;"></div>
+<div class="w-2 h-2 rounded-full bg-error" style="margin-bottom: 50px;"></div>
+<div class="w-2 h-2 rounded-full bg-primary/60" style="margin-bottom: 10px;"></div>
+</div>
+<svg class="absolute inset-0 w-full h-full opacity-30" preserveaspectratio="none">
+<polyline class="text-primary" fill="none" points="0,50 40,30 80,60 120,20 160,40 200,45 240,65 280,55 320,10 360,40" stroke="currentColor" stroke-width="1"></polyline>
+</svg>
+</div>
+</div>
+<div class="mt-auto pt-4 flex items-center gap-4 border-t border-outline-variant/10">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="text-[10px] text-slate-400">Stable</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+<span class="text-[10px] text-slate-400">High Variance</span>
+</div>
+</div>
+</div>
+<!-- 3. Embedding Drift -->
+<div class="col-span-12 lg:col-span-6 bg-surface-container p-5 rounded-xl flex flex-col min-h-[320px]">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-sm font-bold text-slate-200">Embedding Drift</h3>
+<p class="text-[10px] text-slate-500 font-mono">Weekly Cosine Distance Variance</p>
+</div>
+<button class="material-symbols-outlined text-slate-500 hover:text-white transition-colors">more_vert</button>
+</div>
+<div class="flex-1 flex items-end justify-between gap-4">
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-primary/40 h-24 rounded-sm"></div>
+<span class="text-[8px] font-mono text-slate-500 uppercase">Week 1</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-primary/40 h-16 rounded-sm"></div>
+<span class="text-[8px] font-mono text-slate-500 uppercase">Week 2</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-primary/40 h-20 rounded-sm"></div>
+<span class="text-[8px] font-mono text-slate-500 uppercase">Week 3</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-secondary-container h-32 rounded-sm relative">
+<div class="absolute top-2 left-1/2 -translate-x-1/2">
+<span class="bg-surface p-1 rounded text-[8px] font-mono text-white">0.142</span>
+</div>
+</div>
+<span class="text-[8px] font-mono text-slate-500 uppercase">Week 4</span>
+</div>
+</div>
+</div>
+<!-- 4. Abnormal Repeat Queries -->
+<div class="col-span-12 lg:col-span-6 bg-surface-container p-5 rounded-xl flex flex-col min-h-[320px]">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="text-sm font-bold text-slate-200">Abnormal Repeat Queries</h3>
+<p class="text-[10px] text-slate-500 font-mono">Real-time potential bot detection</p>
+</div>
+<span class="px-2 py-0.5 bg-error/10 text-error text-[10px] font-bold rounded animate-pulse">LIVE</span>
+</div>
+<div class="overflow-x-auto flex-1">
+<table class="w-full text-left">
+<thead>
+<tr class="text-[9px] font-mono text-slate-500 uppercase border-b border-slate-800">
+<th class="pb-2 font-medium">Query ID</th>
+<th class="pb-2 font-medium text-center">Count</th>
+<th class="pb-2 font-medium text-center">Interval (ms)</th>
+<th class="pb-2 font-medium">Suspected IP</th>
+<th class="pb-2"></th>
+</tr>
+</thead>
+<tbody class="text-xs font-mono">
+<tr class="border-b border-slate-800/40 hover:bg-white/5 transition-colors">
+<td class="py-3 text-slate-300">TRC-9421</td>
+<td class="py-3 text-center text-error font-bold">1,402</td>
+<td class="py-3 text-center">12.4</td>
+<td class="py-3 text-slate-400">192.168.1.104</td>
+<td class="py-3 text-right">
+<span class="material-symbols-outlined text-error text-lg">warning</span>
+</td>
+</tr>
+<tr class="border-b border-slate-800/40 hover:bg-white/5 transition-colors">
+<td class="py-3 text-slate-300">TRC-8812</td>
+<td class="py-3 text-center text-error font-bold">842</td>
+<td class="py-3 text-center">45.8</td>
+<td class="py-3 text-slate-400">45.21.109.12</td>
+<td class="py-3 text-right">
+<span class="material-symbols-outlined text-error text-lg">warning</span>
+</td>
+</tr>
+<tr class="border-b border-slate-800/40 hover:bg-white/5 transition-colors">
+<td class="py-3 text-slate-300">TRC-7403</td>
+<td class="py-3 text-center text-slate-300">142</td>
+<td class="py-3 text-center">2,401</td>
+<td class="py-3 text-slate-400">102.14.92.1</td>
+<td class="py-3 text-right">
+<span class="material-symbols-outlined text-slate-600 text-lg">check_circle</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Threshold Settings Panel -->
+<section class="bg-surface-container rounded-xl overflow-hidden shadow-2xl">
+<div class="px-6 py-4 border-b border-slate-800 bg-surface-container-high/50 flex justify-between items-center">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">tune</span>
+<h3 class="text-sm font-bold tracking-tight text-white">Threshold Settings</h3>
+</div>
+<button class="bg-primary px-4 py-1.5 rounded text-[11px] font-bold text-on-primary-fixed uppercase tracking-wider hover:brightness-110">Save All Configurations</button>
+</div>
+<div class="p-0">
+<table class="w-full text-left">
+<thead>
+<tr class="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-surface-container-low/50">
+<th class="px-6 py-3">Metric Name</th>
+<th class="px-6 py-3">Warning Threshold</th>
+<th class="px-6 py-3">Critical Threshold</th>
+<th class="px-6 py-3 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-800/50">
+<tr class="hover:bg-white/5 transition-colors group">
+<td class="px-6 py-4">
+<p class="text-sm font-medium text-slate-200">Query Embedding Drift</p>
+<p class="text-[10px] font-mono text-slate-500">vector_cosine_similarity_variance</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-yellow-500/50 group-hover:text-yellow-500 transition-colors">warning</span>
+<input class="bg-surface-container-lowest border-outline-variant/20 rounded p-1 text-xs font-mono w-20 focus:ring-1 focus:ring-primary text-slate-300" type="text" value="0.08"/>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-error/50 group-hover:text-error transition-colors">report</span>
+<input class="bg-surface-container-lowest border-outline-variant/20 rounded p-1 text-xs font-mono w-20 focus:ring-1 focus:ring-error text-slate-300" type="text" value="0.12"/>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-[10px] font-bold text-primary opacity-0 group-hover:opacity-100 uppercase tracking-tighter underline underline-offset-4">Reset to default</button>
+</td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors group">
+<td class="px-6 py-4">
+<p class="text-sm font-medium text-slate-200">Retrieval Latency Variance</p>
+<p class="text-[10px] font-mono text-slate-500">ms_p99_rolling_delta</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-yellow-500/50 group-hover:text-yellow-500 transition-colors">warning</span>
+<input class="bg-surface-container-lowest border-outline-variant/20 rounded p-1 text-xs font-mono w-20 focus:ring-1 focus:ring-primary text-slate-300" type="text" value="250"/>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-error/50 group-hover:text-error transition-colors">report</span>
+<input class="bg-surface-container-lowest border-outline-variant/20 rounded p-1 text-xs font-mono w-20 focus:ring-1 focus:ring-error text-slate-300" type="text" value="600"/>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-[10px] font-bold text-primary opacity-0 group-hover:opacity-100 uppercase tracking-tighter underline underline-offset-4">Reset to default</button>
+</td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors group">
+<td class="px-6 py-4">
+<p class="text-sm font-medium text-slate-200">Repeat Query Frequency</p>
+<p class="text-[10px] font-mono text-slate-500">req_per_sec_unique_ip</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-yellow-500/50 group-hover:text-yellow-500 transition-colors">warning</span>
+<input class="bg-surface-container-lowest border-outline-variant/20 rounded p-1 text-xs font-mono w-20 focus:ring-1 focus:ring-primary text-slate-300" type="text" value="50"/>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-error/50 group-hover:text-error transition-colors">report</span>
+<input class="bg-surface-container-lowest border-outline-variant/20 rounded p-1 text-xs font-mono w-20 focus:ring-1 focus:ring-error text-slate-300" type="text" value="150"/>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-[10px] font-bold text-primary opacity-0 group-hover:opacity-100 uppercase tracking-tighter underline underline-offset-4">Reset to default</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Bottom area: Notification integration status -->
+<footer class="flex items-center justify-between pt-8 border-t border-slate-800">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2 group cursor-pointer">
+<div class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+</div>
+<span class="text-xs font-bold text-slate-300 group-hover:text-white transition-colors">Slack Integration</span>
+<span class="text-[10px] font-mono text-slate-500 uppercase">#alerts-ops</span>
+</div>
+<div class="flex items-center gap-2 group cursor-pointer">
+<div class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+</div>
+<span class="text-xs font-bold text-slate-300 group-hover:text-white transition-colors">PagerDuty</span>
+<span class="text-[10px] font-mono text-slate-500 uppercase">Kinetic-AI-OnCall</span>
+</div>
+</div>
+<div class="flex items-center gap-4 text-slate-500">
+<span class="text-[10px] font-mono">SYSTEM UPTIME: 99.98%</span>
+<span class="text-[10px] font-mono">SCAN FREQUENCY: 30s</span>
+</div>
+</footer>
+</div>
+</main>
+<!-- Contextual Floating Pulse Bar (AI Processing State) -->
+<div class="fixed top-0 left-[240px] right-0 h-[2px] z-[60] overflow-hidden pointer-events-none">
+<div class="w-full h-full bg-gradient-to-r from-transparent via-primary to-transparent -translate-x-full animate-[pulse_2s_linear_infinite]" style="animation: crawl 3s linear infinite;"></div>
+</div>
+<style>
+        @keyframes crawl {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+    </style>
+</body></html>

@@ -7,10 +7,17 @@
 package com.publicplatform.ragops.qareview.adapter.outbound.persistence
 
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 
 @Repository
 interface JpaQAReviewRepository : JpaRepository<QAReviewEntity, String> {
     fun findByQuestionIdOrderByReviewedAtDesc(questionId: String): List<QAReviewEntity>
     fun findByReviewStatusOrderByReviewedAtDesc(reviewStatus: String): List<QAReviewEntity>
+
+    @Modifying
+    @Query(value = "UPDATE qa_reviews SET assignee_id = :assigneeId WHERE id = :id", nativeQuery = true)
+    fun updateAssigneeId(@Param("id") id: String, @Param("assigneeId") assigneeId: String?)
 }

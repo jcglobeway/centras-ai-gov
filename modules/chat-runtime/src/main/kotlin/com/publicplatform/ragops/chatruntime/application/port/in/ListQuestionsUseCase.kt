@@ -12,5 +12,7 @@ import com.publicplatform.ragops.chatruntime.domain.UnresolvedQuestionSummary
  */
 interface ListQuestionsUseCase {
     fun listAll(scope: ChatScope, from: String? = null, to: String? = null): List<QuestionSummary>
+    fun listAllWithAnswers(scope: ChatScope, from: String? = null, to: String? = null): List<QuestionSummary>
     fun listUnresolved(scope: ChatScope, from: String? = null, to: String? = null): List<UnresolvedQuestionSummary>
+    fun listBySession(chatSessionId: String): List<QuestionSummary>
 }
