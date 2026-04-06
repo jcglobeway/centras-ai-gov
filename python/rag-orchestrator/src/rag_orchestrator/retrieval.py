@@ -107,6 +107,7 @@ def get_embedding(text: str, ollama_url: str = "http://localhost:11434") -> Opti
             f"{ollama_url}/api/embed",
             json={"model": "bge-m3", "input": text},
             timeout=30.0,
+            verify=False,
         )
         if response.status_code != 200:
             return None

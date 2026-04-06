@@ -335,7 +335,7 @@ def check_ollama_available(ollama_url: str) -> bool:
     import httpx
 
     try:
-        response = httpx.get(f"{ollama_url}/api/tags", timeout=2.0)
+        response = httpx.get(f"{ollama_url}/api/tags", timeout=5.0, verify=False)
         return response.status_code == 200
     except Exception:
         return False
@@ -377,7 +377,7 @@ def generate_answer_with_ollama(
 
 위 문서를 참고하여 질문에 답변해주세요."""
 
-    model = cfg.get("llmModel") or os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
+    model = cfg.get("llmModel") or os.getenv("OLLAMA_MODEL", "qwen3:8b")
     temperature = float(cfg.get("llmTemperature", 0.3))
     num_predict = int(cfg.get("llmMaxTokens", 500))
 
@@ -391,9 +391,11 @@ def generate_answer_with_ollama(
                     {"role": "user", "content": user_prompt},
                 ],
                 "stream": False,
+                "think": False,
                 "options": {"temperature": temperature, "num_predict": num_predict},
             },
             timeout=30.0,
+            verify=False,
         )
 
         if response.status_code == 200:
@@ -512,7 +514,7 @@ def generate_answer_stream(request: GenerateAnswerRequest):
 질문: {clean_question}
 
 위 문서를 참고하여 질문에 답변해주세요."""
-    model = rag_config.get("llmModel") or os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
+    model = rag_config.get("llmModel") or os.getenv("OLLAMA_MODEL", "qwen3:8b")
     temperature = float(rag_config.get("llmTemperature", 0.3))
     num_predict = int(rag_config.get("llmMaxTokens", 500))
 
@@ -531,8 +533,10 @@ def generate_answer_stream(request: GenerateAnswerRequest):
                 "model": model,
                 "messages": ollama_messages,
                 "stream": True,
+                "think": False,
                 "options": {"temperature": temperature, "num_predict": num_predict},
             },
+            verify=False,
             timeout=60.0,
         ) as r:
             for line in r.iter_lines():
@@ -657,7 +661,7 @@ class EvaluationSample(BaseModel):
 class EvaluationRequest(BaseModel):
     samples: list[EvaluationSample]
     judge_provider: str = "ollama"
-    judge_model: str = "qwen2.5:7b"
+    judge_model: str = "qwen3:8b"
 
 
 class EvaluationMetrics(BaseModel):
