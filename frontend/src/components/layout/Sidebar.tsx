@@ -31,7 +31,7 @@ const OPS_NAV: NavEntry[] = [
   { section: '챗봇 엔진' },
   { href: '/ops/prompt',           label: '프롬프트',       icon: 'chat' },
   { href: '/ops/rag-params',       label: 'RAG 파라미터',   icon: 'settings_suggest' },
-  { href: '/ops/model-serving',    label: '모델 서빙',      icon: 'memory' },
+  { href: '/ops/model-serving',    label: '모델 설정',      icon: 'memory' },
   { section: '품질 관리' },
   { href: '/ops/quality',          label: '평가 지표',      icon: 'analytics' },
   { href: '/ops/unresolved',       label: '미해결 질의',    icon: 'help_center' },

@@ -5,6 +5,8 @@ import json
 import os
 import re
 import time
+import uuid
+from datetime import datetime
 from typing import List, Optional
 
 from fastapi import FastAPI
@@ -49,6 +51,72 @@ def _cache_key(question_text: str, org_id: str) -> str:
     return f"rag:cache:{org_id}:{hashlib.sha256(normalized.encode()).hexdigest()}"
 
 
+def _semantic_cache_lookup(
+    embedding: list[float],
+    org_id: str,
+    db_url: str,
+    threshold: float,
+) -> dict | None:
+    try:
+        import psycopg2
+        import psycopg2.extras
+
+        vec_str = "[" + ",".join(str(v) for v in embedding) + "]"
+        conn = psycopg2.connect(db_url)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute("""
+            SELECT id, cached_answer
+            FROM question_semantic_cache
+            WHERE organization_id = %s
+              AND 1 - (embedding_vector <=> %s::vector) >= %s
+            ORDER BY embedding_vector <=> %s::vector
+            LIMIT 1
+        """, (org_id, vec_str, threshold, vec_str))
+        row = cur.fetchone()
+        if row:
+            cur.execute("""
+                UPDATE question_semantic_cache
+                SET hit_count = hit_count + 1, last_hit_at = CURRENT_TIMESTAMP
+                WHERE id = %s
+            """, (row["id"],))
+            conn.commit()
+            cur.close()
+            conn.close()
+            cached = row["cached_answer"]
+            return cached if isinstance(cached, dict) else json.loads(cached)
+        cur.close()
+        conn.close()
+        return None
+    except Exception:
+        return None
+
+
+def _semantic_cache_store(
+    question_text: str,
+    embedding: list[float],
+    answer_dict: dict,
+    org_id: str,
+    db_url: str,
+) -> None:
+    try:
+        import psycopg2
+
+        vec_str = "[" + ",".join(str(v) for v in embedding) + "]"
+        cache_id = f"qsc_{str(uuid.uuid4())[:8]}"
+        conn = psycopg2.connect(db_url)
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO question_semantic_cache
+                (id, organization_id, question_text, embedding_vector, cached_answer)
+            VALUES (%s, %s, %s, %s::vector, %s)
+        """, (cache_id, org_id, question_text, vec_str, json.dumps(answer_dict)))
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception:
+        pass
+
+
 @app.get("/healthz")
 def healthz() -> dict[str, str]:
     return {"status": "ok", "service": "rag-orchestrator"}
@@ -72,15 +140,15 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
     from .config_client import fetch_rag_config
     rag_config = fetch_rag_config(request.organization_id, admin_api_url)
 
-    # Redis 캐시 조회
+    # Layer 1: Redis exact-match 캐시
     redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
     cache_ttl = int(os.getenv("RAG_CACHE_TTL_SEC", "86400"))
+    _cache_key_str = _cache_key(request.question_text, request.organization_id)
     _redis_client = None
     _cached_answer = None
     try:
         import redis as redis_lib
         _redis_client = redis_lib.from_url(redis_url, decode_responses=True, socket_connect_timeout=1)
-        _cache_key_str = _cache_key(request.question_text, request.organization_id)
         _cached_raw = _redis_client.get(_cache_key_str)
         if _cached_raw:
             _cached_answer = json.loads(_cached_raw)
@@ -97,27 +165,60 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
         )
         return GenerateAnswerResponse(**_cached_answer)
 
+    # Layer 2: Semantic 캐시 (pgvector 유사도 검색)
+    semantic_enabled = os.getenv("SEMANTIC_CACHE_ENABLED", "true").lower() == "true"
+    semantic_threshold = float(os.getenv("SEMANTIC_CACHE_THRESHOLD", "0.92"))
+    _query_embedding = None
+    if semantic_enabled and use_ollama and db_url:
+        from .retrieval import get_embedding
+        _query_embedding = get_embedding(request.question_text, ollama_url)
+        if _query_embedding:
+            _semantic_hit = _semantic_cache_lookup(
+                _query_embedding, request.organization_id, db_url, semantic_threshold
+            )
+            if _semantic_hit:
+                if _redis_client:
+                    try:
+                        _redis_client.setex(_cache_key_str, cache_ttl, json.dumps(_semantic_hit))
+                    except Exception:
+                        pass
+                _log_search_result(
+                    question_id=request.question_id,
+                    query_text=request.question_text,
+                    search_results=[],
+                    latency_ms=0,
+                    cache_hit=True,
+                )
+                return GenerateAnswerResponse(**_semantic_hit)
+
     if use_ollama:
         start_ms = int(time.time() * 1000)
 
         from .retrieval import get_embedding, hybrid_search
+        from .pii_scanner import scan_and_mask
+
+        # 입력 PII 스캔 — 마스킹된 질문으로 검색 및 LLM 호출
+        clean_question, input_pii_hits = scan_and_mask(request.question_text)
+        if input_pii_hits:
+            _log_pii_event("question_input", request.question_id, request.organization_id, len(input_pii_hits))
+
         top_k = rag_config.get("topK", int(os.getenv("HYBRID_SEARCH_TOP_K", "10")))
         reranker_enabled = rag_config.get("rerankerEnabled", os.getenv("RERANKER_ENABLED", "false").lower() == "true")
 
         retrieval_start = int(time.time() * 1000)
         search_results = hybrid_search(
-            query_text=request.question_text,
+            query_text=clean_question,
             top_k=top_k,
             ollama_url=ollama_url,
             db_url=db_url,
             reranker_enabled=reranker_enabled,
         )
-        query_embedding = get_embedding(request.question_text, ollama_url)
+        query_embedding = get_embedding(clean_question, ollama_url)
         latency_ms = int(time.time() * 1000) - retrieval_start
 
         llm_start = int(time.time() * 1000)
         llm_result = generate_answer_with_ollama(
-            question=request.question_text,
+            question=clean_question,
             search_results=search_results,
             ollama_url=ollama_url,
             rag_config=rag_config,
@@ -126,6 +227,11 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
 
         postprocess_start = int(time.time() * 1000)
         answer_text = llm_result["content"]
+
+        # 출력 PII 스캔
+        answer_text, output_pii_hits = scan_and_mask(answer_text)
+        if output_pii_hits:
+            _log_pii_event("answer_output", request.question_id, request.organization_id, len(output_pii_hits))
         model_name = llm_result.get("model")
         input_tokens = llm_result.get("input_tokens")
         output_tokens = llm_result.get("output_tokens")
@@ -178,28 +284,32 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
         total_tokens = None
 
     # 캐시 저장 (MISS 경로)
+    _resp_dict = {
+        "question_id": request.question_id,
+        "answer_text": answer_text,
+        "answer_status": answer_status,
+        "citation_count": citation_count,
+        "response_time_ms": response_time_ms,
+        "fallback_reason_code": fallback_reason,
+        "confidence_score": confidence_score,
+        "question_failure_reason_code": question_failure_reason_code,
+        "is_escalated": is_escalated,
+        "query_embedding": None,
+        "model_name": model_name,
+        "provider_name": "ollama",
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "total_tokens": total_tokens,
+    }
     if _redis_client:
         try:
-            _resp_dict = {
-                "question_id": request.question_id,
-                "answer_text": answer_text,
-                "answer_status": answer_status,
-                "citation_count": citation_count,
-                "response_time_ms": response_time_ms,
-                "fallback_reason_code": fallback_reason,
-                "confidence_score": confidence_score,
-                "question_failure_reason_code": question_failure_reason_code,
-                "is_escalated": is_escalated,
-                "query_embedding": None,
-                "model_name": model_name,
-                "provider_name": "ollama",
-                "input_tokens": input_tokens,
-                "output_tokens": output_tokens,
-                "total_tokens": total_tokens,
-            }
             _redis_client.setex(_cache_key_str, cache_ttl, json.dumps(_resp_dict))
         except Exception:
             pass
+    if semantic_enabled and use_ollama and _query_embedding and db_url:
+        _semantic_cache_store(
+            request.question_text, _query_embedding, _resp_dict, request.organization_id, db_url
+        )
 
     return GenerateAnswerResponse(
         question_id=request.question_id,
@@ -343,24 +453,31 @@ def generate_answer_stream(request: GenerateAnswerRequest):
         return StreamingResponse(fallback_stream(), media_type="application/x-ndjson")
 
     from .retrieval import get_embedding, hybrid_search
+    from .pii_scanner import scan_and_mask
+
+    # 입력 PII 스캔
+    clean_question, input_pii_hits = scan_and_mask(request.question_text)
+    if input_pii_hits:
+        _log_pii_event("question_input", request.question_id, request.organization_id, len(input_pii_hits))
+
     start_ms = int(time.time() * 1000)
     top_k = rag_config.get("topK", int(os.getenv("HYBRID_SEARCH_TOP_K", "10")))
     reranker_enabled = rag_config.get("rerankerEnabled", os.getenv("RERANKER_ENABLED", "false").lower() == "true")
 
     retrieval_start = int(time.time() * 1000)
     search_results = hybrid_search(
-        query_text=request.question_text,
+        query_text=clean_question,
         top_k=top_k,
         ollama_url=ollama_url,
         db_url=db_url,
         reranker_enabled=reranker_enabled,
     )
-    get_embedding(request.question_text, ollama_url)
+    get_embedding(clean_question, ollama_url)
     latency_ms = int(time.time() * 1000) - retrieval_start
 
     _log_search_result(
         question_id=request.question_id,
-        query_text=request.question_text,
+        query_text=clean_question,
         search_results=search_results,
         latency_ms=latency_ms,
         llm_ms=None,  # streaming: LLM 소요시간은 done 이벤트 후 알 수 있으므로 별도 추적 불가
@@ -392,7 +509,7 @@ def generate_answer_stream(request: GenerateAnswerRequest):
     user_prompt = f"""참고 문서:
 {retrieval_context}
 
-질문: {request.question_text}
+질문: {clean_question}
 
 위 문서를 참고하여 질문에 답변해주세요."""
     model = rag_config.get("llmModel") or os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
@@ -446,6 +563,36 @@ def generate_answer_stream(request: GenerateAnswerRequest):
         }) + "\n"
 
     return StreamingResponse(token_stream(), media_type="application/x-ndjson")
+
+
+def _log_pii_event(
+    resource_type: str,
+    resource_id: str,
+    organization_id: str,
+    hit_count: int,
+) -> None:
+    """
+    PII 감지 이벤트를 Admin API audit-logs 엔드포인트에 기록한다.
+
+    Admin API가 없거나 실패해도 RAG 흐름에 영향을 주지 않는다.
+    """
+    import httpx
+
+    admin_api_url = os.getenv("ADMIN_API_BASE_URL", "http://localhost:8081")
+    try:
+        httpx.post(
+            f"{admin_api_url}/admin/audit-logs",
+            json={
+                "actionCode": "PII_DETECTED",
+                "organizationId": organization_id,
+                "resourceType": resource_type,
+                "resourceId": resource_id,
+                "resultCode": "masked",
+            },
+            timeout=3.0,
+        )
+    except Exception:
+        pass
 
 
 def _log_search_result(

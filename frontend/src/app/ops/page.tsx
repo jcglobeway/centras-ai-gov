@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import useSWR from "swr";
 import { fetcher } from "@/lib/api";
-import type { PagedResponse, DailyMetric, UnresolvedQuestion, LlmMetrics, Organization, RagasEvaluation, InfraMetrics, RateLimitMetrics } from "@/lib/types";
+import type { PagedResponse, DailyMetric, UnresolvedQuestion, LlmMetrics, Organization, RagasEvaluation } from "@/lib/types";
 import { KpiCard } from "@/components/charts/KpiCard";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
@@ -215,16 +215,6 @@ export default function OpsDashboardPage() {
 
   const { data: feedbackTrendData } = useSWR<FeedbackTrendPoint[]>(
     "/api/admin/metrics/feedback-trend?days=7",
-    fetcher
-  );
-
-  const { data: infraData } = useSWR<InfraMetrics>(
-    "/api/admin/metrics/infra",
-    fetcher
-  );
-
-  const { data: rateLimitData } = useSWR<RateLimitMetrics>(
-    "/api/admin/metrics/rate-limits",
     fetcher
   );
 
@@ -785,96 +775,6 @@ export default function OpsDashboardPage() {
             )}
           </div>
         </Link>
-      </div>
-
-      {/* 인프라 & Rate Limit */}
-      <div>
-        <h3 className="font-inter text-text-primary font-[510] text-[13px] tracking-tight mb-3">인프라 & Rate Limit</h3>
-
-        {/* Row 1: CPU / Memory */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-3">
-          {(
-            [
-              { key: "cpuUsagePercent", label: "CPU 사용률", warn: 80, critical: 90 },
-              { key: "memoryUsagePercent", label: "Memory 사용률", warn: 80, critical: 90 },
-            ] as const
-          ).map(({ key, label, warn, critical }) => {
-            const val = infraData?.[key] ?? null;
-            const st =
-              val == null ? undefined
-              : val >= critical ? "critical"
-              : val >= warn    ? "warn"
-              : "ok";
-            const stColor = { ok: "text-success", warn: "text-warning", critical: "text-error" };
-            return (
-              <div key={key} className="rounded-lg p-4" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
-                <p className="font-inter text-[10px] font-[510] uppercase tracking-[0.1em] text-text-subtle mb-1">{label}</p>
-                {val != null ? (
-                  <>
-                    <div className="flex items-baseline gap-1">
-                      <span className={clsx("text-2xl font-bold font-mono", st ? stColor[st] : "text-text-primary")}>
-                        {val.toFixed(1)}
-                      </span>
-                      <span className="text-[11px] text-text-muted font-mono">%</span>
-                    </div>
-                    <div className="mt-2 h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
-                      <div
-                        className={clsx("h-full rounded-full transition-all", {
-                          "bg-success": st === "ok",
-                          "bg-warning": st === "warn",
-                          "bg-error":   st === "critical",
-                        })}
-                        style={{ width: `${Math.min(val, 100)}%` }}
-                      />
-                    </div>
-                  </>
-                ) : (
-                  <p className="text-sm text-text-muted mt-1">rag-orchestrator 미실행</p>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Row 2: LLM Rate Limit / Embedding Rate Limit */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-          {(
-            [
-              { rateKey: "llmRateLimitRate", hitsKey: "llmRateLimitHits", totalKey: "llmCallsTotal", label: "LLM Rate Limit 히트율" },
-              { rateKey: "embeddingRateLimitRate", hitsKey: "embeddingRateLimitHits", totalKey: "embeddingCallsTotal", label: "Embedding Rate Limit 히트율" },
-            ] as const
-          ).map(({ rateKey, hitsKey, totalKey, label }) => {
-            const rate  = rateLimitData?.[rateKey]  ?? null;
-            const hits  = rateLimitData?.[hitsKey]  ?? null;
-            const total = rateLimitData?.[totalKey] ?? null;
-            const st =
-              rate == null ? undefined
-              : rate >= 2  ? "critical"
-              : rate >= 0.5 ? "warn"
-              : "ok";
-            const stColor = { ok: "text-success", warn: "text-warning", critical: "text-error" };
-            return (
-              <div key={rateKey} className="rounded-lg p-4" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
-                <p className="font-inter text-[10px] font-[510] uppercase tracking-[0.1em] text-text-subtle mb-1">{label}</p>
-                {rate != null ? (
-                  <>
-                    <div className="flex items-baseline gap-1">
-                      <span className={clsx("text-2xl font-bold font-mono", st ? stColor[st] : "text-text-primary")}>
-                        {rate.toFixed(2)}
-                      </span>
-                      <span className="text-[11px] text-text-muted font-mono">%</span>
-                    </div>
-                    <p className="font-inter text-[10px] text-text-subtle mt-1">
-                      {hits?.toLocaleString() ?? 0}건 / {total?.toLocaleString() ?? 0}건
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-sm text-text-muted mt-1">rag-orchestrator 미실행</p>
-                )}
-              </div>
-            );
-          })}
-        </div>
       </div>
 
       {/* 이슈 알림 로그 */}

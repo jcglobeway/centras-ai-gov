@@ -230,7 +230,16 @@ export interface UnresolvedQuestion {
   isEscalated: boolean;
   answerStatus: string | null;
   latestReviewStatus: string | null;
+  latestReviewId: string | null;
+  assigneeId: string | null;
   createdAt: string;
+}
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  displayName: string;
+  status: string;
 }
 
 // ── 문서 ──────────────────────────────────────────────────────────────────────
