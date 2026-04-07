@@ -4,6 +4,8 @@ import com.publicplatform.ragops.chatruntime.application.port.out.LoadRagSearchL
 import com.publicplatform.ragops.chatruntime.application.port.out.RecordAnswerPort
 import com.publicplatform.ragops.chatruntime.application.port.out.LoadFeedbackPort
 import com.publicplatform.ragops.chatruntime.application.port.out.RecordFeedbackPort
+import com.publicplatform.ragops.chatruntime.application.port.out.LoadCorrectionPort
+import com.publicplatform.ragops.chatruntime.application.port.out.RecordCorrectionPort
 import com.publicplatform.ragops.chatruntime.application.port.out.LoadLlmMetricsPort
 import com.publicplatform.ragops.chatruntime.application.port.out.LoadQuestionPort
 import com.publicplatform.ragops.chatruntime.application.port.out.RecordQuestionPort
@@ -14,6 +16,7 @@ import com.publicplatform.ragops.chatruntime.application.port.out.UpdateChatSess
 import com.publicplatform.ragops.chatruntime.application.port.out.LoadChatSessionPort
 import com.publicplatform.ragops.chatruntime.application.port.out.LoadFaqCandidatesPort
 import com.publicplatform.ragops.chatruntime.application.port.`in`.ListChatSessionsUseCase
+import com.publicplatform.ragops.chatruntime.application.port.`in`.ManageCorrectionUseCase
 import com.publicplatform.ragops.chatruntime.application.service.ListChatSessionsService
 import com.publicplatform.ragops.chatruntime.application.port.`in`.GetLlmMetricsUseCase
 import com.publicplatform.ragops.chatruntime.application.port.`in`.ListFaqCandidatesUseCase
@@ -24,13 +27,20 @@ import com.publicplatform.ragops.chatruntime.application.service.GetQuestionCont
 import com.publicplatform.ragops.chatruntime.application.service.GetRagSearchLogStatsService
 import com.publicplatform.ragops.chatruntime.application.service.ListFaqCandidatesService
 import com.publicplatform.ragops.chatruntime.application.service.ListQuestionsService
+import com.publicplatform.ragops.chatruntime.application.service.ManageCorrectionService
 import com.publicplatform.ragops.chatruntime.application.service.ManageFeedbackService
 import com.publicplatform.ragops.chatruntime.application.service.SaveRagSearchLogService
+import com.publicplatform.ragops.documentregistry.application.port.`in`.DeleteCollectionChunksUseCase
+import com.publicplatform.ragops.documentregistry.application.port.`in`.RegisterDocumentUseCase
+import com.publicplatform.ragops.documentregistry.application.port.out.DeleteCollectionChunksPort
 import com.publicplatform.ragops.documentregistry.application.port.out.LoadDocumentPort
 import com.publicplatform.ragops.documentregistry.application.port.out.LoadDocumentVersionPort
 import com.publicplatform.ragops.documentregistry.application.port.out.SaveDocumentPort
+import com.publicplatform.ragops.documentregistry.application.port.out.SaveDocumentRecordPort
+import com.publicplatform.ragops.documentregistry.application.service.DeleteCollectionChunksService
 import com.publicplatform.ragops.documentregistry.application.service.ListDocumentVersionsService
 import com.publicplatform.ragops.documentregistry.application.service.ListDocumentsService
+import com.publicplatform.ragops.documentregistry.application.service.RegisterDocumentService
 import com.publicplatform.ragops.documentregistry.application.service.SaveDocumentChunkService
 import com.publicplatform.ragops.ingestionops.application.port.out.LoadCrawlSourcePort
 import com.publicplatform.ragops.ingestionops.application.port.out.SaveCrawlSourcePort
@@ -71,6 +81,17 @@ import com.publicplatform.ragops.adminapi.chatruntime.adapter.outbound.http.RagO
 import com.publicplatform.ragops.adminapi.metrics.adapter.inbound.scheduler.MetricsAggregationScheduler
 import com.publicplatform.ragops.adminapi.metrics.application.port.`in`.TriggerMetricsAggregationUseCase
 import com.publicplatform.ragops.adminapi.metrics.application.service.TriggerMetricsAggregationService
+import com.publicplatform.ragops.redteam.application.port.`in`.ManageRedteamCaseUseCase
+import com.publicplatform.ragops.redteam.application.port.`in`.RunRedteamBatchUseCase
+import com.publicplatform.ragops.redteam.application.port.`in`.ListRedteamBatchRunsUseCase
+import com.publicplatform.ragops.redteam.application.port.out.LoadRedteamCasePort
+import com.publicplatform.ragops.redteam.application.port.out.SaveRedteamCasePort
+import com.publicplatform.ragops.redteam.application.port.out.LoadRedteamBatchRunPort
+import com.publicplatform.ragops.redteam.application.port.out.SaveRedteamBatchRunPort
+import com.publicplatform.ragops.redteam.application.port.out.SaveRedteamCaseResultPort
+import com.publicplatform.ragops.redteam.application.service.ManageRedteamCaseService
+import com.publicplatform.ragops.redteam.application.service.RunRedteamBatchService
+import com.publicplatform.ragops.redteam.application.service.ListRedteamBatchRunsService
 import org.springframework.boot.web.client.RestTemplateBuilder
 import com.publicplatform.ragops.identityaccess.application.port.`in`.AdminAuthUseCase
 import com.publicplatform.ragops.identityaccess.application.port.`in`.GetAuditLogsUseCase
@@ -167,6 +188,12 @@ class ServiceConfiguration {
     ): ManageFeedbackService = ManageFeedbackService(feedbackWriter, feedbackReader)
 
     @Bean
+    fun manageCorrectionUseCase(
+        correctionWriter: RecordCorrectionPort,
+        correctionReader: LoadCorrectionPort,
+    ): ManageCorrectionUseCase = ManageCorrectionService(correctionWriter, correctionReader)
+
+    @Bean
     fun saveRagSearchLogService(ragSearchLogWriter: SaveRagSearchLogPort): SaveRagSearchLogService =
         SaveRagSearchLogService(ragSearchLogWriter)
 
@@ -227,6 +254,14 @@ class ServiceConfiguration {
     @Bean
     fun saveDocumentChunkService(documentWriter: SaveDocumentPort): SaveDocumentChunkService =
         SaveDocumentChunkService(documentWriter)
+
+    @Bean
+    fun registerDocumentUseCase(saveDocumentRecordPort: SaveDocumentRecordPort): RegisterDocumentUseCase =
+        RegisterDocumentService(saveDocumentRecordPort)
+
+    @Bean
+    fun deleteCollectionChunksUseCase(deleteCollectionChunksPort: DeleteCollectionChunksPort): DeleteCollectionChunksUseCase =
+        DeleteCollectionChunksService(deleteCollectionChunksPort)
 
     @Bean
     fun listMetricsService(metricsReader: LoadMetricsPort): ListMetricsService =
@@ -291,6 +326,29 @@ class ServiceConfiguration {
         loadRagConfigPort: LoadRagConfigPort,
         recordRagConfigPort: RecordRagConfigPort,
     ): SaveRagConfigUseCase = SaveRagConfigService(loadRagConfigPort, recordRagConfigPort)
+
+    @Bean
+    fun manageRedteamCaseUseCase(
+        loadRedteamCasePort: LoadRedteamCasePort,
+        saveRedteamCasePort: SaveRedteamCasePort,
+    ): ManageRedteamCaseUseCase = ManageRedteamCaseService(loadRedteamCasePort, saveRedteamCasePort)
+
+    @Bean
+    fun runRedteamBatchUseCase(
+        loadRedteamCasePort: LoadRedteamCasePort,
+        saveRedteamBatchRunPort: SaveRedteamBatchRunPort,
+        saveRedteamCaseResultPort: SaveRedteamCaseResultPort,
+        ragOrchestrationPort: RagOrchestrationPort,
+    ): RunRedteamBatchUseCase = RunRedteamBatchService(
+        loadRedteamCasePort,
+        saveRedteamBatchRunPort,
+        saveRedteamCaseResultPort,
+        ragOrchestrationPort,
+    )
+
+    @Bean
+    fun listRedteamBatchRunsUseCase(loadRedteamBatchRunPort: LoadRedteamBatchRunPort): ListRedteamBatchRunsUseCase =
+        ListRedteamBatchRunsService(loadRedteamBatchRunPort)
 
     @Bean
     fun ragOrchestrationPort(

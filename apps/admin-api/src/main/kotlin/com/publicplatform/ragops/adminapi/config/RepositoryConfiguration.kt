@@ -17,8 +17,12 @@ import com.publicplatform.ragops.qareview.application.port.out.*
 import com.publicplatform.ragops.qareview.adapter.outbound.persistence.UpdateQAReviewAssigneePortAdapter
 import com.publicplatform.ragops.chatruntime.adapter.outbound.persistence.*
 import com.publicplatform.ragops.chatruntime.application.port.out.*
+import com.publicplatform.ragops.chatruntime.application.port.out.LoadCorrectionPort
+import com.publicplatform.ragops.chatruntime.application.port.out.RecordCorrectionPort
 import com.publicplatform.ragops.documentregistry.adapter.outbound.persistence.*
 import com.publicplatform.ragops.documentregistry.application.port.out.*
+import com.publicplatform.ragops.documentregistry.adapter.outbound.persistence.DeleteCollectionChunksPortAdapter
+import com.publicplatform.ragops.documentregistry.adapter.outbound.persistence.SaveDocumentRecordPortAdapter
 import com.publicplatform.ragops.metricsreporting.adapter.outbound.persistence.*
 import com.publicplatform.ragops.metricsreporting.application.port.out.*
 import com.publicplatform.ragops.metricsreporting.adapter.outbound.persistence.AnomalyThresholdPortAdapter
@@ -35,6 +39,17 @@ import com.publicplatform.ragops.adminapi.evaluation.application.port.out.LoadRa
 import com.publicplatform.ragops.adminapi.evaluation.application.port.out.LoadRagasEvaluationSummaryPort
 import com.publicplatform.ragops.adminapi.evaluation.application.port.out.PatchRagasEvaluationPort
 import com.publicplatform.ragops.adminapi.evaluation.application.port.out.SaveRagasEvaluationPort
+import com.publicplatform.ragops.redteam.adapter.outbound.persistence.JpaRedteamCaseRepository
+import com.publicplatform.ragops.redteam.adapter.outbound.persistence.JpaRedteamBatchRunRepository
+import com.publicplatform.ragops.redteam.adapter.outbound.persistence.JpaRedteamCaseResultRepository
+import com.publicplatform.ragops.redteam.adapter.outbound.persistence.RedteamCasePortAdapter
+import com.publicplatform.ragops.redteam.adapter.outbound.persistence.RedteamBatchRunPortAdapter
+import com.publicplatform.ragops.redteam.adapter.outbound.persistence.RedteamCaseResultPortAdapter
+import com.publicplatform.ragops.redteam.application.port.out.LoadRedteamCasePort
+import com.publicplatform.ragops.redteam.application.port.out.SaveRedteamCasePort
+import com.publicplatform.ragops.redteam.application.port.out.LoadRedteamBatchRunPort
+import com.publicplatform.ragops.redteam.application.port.out.SaveRedteamBatchRunPort
+import com.publicplatform.ragops.redteam.application.port.out.SaveRedteamCaseResultPort
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.data.redis.core.RedisTemplate
@@ -141,6 +156,14 @@ class RepositoryConfiguration {
         SaveDocumentPortAdapter(jpaChunkRepository)
 
     @Bean
+    fun saveDocumentRecordPort(jpaDocumentRepository: JpaDocumentRepository): SaveDocumentRecordPort =
+        SaveDocumentRecordPortAdapter(jpaDocumentRepository)
+
+    @Bean
+    fun deleteCollectionChunksPort(jdbcTemplate: JdbcTemplate): DeleteCollectionChunksPort =
+        DeleteCollectionChunksPortAdapter(jdbcTemplate)
+
+    @Bean
     fun ragSearchLogWriter(
         jpaSearchLogRepository: JpaRagSearchLogRepository,
         jpaRetrievedDocumentRepository: JpaRagRetrievedDocumentRepository,
@@ -157,6 +180,14 @@ class RepositoryConfiguration {
     @Bean
     fun feedbackReader(jpaRepository: JpaFeedbackRepository): LoadFeedbackPort =
         LoadFeedbackPortAdapter(jpaRepository)
+
+    @Bean
+    fun correctionWriter(jpaRepository: JpaAnswerCorrectionRepository): RecordCorrectionPort =
+        RecordCorrectionPortAdapter(jpaRepository)
+
+    @Bean
+    fun correctionReader(jpaRepository: JpaAnswerCorrectionRepository): LoadCorrectionPort =
+        LoadCorrectionPortAdapter(jpaRepository)
 
     @Bean
     fun metricsWriter(jpaRepository: JpaDailyMetricsRepository): SaveMetricsPort =
@@ -236,6 +267,40 @@ class RepositoryConfiguration {
     @Bean
     fun saveAlertEventPort(jpaRepository: JpaAlertEventRepository): com.publicplatform.ragops.metricsreporting.application.port.out.SaveAlertEventPort =
         AlertEventPortAdapter(jpaRepository)
+
+    @Bean
+    fun redteamCasePortAdapter(jpaRepository: JpaRedteamCaseRepository): RedteamCasePortAdapter =
+        RedteamCasePortAdapter(jpaRepository)
+
+    @Bean
+    fun loadRedteamCasePort(redteamCasePortAdapter: RedteamCasePortAdapter): LoadRedteamCasePort =
+        redteamCasePortAdapter
+
+    @Bean
+    fun saveRedteamCasePort(redteamCasePortAdapter: RedteamCasePortAdapter): SaveRedteamCasePort =
+        redteamCasePortAdapter
+
+    @Bean
+    fun redteamBatchRunPortAdapter(
+        jpaRunRepository: JpaRedteamBatchRunRepository,
+        jpaResultRepository: JpaRedteamCaseResultRepository,
+    ): RedteamBatchRunPortAdapter = RedteamBatchRunPortAdapter(jpaRunRepository, jpaResultRepository)
+
+    @Bean
+    fun loadRedteamBatchRunPort(redteamBatchRunPortAdapter: RedteamBatchRunPortAdapter): LoadRedteamBatchRunPort =
+        redteamBatchRunPortAdapter
+
+    @Bean
+    fun saveRedteamBatchRunPort(redteamBatchRunPortAdapter: RedteamBatchRunPortAdapter): SaveRedteamBatchRunPort =
+        redteamBatchRunPortAdapter
+
+    @Bean
+    fun redteamCaseResultPortAdapter(jpaRepository: JpaRedteamCaseResultRepository): RedteamCaseResultPortAdapter =
+        RedteamCaseResultPortAdapter(jpaRepository)
+
+    @Bean
+    fun saveRedteamCaseResultPort(redteamCaseResultPortAdapter: RedteamCaseResultPortAdapter): SaveRedteamCaseResultPort =
+        redteamCaseResultPortAdapter
 
     @Bean
     @ConditionalOnBean(RedisTemplate::class)
