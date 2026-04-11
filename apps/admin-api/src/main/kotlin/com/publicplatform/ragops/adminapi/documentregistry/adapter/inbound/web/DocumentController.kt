@@ -3,17 +3,23 @@ package com.publicplatform.ragops.adminapi.documentregistry.adapter.inbound.web
 import com.publicplatform.ragops.adminapi.auth.AdminRequestSessionResolver
 import com.publicplatform.ragops.documentregistry.application.port.`in`.ListDocumentVersionsUseCase
 import com.publicplatform.ragops.documentregistry.application.port.`in`.ListDocumentsUseCase
+import com.publicplatform.ragops.documentregistry.application.port.`in`.RegisterDocumentUseCase
 import com.publicplatform.ragops.documentregistry.domain.DocumentScope
 import com.publicplatform.ragops.documentregistry.domain.DocumentSummary
 import com.publicplatform.ragops.documentregistry.domain.DocumentVersionSummary
 import com.publicplatform.ragops.documentregistry.domain.IndexStatus
 import com.publicplatform.ragops.documentregistry.domain.IngestionStatus
+import com.publicplatform.ragops.documentregistry.domain.RegisterDocumentCommand
 import com.publicplatform.ragops.identityaccess.domain.AdminSessionSnapshot
 import jakarta.servlet.http.HttpServletRequest
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.time.Instant
 import java.time.LocalDate
@@ -30,7 +36,30 @@ class DocumentController(
     private val adminRequestSessionResolver: AdminRequestSessionResolver,
     private val listDocumentsUseCase: ListDocumentsUseCase,
     private val listDocumentVersionsUseCase: ListDocumentVersionsUseCase,
+    private val registerDocumentUseCase: RegisterDocumentUseCase,
 ) {
+
+    @PostMapping("/documents")
+    @ResponseStatus(HttpStatus.CREATED)
+    fun registerDocument(
+        @RequestBody request: RegisterDocumentRequest,
+        servletRequest: HttpServletRequest,
+    ): DocumentResponse {
+        val session = adminRequestSessionResolver.resolve(servletRequest)
+        val doc = registerDocumentUseCase.execute(
+            RegisterDocumentCommand(
+                organizationId = request.organizationId,
+                title = request.title,
+                documentType = request.documentType,
+                sourceUri = request.sourceUri,
+                visibilityScope = request.visibilityScope,
+                requestedBy = session.user.id,
+                collectionName = request.collectionName,
+                crawlSourceId = request.crawlSourceId,
+            ),
+        )
+        return doc.toResponse()
+    }
 
     @GetMapping("/documents")
     fun listDocuments(
@@ -59,6 +88,16 @@ class DocumentController(
         return DocumentVersionListResponse(items = versions.map { it.toResponse() }, total = versions.size)
     }
 }
+
+data class RegisterDocumentRequest(
+    val organizationId: String,
+    val title: String,
+    val documentType: String,
+    val sourceUri: String,
+    val visibilityScope: String = "organization",
+    val collectionName: String? = null,
+    val crawlSourceId: String? = null,
+)
 
 data class DocumentListResponse(val items: List<DocumentResponse>, val total: Int)
 

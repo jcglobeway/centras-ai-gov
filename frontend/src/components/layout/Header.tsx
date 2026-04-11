@@ -21,11 +21,7 @@ const PORTAL_INFO = [
   { key: "qa", label: "QA 포털", basePath: "/qa" },
 ] as const;
 
-interface HeaderProps {
-  title: string;
-}
-
-export function Header({ title }: HeaderProps) {
+export function Header() {
   const { session, logout } = useAuth();
   const { theme, toggle } = useTheme();
   const [open, setOpen] = useState(false);
@@ -47,7 +43,7 @@ export function Header({ title }: HeaderProps) {
 
   return (
     <header className="h-14 border-b border-[rgba(255,255,255,0.05)] bg-bg-base/80 backdrop-blur-md flex items-center px-6 gap-4">
-      <h1 className="font-inter text-text-primary text-[13px] font-[510] flex-1 tracking-tight">{title}</h1>
+      <div className="flex-1" />
 
       {session && (
         <div className="flex items-center gap-2">

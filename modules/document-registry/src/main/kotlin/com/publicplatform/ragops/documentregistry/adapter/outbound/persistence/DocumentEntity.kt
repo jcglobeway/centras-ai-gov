@@ -32,6 +32,8 @@ class DocumentEntity(
     @Column(name = "last_indexed_at") val lastIndexedAt: Instant?,
     @Column(name = "created_at", nullable = false) val createdAt: Instant = Instant.now(),
     @Column(name = "updated_at", nullable = false) val updatedAt: Instant = Instant.now(),
+    @Column(name = "collection_name") val collectionName: String? = null,
+    @Column(name = "crawl_source_id") val crawlSourceId: String? = null,
 )
 
 fun DocumentEntity.toSummary(): DocumentSummary =
@@ -41,6 +43,7 @@ fun DocumentEntity.toSummary(): DocumentSummary =
         ingestionStatus = ingestionStatus.toIngestionStatus(), indexStatus = indexStatus.toIndexStatus(),
         visibilityScope = visibilityScope, lastIngestedAt = lastIngestedAt,
         lastIndexedAt = lastIndexedAt, createdAt = createdAt,
+        collectionName = collectionName, crawlSourceId = crawlSourceId,
     )
 
 private fun String.toIngestionStatus(): IngestionStatus = when (this) {

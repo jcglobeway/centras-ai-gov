@@ -81,6 +81,27 @@ export const ingestionApi = {
     ),
 
   getJob: (id: string) => request<IngestionJob>(`/ingestion-jobs/${id}`),
+
+  createSource: (body: {
+    organizationId: string;
+    serviceId: string;
+    name: string;
+    sourceType: string;
+    sourceUri: string;
+    renderMode: string;
+    collectionMode: string;
+    scheduleExpr: string;
+    collectionName?: string;
+  }) =>
+    request<{ crawlSourceId: string; saved: boolean }>("/crawl-sources", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  runSource: (id: string) =>
+    request<{ jobId: string; status: string }>(`/crawl-sources/${id}/run`, {
+      method: "POST",
+    }),
 };
 
 // ── QA 리뷰 ───────────────────────────────────────────────────────────────────
@@ -132,6 +153,35 @@ export const documentApi = {
 
   versions: (docId: string) =>
     request<PagedResponse<DocumentVersion>>(`/documents/${docId}/versions`),
+
+  upload: (
+    files: File[],
+    organizationId: string,
+    serviceId: string,
+    collectionName?: string
+  ): Promise<{ documentId: string; crawlSourceId: string; jobId: string; status: string }[]> => {
+    const sessionId = typeof window !== "undefined" ? localStorage.getItem("sessionId") : null;
+    const formData = new FormData();
+    for (const file of files) {
+      formData.append("files", file);
+    }
+    formData.append("organizationId", organizationId);
+    formData.append("serviceId", serviceId);
+    if (collectionName) {
+      formData.append("collectionName", collectionName);
+    }
+    return fetch(`${BASE}/documents/upload`, {
+      method: "POST",
+      headers: sessionId ? { "X-Admin-Session-Id": sessionId } : {},
+      body: formData,
+    }).then(async (res) => {
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw { status: res.status, ...body };
+      }
+      return res.json();
+    });
+  },
 };
 
 // ── 메트릭 ────────────────────────────────────────────────────────────────────

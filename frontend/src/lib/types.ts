@@ -109,11 +109,13 @@ export interface CrawlSource {
   sourceUri: string;
   schedule: string;
   status: string;
+  collectionName?: string;
 }
 
 export interface IngestionJob {
   id: string;
   crawlSourceId: string;
+  documentId: string | null;
   organizationId: string;
   serviceId: string;
   jobType: string;
@@ -132,8 +134,13 @@ export interface IngestionJob {
 
 export type ReviewStatus = "pending" | "confirmed_issue" | "resolved" | "false_alarm";
 export type RootCauseCode =
-  | "A01" | "A02" | "A03" | "A04" | "A05"
-  | "A06" | "A07" | "A08" | "A09" | "A10";
+  | "missing_document"
+  | "stale_document"
+  | "bad_chunking"
+  | "retrieval_failure"
+  | "generation_error"
+  | "policy_block"
+  | "unclear_question";
 
 export type ActionType =
   | "faq_create"

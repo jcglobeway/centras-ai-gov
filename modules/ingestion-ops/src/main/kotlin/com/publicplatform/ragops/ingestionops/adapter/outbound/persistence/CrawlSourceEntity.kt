@@ -34,6 +34,7 @@ class CrawlSourceEntity(
     @Column(name = "last_crawled_at") val lastCrawledAt: Instant?,
     @Column(name = "last_succeeded_at") val lastSucceededAt: Instant?,
     @Column(name = "last_job_id") val lastJobId: String?,
+    @Column(name = "collection_name") val collectionName: String?,
     @Column(name = "created_at", nullable = false) val createdAt: Instant = Instant.now(),
     @Column(name = "updated_at", nullable = false) val updatedAt: Instant = Instant.now(),
 )
@@ -45,6 +46,7 @@ fun CrawlSourceEntity.toSummary(): CrawlSourceSummary =
         renderMode = renderMode.toRenderMode(), collectionMode = collectionMode.toCollectionMode(),
         schedule = scheduleExpr, status = status.toSourceStatus(),
         lastSucceededAt = lastSucceededAt, lastJobId = lastJobId,
+        collectionName = collectionName,
     )
 
 fun CrawlSourceSummary.toEntity(): CrawlSourceEntity =
@@ -55,6 +57,7 @@ fun CrawlSourceSummary.toEntity(): CrawlSourceEntity =
         scheduleExpr = schedule, isActive = status == CrawlSourceStatus.ACTIVE,
         status = status.name.lowercase(), lastCrawledAt = null,
         lastSucceededAt = lastSucceededAt, lastJobId = lastJobId,
+        collectionName = collectionName,
         createdAt = Instant.now(), updatedAt = Instant.now(),
     )
 

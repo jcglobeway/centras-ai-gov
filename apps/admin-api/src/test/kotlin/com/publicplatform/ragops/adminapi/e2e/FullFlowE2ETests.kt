@@ -2,11 +2,16 @@ package com.publicplatform.ragops.adminapi.e2e
 
 import com.publicplatform.ragops.adminapi.BaseApiTest
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 
 class FullFlowE2ETests : BaseApiTest() {
+    @Autowired
+    lateinit var jdbcTemplate: JdbcTemplate
 
     @Test
     fun `e2e full auth lifecycle from login to logout and session expiry`() {
@@ -105,6 +110,115 @@ class FullFlowE2ETests : BaseApiTest() {
                 jsonPath("$.status") { value("active") }
                 jsonPath("$.lastJobId") { value(jobId) }
             }
+    }
+
+    @Test
+    fun `e2e delete collection chunks resets indexed documents`() {
+        val collectionName = "e2e-delete-collection"
+
+        val sourceResponse = mockMvc.post("/admin/crawl-sources") {
+            contentType = MediaType.APPLICATION_JSON
+            content = """
+                {
+                  "organizationId": "org_local_gov",
+                  "serviceId": "svc_welfare",
+                  "name": "E2E Delete Source",
+                  "sourceType": "website",
+                  "sourceUri": "https://example.gov.kr/delete-test",
+                  "renderMode": "http_static",
+                  "collectionMode": "full",
+                  "scheduleExpr": "0 */6 * * *",
+                  "collectionName": "$collectionName"
+                }
+            """.trimIndent()
+        }.andExpect {
+            status { isCreated() }
+            jsonPath("$.crawlSourceId") { exists() }
+        }.andReturn()
+
+        val sourceId = sourceResponse.response.contentAsString.contentAsJson().path("crawlSourceId").asText()
+
+        val documentResponse = mockMvc.post("/admin/documents") {
+            contentType = MediaType.APPLICATION_JSON
+            content = """
+                {
+                  "organizationId": "org_local_gov",
+                  "title": "E2E Delete Document",
+                  "documentType": "webpage",
+                  "sourceUri": "https://example.gov.kr/delete-test/doc",
+                  "visibilityScope": "organization",
+                  "collectionName": "$collectionName",
+                  "crawlSourceId": "$sourceId"
+                }
+            """.trimIndent()
+        }.andExpect {
+            status { isCreated() }
+            jsonPath("$.id") { exists() }
+        }.andReturn()
+
+        val documentId = documentResponse.response.contentAsString.contentAsJson().path("id").asText()
+
+        mockMvc.post("/admin/document-chunks") {
+            contentType = MediaType.APPLICATION_JSON
+            content = """
+                {
+                  "documentId": "$documentId",
+                  "chunkKey": "chunk_0",
+                  "chunkText": "첫 번째 E2E 청크",
+                  "chunkOrder": 0
+                }
+            """.trimIndent()
+        }.andExpect {
+            status { isCreated() }
+        }
+
+        mockMvc.post("/admin/document-chunks") {
+            contentType = MediaType.APPLICATION_JSON
+            content = """
+                {
+                  "documentId": "$documentId",
+                  "chunkKey": "chunk_1",
+                  "chunkText": "두 번째 E2E 청크",
+                  "chunkOrder": 1
+                }
+            """.trimIndent()
+        }.andExpect {
+            status { isCreated() }
+        }
+
+        val beforeDeleteChunks = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM document_chunks WHERE document_id = ?",
+            Int::class.java,
+            documentId,
+        ) ?: 0
+        assert(beforeDeleteChunks == 2) { "expected 2 chunks before delete, but got $beforeDeleteChunks" }
+
+        mockMvc.delete("/admin/collections/chunks") {
+            param("serviceId", "svc_welfare")
+            param("collectionName", collectionName)
+        }.andExpect {
+            status { isOk() }
+            jsonPath("$.deletedChunks") { value(2) }
+            jsonPath("$.resetDocuments") { value(1) }
+        }
+
+        val afterDeleteChunks = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM document_chunks WHERE document_id = ?",
+            Int::class.java,
+            documentId,
+        ) ?: 0
+        assert(afterDeleteChunks == 0) { "expected 0 chunks after delete, but got $afterDeleteChunks" }
+
+        val statuses = jdbcTemplate.queryForMap(
+            "SELECT ingestion_status, index_status FROM documents WHERE id = ?",
+            documentId,
+        )
+        assert(statuses["ingestion_status"] == "pending") {
+            "expected ingestion_status=pending, but got ${statuses["ingestion_status"]}"
+        }
+        assert(statuses["index_status"] == "not_indexed") {
+            "expected index_status=not_indexed, but got ${statuses["index_status"]}"
+        }
     }
 
     @Test

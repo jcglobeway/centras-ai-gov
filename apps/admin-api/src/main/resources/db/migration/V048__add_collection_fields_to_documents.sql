@@ -1,0 +1,2 @@
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS collection_name VARCHAR(255);
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS crawl_source_id VARCHAR(255);

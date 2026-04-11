@@ -4,74 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import { useAuth, PORTAL_ROLES } from "@/lib/auth";
+import { PORTALS, type NavItem, type NavEntry } from "@/lib/nav-config";
 import type { RoleCode } from "@/lib/types";
-
-interface NavItem {
-  href: string;
-  label: string;
-  icon: string;
-}
-
-interface NavSection {
-  section: string;
-}
-
-type NavEntry = NavItem | NavSection;
-
-const OPS_NAV: NavEntry[] = [
-  { section: '대시보드' },
-  { href: '/ops',                  label: '통합 관제',      icon: 'dashboard' },
-  { href: '/ops/statistics',       label: '서비스 통계',    icon: 'bar_chart' },
-  { href: '/ops/quality-summary',  label: '품질/보안 요약', icon: 'shield' },
-  { section: '지식베이스' },
-  { href: '/ops/upload',           label: '데이터 업로드',  icon: 'upload_file' },
-  { href: '/ops/preprocessing',    label: '데이터 전처리',  icon: 'tune' },
-  { href: '/ops/vector-db',        label: '벡터 DB 관리',   icon: 'hub' },
-  { href: '/ops/dictionary',       label: '동의어/금칙어',  icon: 'spellcheck' },
-  { section: '챗봇 엔진' },
-  { href: '/ops/prompt',           label: '프롬프트',       icon: 'chat' },
-  { href: '/ops/rag-params',       label: 'RAG 파라미터',   icon: 'settings_suggest' },
-  { href: '/ops/model-serving',    label: '모델 설정',      icon: 'memory' },
-  { section: '품질 관리' },
-  { href: '/ops/quality',          label: '평가 지표',      icon: 'analytics' },
-  { href: '/ops/unresolved',       label: '미해결 질의',    icon: 'help_center' },
-  { href: '/ops/correction',       label: '답변 교정',      icon: 'edit_note' },
-  { href: '/ops/simulator',        label: '시뮬레이션 룸',  icon: 'science' },
-  { href: '/ops/redteam',          label: '레드팀 케이스셋',icon: 'security' },
-  { section: '서비스 모니터링' },
-  { href: '/ops/chat-history',     label: '대화 이력',      icon: 'history' },
-  { href: '/ops/audit',            label: '보안 감사 로그', icon: 'policy' },
-  { href: '/ops/anomaly',          label: '이상 징후 감지', icon: 'warning' },
-  { section: '통계 및 보고서' },
-  { href: '/ops/reports',          label: '성과 분석 리포트',icon: 'summarize' },
-  { href: '/ops/cost',             label: '비용 분석',      icon: 'payments' },
-  { section: '시스템' },
-  { href: '/ops/users',            label: '사용자/권한 관리',icon: 'manage_accounts' },
-  { href: '/ops/api-keys',         label: '연동 API 관리',  icon: 'api' },
-  { section: '운영' },
-  { href: '/ops/indexing',         label: 'RAG 인덱싱',     icon: 'storage' },
-  { href: '/ops/organizations',    label: '기관 관리',      icon: 'domain' },
-];
-
-const CLIENT_NAV: NavItem[] = [
-  { href: '/client',             label: '기관 대시보드',   icon: 'dashboard' },
-  { href: '/client/performance', label: '민원응대 성과',   icon: 'trending_up' },
-  { href: '/client/failure',     label: '실패/전환 분석',  icon: 'error_outline' },
-  { href: '/client/knowledge',   label: '지식 현황',       icon: 'menu_book' },
-];
-
-const QA_NAV: NavItem[] = [
-  { href: '/qa',             label: '검수 대시보드',    icon: 'dashboard' },
-  { href: '/qa/unresolved',  label: '미응답/오답 관리', icon: 'help_center' },
-  { href: '/qa/documents',   label: '문서 관리',        icon: 'folder_open' },
-  { href: '/qa/approvals',   label: '승인 워크플로우',  icon: 'task_alt' },
-];
-
-const PORTALS = [
-  { key: 'ops',    label: '운영사 어드민', basePath: '/ops',    nav: OPS_NAV as NavEntry[] },
-  { key: 'client', label: '기관 어드민',   basePath: '/client', nav: CLIENT_NAV as NavEntry[] },
-  { key: 'qa',     label: 'QA 어드민',     basePath: '/qa',     nav: QA_NAV as NavEntry[] },
-] as const;
 
 function getActivePortal(role: RoleCode, pathname: string) {
   const accessible = PORTALS.filter((p) => PORTAL_ROLES[p.key].includes(role));

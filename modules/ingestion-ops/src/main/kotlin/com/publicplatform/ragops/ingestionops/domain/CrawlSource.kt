@@ -26,6 +26,7 @@ data class CrawlSourceSummary(
     val status: CrawlSourceStatus,
     val lastSucceededAt: Instant?,
     val lastJobId: String?,
+    val collectionName: String?,
 )
 
 data class CreateCrawlSourceCommand(
@@ -38,4 +39,5 @@ data class CreateCrawlSourceCommand(
     val collectionMode: CrawlCollectionMode,
     val schedule: String,
     val requestedBy: String,
+    val collectionName: String? = null,
 )

@@ -26,9 +26,22 @@ data class DocumentSummary(
     val lastIngestedAt: Instant?,
     val lastIndexedAt: Instant?,
     val createdAt: Instant,
+    val collectionName: String? = null,
+    val crawlSourceId: String? = null,
 )
 
 data class DocumentScope(
     val organizationIds: Set<String>,
     val globalAccess: Boolean,
+)
+
+data class RegisterDocumentCommand(
+    val organizationId: String,
+    val title: String,
+    val documentType: String,
+    val sourceUri: String,
+    val visibilityScope: String,
+    val requestedBy: String,
+    val collectionName: String? = null,
+    val crawlSourceId: String? = null,
 )

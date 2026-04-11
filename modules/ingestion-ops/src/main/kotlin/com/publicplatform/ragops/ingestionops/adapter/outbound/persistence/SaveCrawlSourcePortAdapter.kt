@@ -27,6 +27,7 @@ open class SaveCrawlSourcePortAdapter(
             renderMode = command.renderMode.name.lowercase(), scheduleExpr = command.schedule,
             isActive = true, status = CrawlSourceStatus.ACTIVE.name.lowercase(),
             lastCrawledAt = null, lastSucceededAt = null, lastJobId = null,
+            collectionName = command.collectionName,
             createdAt = Instant.now(), updatedAt = Instant.now(),
         )
         val saved = jpaRepository.save(entity)

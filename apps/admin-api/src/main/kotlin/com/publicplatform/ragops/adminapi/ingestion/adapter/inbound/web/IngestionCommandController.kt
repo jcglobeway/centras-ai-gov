@@ -69,6 +69,7 @@ class IngestionCommandController(
                 collectionMode = request.collectionMode.toCollectionMode(),
                 schedule = request.scheduleExpr,
                 requestedBy = session.user.id,
+                collectionName = request.collectionName,
             ),
         )
 
@@ -164,6 +165,7 @@ data class CreateCrawlSourceRequest(
     @field:NotBlank val renderMode: String,
     @field:NotBlank val collectionMode: String,
     @field:NotBlank val scheduleExpr: String,
+    val collectionName: String? = null,
 )
 
 data class CrawlSourceCreateResponse(val crawlSourceId: String, val saved: Boolean)

@@ -152,8 +152,11 @@ class RepositoryConfiguration {
         LoadMetricsPortAdapter(jpaRepository)
 
     @Bean
-    fun documentWriter(jpaChunkRepository: JpaDocumentChunkRepository): SaveDocumentPort =
-        SaveDocumentPortAdapter(jpaChunkRepository)
+    fun documentWriter(
+        jpaChunkRepository: JpaDocumentChunkRepository,
+        jdbcTemplate: JdbcTemplate,
+    ): SaveDocumentPort =
+        SaveDocumentPortAdapter(jpaChunkRepository, jdbcTemplate)
 
     @Bean
     fun saveDocumentRecordPort(jpaDocumentRepository: JpaDocumentRepository): SaveDocumentRecordPort =

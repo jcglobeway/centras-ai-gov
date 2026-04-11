@@ -61,6 +61,7 @@ class IngestionQueryController(
     @GetMapping("/ingestion-jobs")
     fun listIngestionJobs(
         @RequestParam("organization_id", required = false) organizationId: String?,
+        @RequestParam("status", required = false) status: String?,
         @RequestParam("from_date", required = false) from: String?,
         @RequestParam("to_date", required = false) to: String?,
         request: HttpServletRequest,
@@ -69,9 +70,12 @@ class IngestionQueryController(
         adminAuthorizationPolicy.requireAuthorized(session, actionCheck("ingestion_job.read"))
         val fromInst = from?.let { LocalDate.parse(it).atStartOfDay(ZoneOffset.UTC).toInstant() }
         val toInst = to?.let { LocalDate.parse(it).plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant() }
+        val normalizedStatus = status?.trim()?.lowercase()
         val items = listIngestionUseCase.listJobs(session.toScope(organizationId))
             .filter {
-                (fromInst == null || it.requestedAt >= fromInst) && (toInst == null || it.requestedAt < toInst)
+                (normalizedStatus == null || it.status.toApiValue() == normalizedStatus) &&
+                    (fromInst == null || it.requestedAt >= fromInst) &&
+                    (toInst == null || it.requestedAt < toInst)
             }
             .map { it.toResponse() }
         return IngestionJobListResponse(items = items, total = items.size)
@@ -92,6 +96,7 @@ data class CrawlSourceResponse(
     val id: String, val organizationId: String, val serviceId: String, val name: String,
     val sourceType: String, val sourceUri: String, val renderMode: String, val collectionMode: String,
     val schedule: String, val status: String, val lastSucceededAt: Instant?, val lastJobId: String?,
+    val collectionName: String?,
 )
 
 data class IngestionJobListResponse(val items: List<IngestionJobResponse>, val total: Int)
@@ -121,6 +126,7 @@ private fun CrawlSourceSummary.toResponse() = CrawlSourceResponse(
     sourceType = sourceType.toApiValue(), sourceUri = sourceUri, renderMode = renderMode.toApiValue(),
     collectionMode = collectionMode.toApiValue(), schedule = schedule, status = status.toApiValue(),
     lastSucceededAt = lastSucceededAt, lastJobId = lastJobId,
+    collectionName = collectionName,
 )
 
 private fun IngestionJobSummary.toResponse() = IngestionJobResponse(

@@ -49,7 +49,8 @@ open class PersistIngestionJobPortAdapter(
             collectionMode = source.collectionMode, renderMode = source.renderMode,
             scheduleExpr = source.scheduleExpr, isActive = source.isActive, status = source.status,
             lastCrawledAt = source.lastCrawledAt, lastSucceededAt = source.lastSucceededAt,
-            lastJobId = id, createdAt = source.createdAt, updatedAt = Instant.now(),
+            lastJobId = id, collectionName = source.collectionName,
+            createdAt = source.createdAt, updatedAt = Instant.now(),
         )
         crawlSourceRepository.save(updatedSource)
 
@@ -108,7 +109,8 @@ open class PersistIngestionJobPortAdapter(
                 IngestionJobStatus.SUCCEEDED, IngestionJobStatus.PARTIAL_SUCCESS -> job.finishedAt
                 else -> source.lastSucceededAt
             },
-            lastJobId = job.id, createdAt = source.createdAt, updatedAt = Instant.now(),
+            lastJobId = job.id, collectionName = source.collectionName,
+            createdAt = source.createdAt, updatedAt = Instant.now(),
         )
         crawlSourceRepository.save(updatedSource)
     }
