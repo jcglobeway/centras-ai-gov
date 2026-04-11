@@ -121,7 +121,7 @@ All modules use Java 25 (`kotlin { jvmToolchain(25) }`).
 ### Implementation Status
 
 - **7 modules** fully implemented with JPA + PostgreSQL
-- **Flyway migrations**: V001–V027 (V018 = Kotlin pgvector migration, no-op on H2)
+- **Flyway migrations**: V001–V029 (V018 = Kotlin pgvector migration, V029 = question_embedding 컬럼)
 - **50 integration tests** (100% passing) + 8 ArchUnit rules
 - **Frontend**: Next.js 15, 3-portal structure, "Control Tower" dark theme
 - **Hexagonal architecture**: canonical package structure 완성
@@ -166,9 +166,9 @@ All modules use Java 25 (`kotlin { jvmToolchain(25) }`).
 
 | Migration | 내용 |
 |-----------|------|
-| V016 | `document_chunks` (embedding_vector as TEXT/H2, vector(1024)/PostgreSQL) |
+| V016 | `document_chunks` (embedding_vector vector(1024)/PostgreSQL) |
 | V017 | `rag_search_logs`, `rag_retrieved_documents` |
-| V018 | Kotlin migration — pgvector extension + ALTER document_chunks (no-op in H2) |
+| V018 | Kotlin migration — pgvector extension + ALTER document_chunks |
 | V019 | `feedbacks` (citizen satisfaction ratings) |
 | V020 | 역할 6개로 확장 (super_admin, ops_admin, qa_manager, client_org_admin, client_viewer, knowledge_editor) |
 | V021 | `questions` 확장: `question_category`, `failure_reason_code` (A01~A10), `is_escalated`, `answer_confidence` |
@@ -179,7 +179,7 @@ All modules use Java 25 (`kotlin { jvmToolchain(25) }`).
 | V026 | `answers` 확장: LLM 메트릭 (model_name, tokens, cost, finish_reason) |
 | V027 | 공공 문서 + LLM 메트릭 시드 데이터 |
 
-**Test environment**: H2 in-memory (MODE=PostgreSQL), `spring.flyway.target: "27"`
+**Test environment**: Testcontainers (PostgreSQL), `spring.flyway.target: "46"`
 **Production**: PostgreSQL 15+ via `docker-compose.yml`
 
 ---
@@ -368,7 +368,7 @@ Prefixes: `crawl_src_`, `ing_job_`, `question_`, `answer_`, `qa_rev_`, etc.
 **Test pattern**:
 - `@SpringBootTest` + `@AutoConfigureMockMvc` + `@ActiveProfiles("test")`
 - `@DirtiesContext(AFTER_CLASS)` for test isolation
-- H2 in-memory DB (MODE=PostgreSQL), `flyway.target: "27"`
+- Testcontainers (PostgreSQL), `flyway.target: "46"`
 - Helper: `loginAndReturnSessionId()`, `createQuestionAndReturnId()`
 
 ---
