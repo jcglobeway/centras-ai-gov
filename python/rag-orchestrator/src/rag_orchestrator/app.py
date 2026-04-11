@@ -44,6 +44,24 @@ class GenerateAnswerResponse(BaseModel):
     input_tokens: Optional[int] = None
     output_tokens: Optional[int] = None
     total_tokens: Optional[int] = None
+    estimated_cost_usd: Optional[float] = None
+
+
+def _estimate_cost(input_tokens: Optional[int], output_tokens: Optional[int]) -> Optional[float]:
+    """
+    로컬 LLM 토큰 사용량을 기반으로 가상 단가를 적용해 비용을 추정한다.
+
+    실제 과금이 없는 Ollama 모델에 대해 운영 참고용 비용 지표를 제공한다.
+    단가는 환경변수로 재정의할 수 있다.
+      COST_PER_1K_INPUT_TOKENS  (기본: 0.0015 USD — gpt-3.5-turbo 입력 단가 수준)
+      COST_PER_1K_OUTPUT_TOKENS (기본: 0.0020 USD — gpt-3.5-turbo 출력 단가 수준)
+    """
+    if input_tokens is None and output_tokens is None:
+        return None
+    rate_in = float(os.getenv("COST_PER_1K_INPUT_TOKENS", "0.0015"))
+    rate_out = float(os.getenv("COST_PER_1K_OUTPUT_TOKENS", "0.0020"))
+    cost = ((input_tokens or 0) / 1000.0 * rate_in) + ((output_tokens or 0) / 1000.0 * rate_out)
+    return round(cost, 8)
 
 
 def _cache_key(question_text: str, org_id: str) -> str:
@@ -194,13 +212,55 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
     if use_ollama:
         start_ms = int(time.time() * 1000)
 
-        from .retrieval import get_embedding, hybrid_search
+        from .retrieval import get_embedding, hybrid_search, vector_search
         from .pii_scanner import scan_and_mask
 
         # 입력 PII 스캔 — 마스킹된 질문으로 검색 및 LLM 호출
         clean_question, input_pii_hits = scan_and_mask(request.question_text)
         if input_pii_hits:
             _log_pii_event("question_input", request.question_id, request.organization_id, len(input_pii_hits))
+
+        # Layer 3: 유사도 임계값 검사 (semantic cache miss 이후, hybrid_search 이전)
+        # 임베딩은 semantic cache 단계에서 이미 생성된 경우 재사용한다.
+        similarity_threshold = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.5"))
+        if _query_embedding is None:
+            _query_embedding = get_embedding(clean_question, ollama_url)
+        _vec_results_for_threshold = vector_search(
+            query_text=clean_question,
+            top_k=1,
+            ollama_url=ollama_url,
+            db_connection_string=db_url,
+        ) if _query_embedding else []
+        _max_similarity = max(
+            (r["similarity"] for r in _vec_results_for_threshold), default=0.0
+        )
+        if _vec_results_for_threshold and _max_similarity < similarity_threshold:
+            _log_search_result(
+                question_id=request.question_id,
+                query_text=request.question_text,
+                search_results=[],
+                latency_ms=int(time.time() * 1000) - start_ms,
+                cache_hit=False,
+                retrieval_status="low_similarity",
+            )
+            _no_answer_dict = {
+                "question_id": request.question_id,
+                "answer_text": "",
+                "answer_status": "no_answer",
+                "citation_count": 0,
+                "response_time_ms": int(time.time() * 1000) - start_ms,
+                "fallback_reason_code": None,
+                "confidence_score": 0.0,
+                "question_failure_reason_code": "A01",
+                "is_escalated": True,
+                "query_embedding": None,
+                "model_name": None,
+                "provider_name": "ollama",
+                "input_tokens": None,
+                "output_tokens": None,
+                "total_tokens": None,
+            }
+            return GenerateAnswerResponse(**_no_answer_dict)
 
         top_k = rag_config.get("topK", int(os.getenv("HYBRID_SEARCH_TOP_K", "10")))
         reranker_enabled = rag_config.get("rerankerEnabled", os.getenv("RERANKER_ENABLED", "false").lower() == "true")
@@ -213,7 +273,8 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
             db_url=db_url,
             reranker_enabled=reranker_enabled,
         )
-        query_embedding = get_embedding(clean_question, ollama_url)
+        # 임계값 검사 단계에서 이미 생성된 임베딩을 재사용한다.
+        query_embedding = _query_embedding
         latency_ms = int(time.time() * 1000) - retrieval_start
 
         llm_start = int(time.time() * 1000)
@@ -236,6 +297,7 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
         input_tokens = llm_result.get("input_tokens")
         output_tokens = llm_result.get("output_tokens")
         total_tokens = (input_tokens or 0) + (output_tokens or 0) or None
+        estimated_cost_usd = _estimate_cost(input_tokens, output_tokens)
 
         answer_status = "answered"
         citation_count = len(search_results)
@@ -300,6 +362,7 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
         "input_tokens": input_tokens,
         "output_tokens": output_tokens,
         "total_tokens": total_tokens,
+        "estimated_cost_usd": estimated_cost_usd,
     }
     if _redis_client:
         try:
@@ -327,6 +390,7 @@ def generate_answer(request: GenerateAnswerRequest) -> GenerateAnswerResponse:
         input_tokens=input_tokens,
         output_tokens=output_tokens,
         total_tokens=total_tokens,
+        estimated_cost_usd=estimated_cost_usd,
     )
 
 
@@ -454,7 +518,7 @@ def generate_answer_stream(request: GenerateAnswerRequest):
             }) + "\n"
         return StreamingResponse(fallback_stream(), media_type="application/x-ndjson")
 
-    from .retrieval import get_embedding, hybrid_search
+    from .retrieval import get_embedding, hybrid_search, vector_search
     from .pii_scanner import scan_and_mask
 
     # 입력 PII 스캔
@@ -463,6 +527,38 @@ def generate_answer_stream(request: GenerateAnswerRequest):
         _log_pii_event("question_input", request.question_id, request.organization_id, len(input_pii_hits))
 
     start_ms = int(time.time() * 1000)
+
+    # 유사도 임계값 검사 — hybrid_search 이전 단계
+    similarity_threshold = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.5"))
+    _stream_vec_results = vector_search(
+        query_text=clean_question,
+        top_k=1,
+        ollama_url=ollama_url,
+        db_connection_string=db_url,
+    )
+    _stream_max_similarity = max(
+        (r["similarity"] for r in _stream_vec_results), default=0.0
+    )
+    if _stream_vec_results and _stream_max_similarity < similarity_threshold:
+        _log_search_result(
+            question_id=request.question_id,
+            query_text=request.question_text,
+            search_results=[],
+            latency_ms=int(time.time() * 1000) - start_ms,
+            cache_hit=False,
+            retrieval_status="low_similarity",
+        )
+        def no_answer_stream():
+            yield json.dumps({
+                "done": True,
+                "answer_status": "no_answer",
+                "citation_count": 0,
+                "response_time_ms": int(time.time() * 1000) - start_ms,
+                "confidence_score": 0.0,
+                "retrieved_chunks": [],
+            }) + "\n"
+        return StreamingResponse(no_answer_stream(), media_type="application/x-ndjson")
+
     top_k = rag_config.get("topK", int(os.getenv("HYBRID_SEARCH_TOP_K", "10")))
     reranker_enabled = rag_config.get("rerankerEnabled", os.getenv("RERANKER_ENABLED", "false").lower() == "true")
 
@@ -474,7 +570,6 @@ def generate_answer_stream(request: GenerateAnswerRequest):
         db_url=db_url,
         reranker_enabled=reranker_enabled,
     )
-    get_embedding(clean_question, ollama_url)
     latency_ms = int(time.time() * 1000) - retrieval_start
 
     _log_search_result(
@@ -607,16 +702,19 @@ def _log_search_result(
     llm_ms: int | None = None,
     postprocess_ms: int | None = None,
     cache_hit: bool = False,
+    retrieval_status: str | None = None,
 ) -> None:
     """
     RAG 검색 결과를 Admin API rag-search-log 엔드포인트로 기록한다.
 
     Admin API가 없거나 실패해도 RAG 답변 생성 흐름에는 영향을 주지 않는다.
+    retrieval_status를 명시하지 않으면 search_results 유무로 자동 결정한다.
     """
     import httpx
 
     admin_api_url = os.getenv("ADMIN_API_BASE_URL", "http://localhost:8081")
-    retrieval_status = "success" if search_results else "zero_result"
+    if retrieval_status is None:
+        retrieval_status = "success" if search_results else "zero_result"
 
     try:
         httpx.post(

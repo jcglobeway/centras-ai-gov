@@ -12,6 +12,7 @@ import hashlib
 import os
 from datetime import datetime
 from typing import Optional
+from urllib.parse import urlparse
 
 import httpx
 import psycopg2
@@ -158,7 +159,12 @@ def vector_search(
         cur.close()
         conn.close()
         return [
-            {"chunk_id": str(r["id"]), "chunk_text": str(r["chunk_text"]), "distance": float(r["distance"])}
+            {
+                "chunk_id": str(r["id"]),
+                "chunk_text": str(r["chunk_text"]),
+                "distance": float(r["distance"]),
+                "similarity": max(0.0, 1.0 - float(r["distance"])),
+            }
             for r in rows if r["chunk_text"]
         ]
     except Exception:
@@ -273,6 +279,51 @@ def rerank(
         return candidates[:top_n]
 
 
+def _load_chunk_metadata(
+    conn_str: str,
+    chunk_ids: list[str],
+) -> dict[str, dict[str, str]]:
+    """chunk_id 목록의 문서 메타데이터를 조회해 파일명/자료타입을 반환한다."""
+    if not chunk_ids:
+        return {}
+
+    try:
+        conn = psycopg2.connect(conn_str)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            """
+            SELECT dc.id AS chunk_id,
+                   d.title AS title,
+                   d.source_uri AS source_uri,
+                   d.document_type AS document_type
+            FROM document_chunks dc
+            JOIN documents d ON dc.document_id = d.id
+            WHERE dc.id = ANY(%s)
+            """,
+            (chunk_ids,),
+        )
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        metadata: dict[str, dict[str, str]] = {}
+        for row in rows:
+            chunk_id = str(row["chunk_id"])
+            source_uri = str(row.get("source_uri") or "")
+            parsed = urlparse(source_uri)
+            file_name = os.path.basename(parsed.path) if parsed.path else ""
+            title = str(row.get("title") or "")
+            doc_type = str(row.get("document_type") or "unknown")
+
+            metadata[chunk_id] = {
+                "filename": file_name or title or chunk_id,
+                "document_type": doc_type or "unknown",
+            }
+        return metadata
+    except Exception:
+        return {}
+
+
 # ── Hybrid Search (메인 진입점) ────────────────────────────────────────────────
 
 def hybrid_search(
@@ -307,6 +358,9 @@ def hybrid_search(
     else:
         final = fused[:final_top_n]
 
+    chunk_ids = [str(doc["chunk_id"]) for doc in final]
+    metadata_by_chunk = _load_chunk_metadata(db_url or os.getenv("DATABASE_URL", ""), chunk_ids)
+
     # RRF 점수를 [0, 1] confidence로 정규화해 distance 필드에 담는다.
     # 이론적 최댓값: 두 리스트 모두 1위일 때 2/(k+1) = 2/61 ≈ 0.0328
     # distance = 1 - (rrf_score / max_rrf) → confidence = 1 - distance
@@ -316,6 +370,8 @@ def hybrid_search(
             "chunk_id": doc["chunk_id"],
             "chunk_text": doc["chunk_text"],
             "distance": str(max(0.0, 1.0 - doc.get("rrf_score", 0.0) / _max_rrf)),
+            "filename": metadata_by_chunk.get(str(doc["chunk_id"]), {}).get("filename", str(doc["chunk_id"])),
+            "document_type": metadata_by_chunk.get(str(doc["chunk_id"]), {}).get("document_type", "unknown"),
         }
         for doc in final
     ]

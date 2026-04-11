@@ -78,6 +78,7 @@ private data class GenerateAnswerResult(
     val input_tokens: Int? = null,
     val output_tokens: Int? = null,
     val total_tokens: Int? = null,
+    val estimated_cost_usd: Double? = null,
 )
 
 private fun GenerateAnswerResult.toRagAnswerResult() = RagAnswerResult(
@@ -95,4 +96,5 @@ private fun GenerateAnswerResult.toRagAnswerResult() = RagAnswerResult(
     inputTokens = input_tokens,
     outputTokens = output_tokens,
     totalTokens = total_tokens,
+    estimatedCostUsd = estimated_cost_usd,
 )
