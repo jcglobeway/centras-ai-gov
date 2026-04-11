@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import asyncio
 import os
+import re
+from pathlib import Path
+from urllib.parse import unquote, urlparse
 
 import httpx
 from loguru import logger
@@ -27,6 +30,7 @@ class IngestionJobRunner:
     def __init__(self, admin_api_client: AdminApiClient):
         self.admin_api = admin_api_client
         self.ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
+        self.ollama_tls_verify = os.getenv("OLLAMA_TLS_VERIFY", "false").lower() == "true"
 
         self._max_depth = int(os.getenv("CRAWLER_MAX_DEPTH", "3"))
         self._max_pages = int(os.getenv("CRAWLER_MAX_PAGES", "100"))
@@ -40,6 +44,15 @@ class IngestionJobRunner:
         try:
             job = self.admin_api.get_ingestion_job(job_id)
             logger.info(f"[JobRunner] Job loaded: {job.id}, status={job.job_status}")
+            if job.job_status in {
+                JobStatus.SUCCEEDED,
+                JobStatus.PARTIAL_SUCCESS,
+                JobStatus.FAILED,
+                JobStatus.CANCELLED,
+                JobStatus.RUNNING,
+            }:
+                logger.info(f"[JobRunner] Job {job.id} already {job.job_status}, skipping duplicate run")
+                return
 
             source = self.admin_api.get_crawl_source(job.crawl_source_id)
             logger.info(f"[JobRunner] Crawl source: {source.name}, uri={source.source_uri}")
@@ -52,14 +65,17 @@ class IngestionJobRunner:
                 job_stage=JobStage.FETCH,
             )
 
-            pages = asyncio.run(self._crawl_all(source.source_uri))
+            if source.source_type == "file_drop":
+                pages = self._load_file_drop_pages(source.source_uri)
+            else:
+                pages = asyncio.run(self._crawl_all(source.source_uri))
 
             if not pages:
                 logger.error("[JobRunner] 크롤 결과 없음")
                 self.admin_api.transition_job_status(
                     job_id=job_id,
                     job_status=JobStatus.FAILED,
-                    job_stage=JobStage.FETCH,
+                    job_stage=JobStage.COMPLETE,
                     error_code="CRAWL_ERROR",
                 )
                 return
@@ -128,7 +144,16 @@ class IngestionJobRunner:
                 job_stage=JobStage.INDEX,
             )
 
-            document_id = f"doc_{source.id}"
+            # 청크 저장 전 documents 테이블에 문서 등록 (FK 제약 충족)
+            document_id = self.admin_api.register_document(
+                organization_id=source.organization_id,
+                title=f"웹크롤: {source.name}",
+                source_uri=source.source_uri,
+                document_type="webpage",
+                visibility_scope="organization",
+                crawl_source_id=source.id,
+            )
+            logger.info(f"[JobRunner] 문서 등록 완료: {document_id}")
             saved_count = 0
 
             for chunk, embedding in chunk_with_embeddings:
@@ -162,12 +187,84 @@ class IngestionJobRunner:
                 self.admin_api.transition_job_status(
                     job_id=job_id,
                     job_status=JobStatus.FAILED,
-                    job_stage=JobStage.FETCH,
+                    job_stage=JobStage.COMPLETE,
                     error_code="WORKER_ERROR",
                 )
             except Exception as callback_error:
                 logger.error(f"[JobRunner] Failed to send error callback: {callback_error}")
             raise
+
+    def _load_file_drop_pages(self, file_path: str) -> list[CrawledPage]:
+        try:
+            path = self._resolve_file_drop_path(file_path)
+            text = self._extract_file_drop_text(path)
+            return [
+                CrawledPage(
+                    url=f"file://{path}",
+                    title=path.name,
+                    content=text,
+                    links=[],
+                    depth=0,
+                    metadata={"source_type": "file_drop", "file_path": str(path)},
+                ),
+            ]
+        except Exception as e:
+            logger.warning(f"[JobRunner] file_drop 로드 실패 {file_path}: {e}")
+            return []
+
+    def _resolve_file_drop_path(self, file_path: str) -> Path:
+        if file_path.startswith("file://"):
+            parsed = urlparse(file_path)
+            return Path(unquote(parsed.path))
+        return Path(file_path)
+
+    def _extract_file_drop_text(self, path: Path) -> str:
+        suffix = path.suffix.lower()
+        if suffix == ".pdf":
+            return self._extract_pdf_text(path)
+
+        raw = path.read_bytes()
+        text = raw.decode("utf-8", errors="ignore").strip()
+        if text:
+            return text
+        raise ValueError(f"텍스트 추출 실패: {path}")
+
+    def _extract_pdf_text(self, path: Path) -> str:
+        pdfplumber_error: Exception | None = None
+
+        try:
+            import pdfplumber
+
+            with pdfplumber.open(path) as pdf:
+                pages = [page.extract_text() or "" for page in pdf.pages]
+                text = "\n\n".join(page for page in pages if page.strip()).strip()
+                if text:
+                    return self._post_process_pdf_text(text)
+        except Exception as exc:
+            pdfplumber_error = exc
+
+        try:
+            from PyPDF2 import PdfReader
+
+            reader = PdfReader(str(path))
+            pages = [(page.extract_text() or "") for page in reader.pages]
+            text = "\n\n".join(page for page in pages if page.strip()).strip()
+            if text:
+                return self._post_process_pdf_text(text)
+        except Exception as exc:
+            if pdfplumber_error is not None:
+                raise ValueError(
+                    f"PDF 추출 실패(pdfplumber={pdfplumber_error}, pypdf2={exc})"
+                ) from exc
+            raise ValueError(f"PDF 추출 실패(pypdf2={exc})") from exc
+
+        raise ValueError("PDF 추출 실패: 본문 텍스트 없음")
+
+    def _post_process_pdf_text(self, text: str) -> str:
+        normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+        normalized = re.sub(r"[ \t]+", " ", normalized)
+        normalized = re.sub(r"\n{3,}", "\n\n", normalized)
+        return normalized.strip()
 
     async def _crawl_all(self, seed_url: str) -> list[CrawledPage]:
         async with AutonomousCrawler(
@@ -197,9 +294,20 @@ class IngestionJobRunner:
                 f"{self.ollama_url}/api/embeddings",
                 json={"model": "bge-m3", "prompt": text},
                 timeout=10.0,
+                verify=self.ollama_tls_verify,
             )
             if response.status_code == 200:
-                return response.json().get("embedding")
+                body = response.json()
+                embedding = body.get("embedding")
+                if isinstance(embedding, list):
+                    return embedding
+                embeddings = body.get("embeddings")
+                if isinstance(embeddings, list) and embeddings:
+                    first = embeddings[0]
+                    if isinstance(first, list):
+                        return first
+                return None
             return None
-        except Exception:
+        except Exception as exc:
+            logger.debug(f"[JobRunner] 임베딩 실패: {exc}")
             return None

@@ -4,6 +4,7 @@
 # 사용법:
 #   ./dev.sh           # 전체 시작
 #   ./dev.sh --no-rag  # rag-orchestrator 제외
+#   ./dev.sh --with-worker  # ingestion-worker(uv) 포함
 #   ./dev.sh --clean   # Gradle clean 후 시작 (캐시 문제 해결 시 사용)
 #
 # 종료: Ctrl+C → 모든 프로세스 일괄 종료
@@ -16,9 +17,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOGS_DIR="$SCRIPT_DIR/logs"
 
 START_RAG=true
+START_WORKER=false
 CLEAN_BUILD=false
 for arg in "$@"; do
   [[ "$arg" == "--no-rag" ]] && START_RAG=false
+  [[ "$arg" == "--with-worker" ]] && START_WORKER=true
   [[ "$arg" == "--clean"  ]] && CLEAN_BUILD=true
 done
 
@@ -66,6 +69,18 @@ log "Starting frontend (port 3000)..."
   > "$LOGS_DIR/frontend.log" 2>&1 &
 FRONT_PID=$!
 
+# ── ingestion-worker (uv) ────────────────────────────────────────────────────
+
+WORKER_PID=""
+if $START_WORKER; then
+  log "Starting ingestion-worker via uv..."
+  (cd "$SCRIPT_DIR/python/ingestion-worker" && uv run python -m ingestion_worker.app worker --concurrency 1 --loglevel info) \
+    > "$LOGS_DIR/ingestion-worker.log" 2>&1 &
+  WORKER_PID=$!
+else
+  log "Skipping ingestion-worker (use --with-worker)"
+fi
+
 # ── 시작 안내 ─────────────────────────────────────────────────────────────────
 
 echo ""
@@ -73,6 +88,7 @@ log "All services starting. URLs:"
 url "Admin API   → http://localhost:8081"
 $START_RAG && url "Orchestrator → http://localhost:8090"
 url "Frontend    → http://localhost:3000"
+$START_WORKER && url "Worker      → uv run ingestion-worker (background)"
 echo ""
 log "Logs: tail -f $LOGS_DIR/*.log"
 log "Stop:  Ctrl+C"
@@ -86,6 +102,7 @@ cleanup() {
   kill "$ADMIN_PID" 2>/dev/null || true
   [[ -n "$RAG_PID" ]] && kill "$RAG_PID" 2>/dev/null || true
   kill "$FRONT_PID" 2>/dev/null || true
+  [[ -n "$WORKER_PID" ]] && kill "$WORKER_PID" 2>/dev/null || true
   log "Done."
   exit 0
 }

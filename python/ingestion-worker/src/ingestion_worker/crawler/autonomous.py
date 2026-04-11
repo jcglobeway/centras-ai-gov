@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import re
 from typing import Optional
 from urllib.parse import urlparse
 
@@ -10,7 +11,30 @@ from loguru import logger
 from playwright.async_api import Browser, Page, async_playwright
 
 from ..models import CrawledPage
+from .adapters.base import BaseSiteAdapter
+from .adapters.ggc_go_kr import GgcGoKrAdapter
+from .adapters.gjf_or_kr import GjfOrKrAdapter
+from .adapters.namgu_gwangju_kr import NamguGwangjuKrAdapter
 from .extractor import ContentExtractor
+
+# ── 어댑터 레지스트리 ──────────────────────────────────────────────────────────
+# seed URL 도메인 패턴 → 어댑터 클래스 매핑.
+# 순서대로 매칭하며 첫 번째 일치 항목을 사용한다.
+
+ADAPTER_REGISTRY: list[tuple[str, type[BaseSiteAdapter]]] = [
+    (r"ggc\.go\.kr",          GgcGoKrAdapter),
+    (r"gjf\.or\.kr",          GjfOrKrAdapter),
+    (r"job\.gg\.go\.kr",      GjfOrKrAdapter),
+    (r"namgu\.gwangju\.kr",   NamguGwangjuKrAdapter),
+]
+
+
+def _detect_adapter(url: str) -> Optional[BaseSiteAdapter]:
+    """seed URL에서 도메인 패턴으로 어댑터를 자동 감지한다. 없으면 None 반환."""
+    for pattern, cls in ADAPTER_REGISTRY:
+        if re.search(pattern, url):
+            return cls()
+    return None
 
 
 def simhash(text: str, bits: int = 64) -> int:
@@ -96,6 +120,7 @@ class AutonomousCrawler:
         self._semaphore = asyncio.Semaphore(concurrency)
         self._robots = RobotsChecker()
         self._extractor = ContentExtractor()
+        self._adapter: Optional[BaseSiteAdapter] = None
 
     async def __aenter__(self):
         self._playwright = await async_playwright().start()
@@ -113,6 +138,14 @@ class AutonomousCrawler:
 
     async def crawl_all(self, seed_url: str) -> list[CrawledPage]:
         """seed URL에서 재귀적으로 크롤링하여 수집된 모든 페이지를 반환한다."""
+        # seed URL로 사이트 전용 어댑터 자동 감지
+        self._adapter = _detect_adapter(seed_url)
+        if self._adapter:
+            logger.info(f"사이트 어댑터 감지: {type(self._adapter).__name__}")
+            self._adapter.on_crawl_start()
+        else:
+            logger.info("사이트 전용 어댑터 없음 — 범용 크롤러 사용")
+
         visited: set[str] = set()
         seen_hashes: list[int] = []
         results: list[CrawledPage] = []
@@ -143,6 +176,9 @@ class AutonomousCrawler:
                 for next_url in new_urls:
                     queue.append((next_url, depth + 1, url))
 
+        if self._adapter:
+            self._adapter.on_crawl_end()
+
         return results
 
     async def _crawl_page(
@@ -170,6 +206,17 @@ class AutonomousCrawler:
                 extracted = self._extractor.extract(html, url)
                 content_hash = simhash(extracted["content"])
 
+                # 사이트 전용 어댑터가 있으면 구조화 파싱으로 메타데이터 보강
+                adapter_meta: dict = {}
+                if self._adapter:
+                    from bs4 import BeautifulSoup
+                    soup = BeautifulSoup(html, "lxml")
+                    page_type = self._adapter.route(url)
+                    parsed = self._adapter.parse(page_type, soup, url)
+                    if parsed:
+                        adapter_meta = parsed
+                        logger.debug(f"어댑터 파싱 완료 [{page_type}]: {url}")
+
                 await asyncio.sleep(self.delay)
 
                 return CrawledPage(
@@ -184,6 +231,7 @@ class AutonomousCrawler:
                     metadata={
                         **extracted["metadata"],
                         "sections": extracted.get("sections", []),
+                        **adapter_meta,
                     },
                 )
 

@@ -1,5 +1,6 @@
 package com.publicplatform.ragops.adminapi.documentregistry.adapter.inbound.web
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.publicplatform.ragops.adminapi.auth.AdminRequestSessionResolver
 import com.publicplatform.ragops.documentregistry.application.port.`in`.SaveDocumentChunkUseCase
 import com.publicplatform.ragops.documentregistry.domain.SaveDocumentChunkCommand
@@ -23,6 +24,7 @@ import java.time.Instant
 class DocumentChunkController(
     private val adminRequestSessionResolver: AdminRequestSessionResolver,
     private val saveDocumentChunkUseCase: SaveDocumentChunkUseCase,
+    private val objectMapper: ObjectMapper,
 ) {
 
     @PostMapping("/document-chunks")
@@ -52,10 +54,8 @@ class DocumentChunkController(
         )
     }
 
-    private fun serializeMetadata(metadata: Map<String, Any>): String {
-        // Map을 JSON 문자열로 직렬화 (Jackson ObjectMapper 대신 간단한 구현)
-        return com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(metadata)
-    }
+    private fun serializeMetadata(metadata: Map<String, Any>): String =
+        objectMapper.writeValueAsString(metadata)
 }
 
 data class SaveDocumentChunkRequest(
