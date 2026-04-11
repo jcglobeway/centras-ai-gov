@@ -81,7 +81,7 @@ class QAReviewController(
 
     @GetMapping("/qa-reviews")
     fun listQAReviews(
-        @RequestParam(required = false) questionId: String?,
+        @RequestParam("question_id", required = false) questionId: String?,
         @RequestParam("review_status", required = false) reviewStatus: String?,
         servletRequest: HttpServletRequest,
     ): QAReviewListResponse {

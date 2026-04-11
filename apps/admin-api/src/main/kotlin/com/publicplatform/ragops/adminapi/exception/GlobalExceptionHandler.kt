@@ -111,6 +111,22 @@ class GlobalExceptionHandler {
         )
     }
 
+    @ExceptionHandler(NoSuchElementException::class)
+    fun handleNoSuchElementException(ex: NoSuchElementException): ResponseEntity<ErrorResponse> {
+        logger.warn("Resource not found: {}", ex.message)
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+            ErrorResponse(
+                error = ErrorDetail(
+                    code = "NOT_FOUND",
+                    message = ex.message ?: "Resource not found",
+                    requestId = MDC.get("request_id"),
+                ),
+                generatedAt = Instant.now(),
+            ),
+        )
+    }
+
     @ExceptionHandler(ResponseStatusException::class)
     fun handleResponseStatusException(ex: ResponseStatusException): ResponseEntity<ErrorResponse> {
         logger.warn("Response status exception: {}", ex.reason)

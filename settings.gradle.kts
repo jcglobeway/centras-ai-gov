@@ -10,5 +10,6 @@ include(
     ":modules:ingestion-ops",
     ":modules:qa-review",
     ":modules:metrics-reporting",
+    ":modules:redteam",
 )
 

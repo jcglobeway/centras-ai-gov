@@ -25,6 +25,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
         "com.publicplatform.ragops.documentregistry.adapter.outbound.persistence",
         "com.publicplatform.ragops.metricsreporting.adapter.outbound.persistence",
         "com.publicplatform.ragops.adminapi.evaluation.adapter.outbound.persistence",
+        "com.publicplatform.ragops.redteam.adapter.outbound.persistence",
     ],
 )
 @EntityScan(
@@ -38,6 +39,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
         "com.publicplatform.ragops.documentregistry.adapter.outbound.persistence",
         "com.publicplatform.ragops.metricsreporting.adapter.outbound.persistence",
         "com.publicplatform.ragops.adminapi.evaluation.adapter.outbound.persistence",
+        "com.publicplatform.ragops.redteam.adapter.outbound.persistence",
     ],
 )
 class AdminApiApplication

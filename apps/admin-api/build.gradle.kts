@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":modules:ingestion-ops"))
     implementation(project(":modules:qa-review"))
     implementation(project(":modules:metrics-reporting"))
+    implementation(project(":modules:redteam"))
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")

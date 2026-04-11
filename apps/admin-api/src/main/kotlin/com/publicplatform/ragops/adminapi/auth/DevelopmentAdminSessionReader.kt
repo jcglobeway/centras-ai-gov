@@ -196,6 +196,11 @@ internal fun developmentActionsFor(roleCode: String): List<String> =
             "metrics.aggregation.trigger",
             "auth.user.read",
             "auth.role.assign",
+            "redteam.case.read",
+            "redteam.case.write",
+            "redteam.case.delete",
+            "redteam.batch.run",
+            "redteam.batch.read",
         )
 
         "qa_admin" -> listOf(
@@ -207,6 +212,10 @@ internal fun developmentActionsFor(roleCode: String): List<String> =
             "qa.review.read",
             "qa.review.write",
             "metrics.read",
+            "redteam.case.read",
+            "redteam.case.write",
+            "redteam.batch.run",
+            "redteam.batch.read",
         )
 
         "client_admin", "client_org_admin" -> listOf(
@@ -236,6 +245,11 @@ internal fun developmentActionsFor(roleCode: String): List<String> =
             "metrics.aggregation.trigger",
             "auth.user.read",
             "auth.role.assign",
+            "redteam.case.read",
+            "redteam.case.write",
+            "redteam.case.delete",
+            "redteam.batch.run",
+            "redteam.batch.read",
         )
 
         "client_viewer" -> listOf(

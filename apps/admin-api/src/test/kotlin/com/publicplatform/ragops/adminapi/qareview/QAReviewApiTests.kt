@@ -84,7 +84,7 @@ class QAReviewApiTests : BaseApiTest() {
             status { isCreated() }
         }
 
-        mockMvc.get("/admin/qa-reviews?questionId=$questionId")
+        mockMvc.get("/admin/qa-reviews?question_id=$questionId")
             .andExpect {
                 status { isOk() }
                 jsonPath("$.total") { value(1) }
