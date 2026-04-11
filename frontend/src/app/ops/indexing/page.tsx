@@ -1,15 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/api";
-import type { PagedResponse, IngestionJob, IngestionJobStatus } from "@/lib/types";
+import type { PagedResponse, IngestionJob, IngestionJobStatus, CrawlSource } from "@/lib/types";
 import { Table, Thead, Th, Tbody, Tr, Td } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/Badge";
 import { KpiCard } from "@/components/charts/KpiCard";
 import { Spinner } from "@/components/ui/Spinner";
-import { PageFilters, getWeekFrom, getToday } from "@/components/ui/PageFilters";
-import type { ComponentProps } from "react";
+import { Fragment, useState, type ComponentProps } from "react";
+import { useFilter } from "@/lib/filter-context";
 
 type BadgeVariant = ComponentProps<typeof Badge>["variant"];
 
@@ -31,18 +30,48 @@ const STATUS_VARIANT: Record<IngestionJobStatus, BadgeVariant> = {
   cancelled: "neutral",
 };
 
+const STAGE_LABEL: Record<string, string> = {
+  fetch: "수집",
+  extract: "추출",
+  normalize: "정규화",
+  chunk: "청킹",
+  embed: "임베딩",
+  index: "인덱싱",
+  complete: "완료",
+};
+
+const TRIGGER_LABEL: Record<string, string> = {
+  manual: "수동",
+  scheduled: "스케줄",
+  file_upload: "파일업로드",
+};
+
+const STAGE_PROGRESS: Record<string, number> = {
+  fetch: 10,
+  extract: 25,
+  normalize: 35,
+  chunk: 55,
+  embed: 75,
+  index: 90,
+  complete: 100,
+};
+
 export default function IndexingPage() {
-  const [orgId, setOrgId] = useState("");
-  const [from, setFrom] = useState(getWeekFrom);
-  const [to, setTo] = useState(getToday);
+  const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
+  const { orgId, serviceId, from, to } = useFilter();
 
   const params = new URLSearchParams({ page_size: "20" });
   if (orgId) params.set("organization_id", orgId);
+  if (serviceId) params.set("service_id", serviceId);
   if (from) params.set("from_date", from);
   if (to) params.set("to_date", to);
 
   const { data, error, isLoading } = useSWR<PagedResponse<IngestionJob>>(
     `/api/admin/ingestion-jobs?${params}`,
+    fetcher
+  );
+  const { data: sourceData } = useSWR<{ items: CrawlSource[]; total: number }>(
+    orgId ? `/api/admin/crawl-sources?organization_id=${orgId}` : null,
     fetcher
   );
 
@@ -59,22 +88,20 @@ export default function IndexingPage() {
   }
 
   const jobs = data?.items ?? [];
+  const sourceItems = sourceData?.items ?? [];
+  const crawlSources = serviceId
+    ? sourceItems.filter((s) => s.serviceId === serviceId)
+    : sourceItems;
+  const sourceMap = new Map(crawlSources.map((s) => [s.id, s]));
   const succeeded = jobs.filter((j) => j.status === "succeeded").length;
   const failed = jobs.filter((j) => j.status === "failed").length;
   const running = jobs.filter((j) => j.status === "running").length;
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-4">
-          <h2 className="text-text-primary font-semibold text-lg">RAG 인덱싱 현황</h2>
-          <span className="text-text-muted text-xs">총 {data?.total ?? 0}건</span>
-        </div>
-        <PageFilters
-          orgId={orgId} onOrgChange={setOrgId}
-          from={from} onFromChange={setFrom}
-          to={to} onToChange={setTo}
-        />
+      <div className="flex items-center gap-4">
+        <h2 className="text-text-primary font-semibold text-lg">RAG 인덱싱 현황</h2>
+        <span className="text-text-muted text-xs">총 {data?.total ?? 0}건</span>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
@@ -86,36 +113,102 @@ export default function IndexingPage() {
       <div className="bg-bg-surface border border-bg-border rounded-xl overflow-hidden">
         <Table>
           <Thead>
-            <Th>잡 ID</Th>
-            <Th>크롤 소스 ID</Th>
+            <Th>컬렉션 / 소스</Th>
+            <Th>상태 / 단계</Th>
+            <Th>진행률</Th>
             <Th>상태</Th>
             <Th>트리거</Th>
-            <Th>시작일시</Th>
+            <Th>요청일시</Th>
             <Th>완료일시</Th>
+            <Th>상세</Th>
           </Thead>
           <Tbody>
-            {jobs.map((job) => (
-              <Tr key={job.id}>
-                <Td className="font-mono text-xs text-text-muted">{job.id}</Td>
-                <Td className="font-mono text-xs">{job.crawlSourceId}</Td>
-                <Td>
-                  <Badge variant={STATUS_VARIANT[job.status]}>
-                    {STATUS_LABEL[job.status]}
-                  </Badge>
-                </Td>
-                <Td className="text-xs text-text-secondary">{job.triggerType}</Td>
-                <Td className="text-xs text-text-muted">
-                  {job.startedAt
-                    ? new Date(job.startedAt).toLocaleString("ko-KR")
-                    : "-"}
-                </Td>
-                <Td className="text-xs text-text-muted">
-                  {job.finishedAt
-                    ? new Date(job.finishedAt).toLocaleString("ko-KR")
-                    : "-"}
-                </Td>
-              </Tr>
-            ))}
+            {jobs.map((job) => {
+              const source = sourceMap.get(job.crawlSourceId);
+              const isExpanded = expandedJobId === job.id;
+              return (
+                <Fragment key={job.id}>
+                  <Tr key={job.id}>
+                    <Td>
+                      <div className="flex flex-col gap-1">
+                        {source?.collectionName && (
+                          <span className="inline-flex w-fit items-center rounded border border-accent/30 bg-accent/10 px-1.5 py-0.5 text-[10px] text-accent">
+                            {source.collectionName}
+                          </span>
+                        )}
+                        <span className="text-xs text-text-primary" title={source?.name ?? job.crawlSourceId}>
+                          {source?.name ?? "소스 정보 없음"}
+                        </span>
+                        <span className="font-mono text-[10px] text-text-muted">{job.id}</span>
+                      </div>
+                    </Td>
+                    <Td>
+                      <div className="flex flex-col gap-1">
+                        <Badge variant={STATUS_VARIANT[job.status]}>
+                          {STATUS_LABEL[job.status]}
+                        </Badge>
+                        <span className="text-[11px] text-text-secondary">
+                          {STAGE_LABEL[job.jobStage] ?? job.jobStage}
+                        </span>
+                      </div>
+                    </Td>
+                    <Td>
+                      <div className="w-28">
+                        <div className="h-1.5 rounded bg-bg-border">
+                          <div
+                            className="h-1.5 rounded bg-accent"
+                            style={{ width: `${STAGE_PROGRESS[job.jobStage] ?? 0}%` }}
+                          />
+                        </div>
+                        <p className="mt-1 text-[10px] text-text-muted">{STAGE_PROGRESS[job.jobStage] ?? 0}%</p>
+                      </div>
+                    </Td>
+                    <Td>
+                      <Badge variant={STATUS_VARIANT[job.status]}>
+                        {STATUS_LABEL[job.status]}
+                      </Badge>
+                    </Td>
+                    <Td className="text-xs text-text-secondary">{TRIGGER_LABEL[job.triggerType] ?? job.triggerType}</Td>
+                    <Td className="text-xs text-text-muted">
+                      {new Date(job.requestedAt).toLocaleString("ko-KR")}
+                    </Td>
+                    <Td className="text-xs text-text-muted">
+                      {job.finishedAt
+                        ? new Date(job.finishedAt).toLocaleString("ko-KR")
+                        : "-"}
+                    </Td>
+                    <Td>
+                      <button
+                        onClick={() => setExpandedJobId(isExpanded ? null : job.id)}
+                        className="text-xs text-accent hover:underline"
+                      >
+                        {isExpanded ? "접기" : "상세"}
+                      </button>
+                    </Td>
+                  </Tr>
+                  {isExpanded && (
+                    <Tr key={`${job.id}-detail`}>
+                      <Td colSpan={8}>
+                        <div className="grid grid-cols-2 gap-x-6 gap-y-2 rounded-lg bg-bg-base/40 p-3 text-xs">
+                          <span className="text-text-muted">문서 ID</span>
+                          <span className="font-mono text-text-secondary">{job.documentId ?? "-"}</span>
+                          <span className="text-text-muted">시도 횟수</span>
+                          <span className="text-text-secondary">{job.attemptCount}</span>
+                          <span className="text-text-muted">에러 코드</span>
+                          <span className="font-mono text-text-secondary">{job.errorCode ?? "-"}</span>
+                          <span className="text-text-muted">러너</span>
+                          <span className="text-text-secondary">{job.runnerType}</span>
+                          <span className="text-text-muted">크롤 소스 ID</span>
+                          <span className="font-mono text-text-secondary">{job.crawlSourceId}</span>
+                          <span className="text-text-muted">소스 URI</span>
+                          <span className="font-mono text-text-secondary break-all">{source?.sourceUri ?? "-"}</span>
+                        </div>
+                      </Td>
+                    </Tr>
+                  )}
+                </Fragment>
+              );
+            })}
           </Tbody>
         </Table>
         {jobs.length === 0 && (

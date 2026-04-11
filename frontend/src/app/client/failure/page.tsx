@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/api";
-import type { PagedResponse, UnresolvedQuestion, RootCauseCode } from "@/lib/types";
+import type { PagedResponse, UnresolvedQuestion } from "@/lib/types";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Spinner } from "@/components/ui/Spinner";
-import { PageFilters, getWeekFrom, getToday } from "@/components/ui/PageFilters";
+import { useFilter } from "@/lib/filter-context";
 
-const FAILURE_DESCRIPTIONS: Record<RootCauseCode, { label: string; desc: string; owner: string }> = {
+type FailureCode = "A01" | "A02" | "A03" | "A04" | "A05" | "A06" | "A07" | "A08" | "A09" | "A10";
+
+const FAILURE_DESCRIPTIONS: Record<FailureCode, { label: string; desc: string; owner: string }> = {
   A01: { label: "문서 없음",        desc: "질문에 해당하는 문서가 지식베이스에 등록되지 않음",           owner: "고객사" },
   A02: { label: "문서 최신 아님",   desc: "법령·조례·공고 개정 후 지식베이스에 반영되지 않은 문서 참조", owner: "고객사" },
   A03: { label: "파싱 실패",        desc: "PDF·한글 등 문서 형식 처리 오류로 내용 추출 불가",           owner: "운영사" },
@@ -22,12 +23,10 @@ const FAILURE_DESCRIPTIONS: Record<RootCauseCode, { label: string; desc: string;
   A10: { label: "채널 UI 문제",     desc: "입력 형식·채널 연동 오류로 질문이 정상 수신되지 않음",        owner: "운영사" },
 };
 
-const ALL_CODES: RootCauseCode[] = ["A01","A02","A03","A04","A05","A06","A07","A08","A09","A10"];
+const ALL_CODES: FailureCode[] = ["A01","A02","A03","A04","A05","A06","A07","A08","A09","A10"];
 
 export default function FailurePage() {
-  const [orgId, setOrgId] = useState("");
-  const [from, setFrom] = useState(getWeekFrom);
-  const [to, setTo] = useState(getToday);
+  const { orgId, from, to } = useFilter();
 
   const params = new URLSearchParams({ page_size: "100" });
   if (orgId) params.set("organization_id", orgId);
@@ -54,11 +53,11 @@ export default function FailurePage() {
   const questions = data?.items ?? [];
 
   // failureReasonCode 집계
-  const counts: Record<RootCauseCode, number> = {} as Record<RootCauseCode, number>;
+  const counts: Record<FailureCode, number> = {} as Record<FailureCode, number>;
   ALL_CODES.forEach((c) => (counts[c] = 0));
   questions.forEach((q) => {
     if (q.failureReasonCode && q.failureReasonCode in counts) {
-      counts[q.failureReasonCode as RootCauseCode]++;
+      counts[q.failureReasonCode as FailureCode]++;
     }
   });
 
@@ -66,14 +65,7 @@ export default function FailurePage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <h2 className="text-text-primary font-semibold text-lg">실패/전환 분석</h2>
-        <PageFilters
-          orgId={orgId} onOrgChange={setOrgId}
-          from={from} onFromChange={setFrom}
-          to={to} onToChange={setTo}
-        />
-      </div>
+      <h2 className="text-text-primary font-semibold text-lg">실패/전환 분석</h2>
       <p className="text-text-secondary text-sm">
         미결 질문 {questions.length}건의 실패 원인 코드 분포
       </p>

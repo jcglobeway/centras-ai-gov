@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import useSWR from "swr";
 import {
@@ -22,8 +21,8 @@ import type { PagedResponse, RagasEvaluationSummaryResponse } from "@/lib/types"
 import { KpiCard } from "@/components/charts/KpiCard";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
-import { PageFilters, getWeekFrom, getToday } from "@/components/ui/PageFilters";
 import { PageGuide } from "@/components/ui/PageGuide";
+import { useFilter } from "@/lib/filter-context";
 
 // ── 인라인 타입 ───────────────────────────────────────────────────────────────
 
@@ -225,9 +224,7 @@ function ScoreBar({ row }: { row: DeltaScoreRow }) {
 
 
 export default function QualitySummaryPage() {
-  const [orgId, setOrgId] = useState("");
-  const [from, setFrom] = useState(getWeekFrom);
-  const [to, setTo] = useState(getToday);
+  const { orgId, from, to } = useFilter();
 
   const ragasParams = new URLSearchParams();
   if (orgId) ragasParams.set("organization_id", orgId);
@@ -350,14 +347,7 @@ export default function QualitySummaryPage() {
           "사용자 만족도(긍정 비율)가 70% 미만이면 미응답 질의 목록에서 주요 패턴을 분석하세요.",
         ]}
       />
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <h2 className="text-text-primary font-semibold text-lg">품질/보안 요약</h2>
-        <PageFilters
-          orgId={orgId} onOrgChange={setOrgId}
-          from={from} onFromChange={setFrom}
-          to={to} onToChange={setTo}
-        />
-      </div>
+      <h2 className="text-text-primary font-semibold text-lg">품질/보안 요약</h2>
 
       {/* 알림 배너 */}
       <AlertBanner alerts={alerts} />

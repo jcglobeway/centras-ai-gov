@@ -24,10 +24,13 @@ type BadgeVariant = ComponentProps<typeof Badge>["variant"];
 // ── 상수 ─────────────────────────────────────────────────────────────────────
 
 const ROOT_CAUSE_LABELS: Record<RootCauseCode, string> = {
-  A01: "A01 문서 없음",     A02: "A02 문서 최신 아님", A03: "A03 파싱 실패",
-  A04: "A04 검색 실패",     A05: "A05 재랭킹 실패",     A06: "A06 생성 왜곡(환각)",
-  A07: "A07 의도 분류 실패", A08: "A08 정책 제한",       A09: "A09 질문 모호",
-  A10: "A10 채널 문제",
+  missing_document: "문서 없음",
+  stale_document:   "문서 최신 아님",
+  bad_chunking:     "파싱/청킹 실패",
+  retrieval_failure:"검색 실패",
+  generation_error: "생성 왜곡(환각)",
+  policy_block:     "정책 제한",
+  unclear_question: "질문 모호",
 };
 
 const ACTION_TYPE_LABELS: Record<ActionType, string> = {
@@ -121,7 +124,7 @@ function SectionDivider() {
 
 function QaReviewForm({ questionId, onSaved }: { questionId: string; onSaved: () => void }) {
   const [reviewStatus, setReviewStatus] = useState<"confirmed_issue" | "false_alarm">("confirmed_issue");
-  const [rootCauseCode, setRootCauseCode] = useState<RootCauseCode>("A01");
+  const [rootCauseCode, setRootCauseCode] = useState<RootCauseCode>("missing_document");
   const [actionType, setActionType] = useState<ActionType>("no_action");
   const [comment, setComment] = useState("");
   const [saving, setSaving] = useState(false);
@@ -356,8 +359,8 @@ function DetailPanel({ q, onClose }: { q: Question; onClose: () => void }) {
                 )}
                 {ctx.retrievedChunks.length > 0 && (
                   <div className="space-y-2 max-h-52 overflow-y-auto">
-                    {ctx.retrievedChunks.map((chunk) => (
-                      <div key={chunk.rank}
+                    {ctx.retrievedChunks.map((chunk, idx) => (
+                      <div key={`${chunk.rank ?? idx}-${chunk.chunkId ?? idx}`}
                         className={`rounded-lg px-3 py-2.5 text-xs border ${chunk.usedInCitation ? "border-accent/30 bg-accent/5" : "border-white/5 bg-bg-elevated"}`}>
                         <div className="flex items-center gap-2 mb-1.5">
                           <span className="font-mono text-[10px] text-text-muted">#{chunk.rank}</span>

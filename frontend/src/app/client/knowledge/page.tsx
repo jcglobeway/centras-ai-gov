@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/api";
 import type { PagedResponse, Document, IndexStatus } from "@/lib/types";
 import { Table, Thead, Th, Tbody, Tr, Td } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/Badge";
 import { Spinner } from "@/components/ui/Spinner";
-import { PageFilters, getWeekFrom, getToday } from "@/components/ui/PageFilters";
+import { useFilter } from "@/lib/filter-context";
 import type { ComponentProps } from "react";
 
 type BadgeVariant = ComponentProps<typeof Badge>["variant"];
@@ -25,9 +24,7 @@ const INDEX_VARIANT: Record<IndexStatus, BadgeVariant> = {
 };
 
 export default function KnowledgePage() {
-  const [orgId, setOrgId] = useState("");
-  const [from, setFrom] = useState(getWeekFrom);
-  const [to, setTo] = useState(getToday);
+  const { orgId, from, to } = useFilter();
 
   const params = new URLSearchParams({ page_size: "20" });
   if (orgId) params.set("organization_id", orgId);
@@ -55,16 +52,9 @@ export default function KnowledgePage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-4">
-          <h2 className="text-text-primary font-semibold text-lg">지식 현황</h2>
-          <span className="text-text-muted text-xs">총 {data?.total ?? 0}건</span>
-        </div>
-        <PageFilters
-          orgId={orgId} onOrgChange={setOrgId}
-          from={from} onFromChange={setFrom}
-          to={to} onToChange={setTo}
-        />
+      <div className="flex items-center gap-4">
+        <h2 className="text-text-primary font-semibold text-lg">지식 현황</h2>
+        <span className="text-text-muted text-xs">총 {data?.total ?? 0}건</span>
       </div>
 
       <div className="bg-bg-surface border border-bg-border rounded-xl overflow-hidden">

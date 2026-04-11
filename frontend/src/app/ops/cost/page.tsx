@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/api";
 import type { PagedResponse, DailyMetric, LlmMetrics, UnresolvedQuestion, CacheHitTrendResponse } from "@/lib/types";
@@ -8,10 +7,10 @@ import { KpiCard } from "@/components/charts/KpiCard";
 import { MetricsLineChart } from "@/components/charts/MetricsLineChart";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
-import { PageFilters, getWeekFrom, getToday } from "@/components/ui/PageFilters";
 import { Table, Thead, Th, Tbody, Tr, Td } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/Badge";
 import { PageGuide } from "@/components/ui/PageGuide";
+import { useFilter } from "@/lib/filter-context";
 
 function getKpiStatus(
   value: number | null,
@@ -24,9 +23,7 @@ function getKpiStatus(
 }
 
 export default function CostHealthPage() {
-  const [orgId, setOrgId] = useState("");
-  const [from, setFrom] = useState(getWeekFrom);
-  const [to, setTo] = useState(getToday);
+  const { orgId, from, to } = useFilter();
 
   const metricsParams = new URLSearchParams({ page_size: "14" });
   if (orgId) metricsParams.set("organization_id", orgId);
@@ -91,14 +88,7 @@ export default function CostHealthPage() {
           "입력 토큰이 급증했다면 시스템 프롬프트가 너무 길거나 Top-K가 과도하게 높은 경우입니다.",
         ]}
       />
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <h2 className="text-text-primary font-semibold text-lg">비용 & 건강도</h2>
-        <PageFilters
-          orgId={orgId} onOrgChange={setOrgId}
-          from={from} onFromChange={setFrom}
-          to={to} onToChange={setTo}
-        />
-      </div>
+      <h2 className="text-text-primary font-semibold text-lg">비용 & 건강도</h2>
 
       {/* KPI 그리드 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

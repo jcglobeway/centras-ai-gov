@@ -3,8 +3,10 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, PORTAL_ROLES } from "@/lib/auth";
+import { FilterProvider } from "@/lib/filter-context";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
+import { Breadcrumb } from "@/components/layout/Breadcrumb";
 import { Spinner } from "@/components/ui/Spinner";
 
 export default function OpsLayout({ children }: { children: React.ReactNode }) {
@@ -31,14 +33,17 @@ export default function OpsLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen bg-bg-surface">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title="운영사 어드민" />
-        <main className="flex-1 overflow-y-auto p-8">
-          <div className="max-w-[1400px]">{children}</div>
-        </main>
+    <FilterProvider>
+      <div className="flex h-screen bg-bg-surface">
+        <Sidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Header />
+          <Breadcrumb />
+          <main className="flex-1 overflow-y-auto p-8">
+            <div className="max-w-[1400px]">{children}</div>
+          </main>
+        </div>
       </div>
-    </div>
+    </FilterProvider>
   );
 }

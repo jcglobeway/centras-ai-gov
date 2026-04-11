@@ -8,6 +8,7 @@ import { Table, Thead, Th, Tbody, Tr, Td } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/Badge";
 import { Spinner } from "@/components/ui/Spinner";
 import { PageGuide } from "@/components/ui/PageGuide";
+import { useFilter } from "@/lib/filter-context";
 import type { ComponentProps } from "react";
 
 type BadgeVariant = ComponentProps<typeof Badge>["variant"];
@@ -85,8 +86,7 @@ function buildExportUrl(params: {
 }
 
 export default function AuditPage() {
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
+  const { from, to } = useFilter();
   const [actionCode, setActionCode] = useState("");
 
   const auditLogsKey = buildAuditLogsQuery({ from, to, actionCode, pageSize: 20 });
@@ -117,24 +117,6 @@ export default function AuditPage() {
       {/* 필터 영역 */}
       <Card>
         <div className="px-4 py-3 flex flex-wrap items-end gap-3">
-          <div className="flex flex-col gap-1">
-            <label className="text-[10px] text-text-muted uppercase tracking-widest">시작일</label>
-            <input
-              type="date"
-              value={from}
-              onChange={(e) => setFrom(e.target.value)}
-              className="bg-bg-prominent border border-bg-border rounded px-2 py-1 text-xs text-text-primary focus:outline-none focus:border-accent"
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-[10px] text-text-muted uppercase tracking-widest">종료일</label>
-            <input
-              type="date"
-              value={to}
-              onChange={(e) => setTo(e.target.value)}
-              className="bg-bg-prominent border border-bg-border rounded px-2 py-1 text-xs text-text-primary focus:outline-none focus:border-accent"
-            />
-          </div>
           <div className="flex flex-col gap-1">
             <label className="text-[10px] text-text-muted uppercase tracking-widest">행동 코드</label>
             <select

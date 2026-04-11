@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { fetcher } from "@/lib/api";
@@ -8,7 +7,7 @@ import type { PagedResponse, ChatSession } from "@/lib/types";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Table, Thead, Th, Tbody, Tr, Td } from "@/components/ui/Table";
 import { Spinner } from "@/components/ui/Spinner";
-import { PageFilters, getDaysAgo, getToday } from "@/components/ui/PageFilters";
+import { useFilter } from "@/lib/filter-context";
 import { PageGuide } from "@/components/ui/PageGuide";
 
 // ── 헬퍼 ─────────────────────────────────────────────────────────────────────
@@ -36,9 +35,7 @@ function durationLabel(startedAt: string, endedAt: string | null): string {
 
 export default function ChatHistoryPage() {
   const router = useRouter();
-  const [orgId, setOrgId] = useState("");
-  const [from, setFrom] = useState(() => getDaysAgo(30));
-  const [to, setTo] = useState(getToday);
+  const { orgId, from, to } = useFilter();
 
   const params = new URLSearchParams();
   if (orgId) params.set("organization_id", orgId);
@@ -62,14 +59,7 @@ export default function ChatHistoryPage() {
           "기관 필터와 날짜 범위를 조합해 특정 기간의 세션을 조회하세요.",
         ]}
       />
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <h2 className="text-text-primary font-semibold text-lg">대화 이력</h2>
-        <PageFilters
-          orgId={orgId} onOrgChange={setOrgId}
-          from={from} onFromChange={setFrom}
-          to={to} onToChange={setTo}
-        />
-      </div>
+      <h2 className="text-text-primary font-semibold text-lg">대화 이력</h2>
 
       <Card>
         <CardHeader>

@@ -1,16 +1,15 @@
 "use client";
 
-import { useState } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/api";
-import type { PagedResponse, DailyMetric, UnresolvedQuestion, QAReview, ReviewStatus, RagasEvaluation, RootCauseCode } from "@/lib/types";
+import type { PagedResponse, DailyMetric, UnresolvedQuestion, QAReview, ReviewStatus, RagasEvaluation } from "@/lib/types";
 import { KpiCard } from "@/components/charts/KpiCard";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ScoreTable } from "@/components/ui/ScoreTable";
 import { Table, Thead, Th, Tbody, Tr, Td } from "@/components/ui/Table";
 import { Spinner } from "@/components/ui/Spinner";
-import { PageFilters, getWeekFrom, getToday } from "@/components/ui/PageFilters";
+import { useFilter } from "@/lib/filter-context";
 import type { ComponentProps } from "react";
 
 type BadgeVariant = ComponentProps<typeof Badge>["variant"];
@@ -29,16 +28,16 @@ const REVIEW_STATUS_VARIANT: Record<ReviewStatus, BadgeVariant> = {
   false_alarm: "neutral",
 };
 
-const FAILURE_LABEL: Partial<Record<RootCauseCode, string>> = {
+type FailureCode = "A01" | "A02" | "A03" | "A04" | "A05" | "A06" | "A07" | "A08" | "A09" | "A10";
+
+const FAILURE_LABEL: Partial<Record<FailureCode, string>> = {
   A01: "문서 없음", A02: "문서 최신 아님", A03: "파싱 실패",
   A04: "검색 실패", A05: "재랭킹 실패",   A06: "생성 왜곡",
   A07: "의도 실패", A08: "정책 제한",     A09: "질문 모호", A10: "채널 문제",
 };
 
 export default function QaDashboardPage() {
-  const [orgId, setOrgId] = useState("");
-  const [from, setFrom] = useState(getWeekFrom);
-  const [to, setTo] = useState(getToday);
+  const { orgId, from, to } = useFilter();
 
   const params = new URLSearchParams();
   if (orgId) params.set("organization_id", orgId);
@@ -103,14 +102,7 @@ export default function QaDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <h2 className="text-text-primary font-semibold text-lg">검수 대시보드</h2>
-        <PageFilters
-          orgId={orgId} onOrgChange={setOrgId}
-          from={from} onFromChange={setFrom}
-          to={to} onToChange={setTo}
-        />
-      </div>
+      <h2 className="text-text-primary font-semibold text-lg">검수 대시보드</h2>
 
       {/* PRD 기준 3 KPIs */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -167,7 +159,7 @@ export default function QaDashboardPage() {
                   <Td>
                     {q.failureReasonCode ? (
                       <span className="font-mono text-xs text-warning">
-                        {q.failureReasonCode} · {FAILURE_LABEL[q.failureReasonCode as RootCauseCode] ?? q.failureReasonCode}
+                        {q.failureReasonCode} · {FAILURE_LABEL[q.failureReasonCode as FailureCode] ?? q.failureReasonCode}
                       </span>
                     ) : (
                       <span className="text-text-muted text-xs">-</span>

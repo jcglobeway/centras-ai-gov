@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import useSWR from "swr";
 import { fetcher } from "@/lib/api";
@@ -9,9 +8,9 @@ import { Table, Thead, Th, Tbody, Tr, Td } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
-import { PageFilters, getWeekFrom, getToday } from "@/components/ui/PageFilters";
 import { PageGuide } from "@/components/ui/PageGuide";
 import type { ComponentProps } from "react";
+import { useFilter } from "@/lib/filter-context";
 
 type BadgeVariant = ComponentProps<typeof Badge>["variant"];
 
@@ -44,9 +43,7 @@ const REVIEW_VARIANT: Record<ReviewStatus, BadgeVariant> = {
 };
 
 export default function OpsUnresolvedPage() {
-  const [orgId, setOrgId] = useState("");
-  const [from, setFrom] = useState(getWeekFrom);
-  const [to, setTo] = useState(getToday);
+  const { orgId, from, to } = useFilter();
 
   const params = new URLSearchParams({ page_size: "20" });
   if (orgId) params.set("organization_id", orgId);
@@ -86,16 +83,9 @@ export default function OpsUnresolvedPage() {
           "A01~A02(문서 없음/최신화 필요)는 고객사가, A03~A07(파이프라인 문제)은 운영사가 처리합니다.",
         ]}
       />
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-3">
-          <h2 className="text-text-primary font-semibold text-lg">미해결 질의 관리</h2>
-          <Badge variant={totalBadgeVariant}>미결 {total}건</Badge>
-        </div>
-        <PageFilters
-          orgId={orgId} onOrgChange={setOrgId}
-          from={from} onFromChange={setFrom}
-          to={to} onToChange={setTo}
-        />
+      <div className="flex items-center gap-3">
+        <h2 className="text-text-primary font-semibold text-lg">미해결 질의 관리</h2>
+        <Badge variant={totalBadgeVariant}>미결 {total}건</Badge>
       </div>
 
       <div className="bg-bg-surface border border-bg-border rounded-xl overflow-hidden">

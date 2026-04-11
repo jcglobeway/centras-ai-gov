@@ -1,17 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/api";
 import type { PagedResponse, Question } from "@/lib/types";
 import { Table, Thead, Th, Tbody, Tr, Td } from "@/components/ui/Table";
 import { Spinner } from "@/components/ui/Spinner";
-import { PageFilters, getWeekFrom, getToday } from "@/components/ui/PageFilters";
+import { useFilter } from "@/lib/filter-context";
 
 export default function PerformancePage() {
-  const [orgId, setOrgId] = useState("");
-  const [from, setFrom] = useState(getWeekFrom);
-  const [to, setTo] = useState(getToday);
+  const { orgId, from, to } = useFilter();
 
   const params = new URLSearchParams({ page_size: "20" });
   if (orgId) params.set("organization_id", orgId);
@@ -39,16 +36,9 @@ export default function PerformancePage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-4">
-          <h2 className="text-text-primary font-semibold text-lg">최근 응대 현황</h2>
-          <span className="text-text-muted text-xs">총 {data?.total ?? 0}건</span>
-        </div>
-        <PageFilters
-          orgId={orgId} onOrgChange={setOrgId}
-          from={from} onFromChange={setFrom}
-          to={to} onToChange={setTo}
-        />
+      <div className="flex items-center gap-4">
+        <h2 className="text-text-primary font-semibold text-lg">최근 응대 현황</h2>
+        <span className="text-text-muted text-xs">총 {data?.total ?? 0}건</span>
       </div>
 
       <div className="bg-bg-surface border border-bg-border rounded-xl overflow-hidden">

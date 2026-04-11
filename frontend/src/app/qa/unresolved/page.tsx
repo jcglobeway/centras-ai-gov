@@ -9,7 +9,7 @@ import { Table, Thead, Th, Tbody, Tr, Td } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
-import { PageFilters, getWeekFrom, getToday } from "@/components/ui/PageFilters";
+import { useFilter } from "@/lib/filter-context";
 import type { ComponentProps } from "react";
 
 type BadgeVariant = ComponentProps<typeof Badge>["variant"];
@@ -78,9 +78,7 @@ const ACTION_TYPE_OPTIONS = [
 ];
 
 export default function UnresolvedPage() {
-  const [orgId, setOrgId] = useState("");
-  const [from, setFrom]   = useState(getWeekFrom);
-  const [to, setTo]       = useState(getToday);
+  const { orgId, from, to } = useFilter();
 
   // 리뷰 작성 모달 상태
   const [modalQuestion, setModalQuestion] = useState<UnresolvedQuestion | null>(null);
@@ -204,16 +202,9 @@ export default function UnresolvedPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-4">
-          <h2 className="text-text-primary font-semibold text-lg">미응답/오답 관리</h2>
-          <span className="text-text-muted text-xs">미결 {data?.total ?? 0}건</span>
-        </div>
-        <PageFilters
-          orgId={orgId} onOrgChange={setOrgId}
-          from={from}   onFromChange={setFrom}
-          to={to}       onToChange={setTo}
-        />
+      <div className="flex items-center gap-4">
+        <h2 className="text-text-primary font-semibold text-lg">미응답/오답 관리</h2>
+        <span className="text-text-muted text-xs">미결 {data?.total ?? 0}건</span>
       </div>
 
       <div className="bg-bg-surface border border-bg-border rounded-xl overflow-hidden">

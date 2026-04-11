@@ -10,17 +10,11 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import type { DailyMetric } from "@/lib/types";
 import { format, parseISO } from "date-fns";
-
-interface MetricsLineChartProps {
-  data: DailyMetric[];
-  metrics?: Array<keyof DailyMetric>;
-}
 
 const COLORS = ["var(--accent)", "#00c47a", "#f5a623", "#ff4560", "#a78bfa"];
 
-const METRIC_LABELS: Partial<Record<keyof DailyMetric, string>> = {
+const METRIC_LABELS: Record<string, string> = {
   totalQuestions: "전체 질문",
   totalSessions: "전체 세션",
   resolvedRate: "응답률(%)",
@@ -33,10 +27,13 @@ const METRIC_LABELS: Partial<Record<keyof DailyMetric, string>> = {
   afterHoursRate: "업무시간외 응대율(%)",
 };
 
-export function MetricsLineChart({
+export function MetricsLineChart<T extends { metricDate: string }>({
   data,
   metrics = ["resolvedRate", "fallbackRate", "zeroResultRate"],
-}: MetricsLineChartProps) {
+}: {
+  data: T[];
+  metrics?: string[];
+}) {
   const chartData = [...data]
     .sort((a, b) => a.metricDate.localeCompare(b.metricDate))
     .map((d) => ({

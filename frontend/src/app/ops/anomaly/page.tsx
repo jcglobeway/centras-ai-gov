@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { PageGuide } from "@/components/ui/PageGuide";
-import { PageFilters, getDaysAgo, getToday } from "@/components/ui/PageFilters";
+import { useFilter } from "@/lib/filter-context";
 import type { ComponentProps } from "react";
 
 type BadgeVariant = ComponentProps<typeof Badge>["variant"];
@@ -62,9 +62,7 @@ function formatValue(key: string, value: number): string {
 }
 
 export default function AnomalyPage() {
-  const [orgId, setOrgId] = useState("");
-  const [from, setFrom] = useState(() => getDaysAgo(29));
-  const [to, setTo] = useState(getToday);
+  const { orgId, from, to } = useFilter();
 
   const metricsParams = new URLSearchParams({ page_size: "14" });
   if (orgId) metricsParams.set("organization_id", orgId);
@@ -185,14 +183,7 @@ export default function AnomalyPage() {
           "Webhook 설정(연동 API 관리)으로 임계값 초과 시 Slack 알림을 받을 수 있습니다.",
         ]}
       />
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <h2 className="text-text-primary font-semibold text-lg">이상 징후 감지</h2>
-        <PageFilters
-          orgId={orgId} onOrgChange={setOrgId}
-          from={from}   onFromChange={setFrom}
-          to={to}       onToChange={setTo}
-        />
-      </div>
+      <h2 className="text-text-primary font-semibold text-lg">이상 징후 감지</h2>
 
       {/* KPI */}
       <div className="grid grid-cols-2 gap-4">

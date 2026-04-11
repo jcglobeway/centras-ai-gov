@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useFilter } from "@/lib/filter-context";
 import useSWR from "swr";
 import {
   PieChart,
@@ -21,7 +22,6 @@ import { KpiCard } from "@/components/charts/KpiCard";
 import { MetricsLineChart } from "@/components/charts/MetricsLineChart";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
-import { PageFilters, getWeekFrom, getToday } from "@/components/ui/PageFilters";
 import { PageGuide } from "@/components/ui/PageGuide";
 import { Table, Thead, Th, Tbody, Tr, Td } from "@/components/ui/Table";
 
@@ -99,15 +99,23 @@ function getKpiStatus(
   return "critical";
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function PieTooltip({ active, payload, total }: { active?: boolean; payload?: any[]; total: number }) {
+type PieTooltipPayload = {
+  name?: string | number;
+  value?: number | string | Array<number | string>;
+  payload?: { color?: string };
+};
+
+function PieTooltip({ active, payload, total }: { active?: boolean; payload?: PieTooltipPayload[]; total: number }) {
   if (!active || !payload || payload.length === 0) return null;
   const { name, value, payload: entry } = payload[0];
-  const pct = total > 0 ? ((value / total) * 100).toFixed(1) : "0.0";
+  const rawValue = Array.isArray(value) ? value[0] : value;
+  const safeValue =
+    typeof rawValue === "number" ? rawValue : Number.parseFloat(String(rawValue ?? "0")) || 0;
+  const pct = total > 0 ? ((safeValue / total) * 100).toFixed(1) : "0.0";
   return (
     <div style={{ background: "#1e2533", border: "1px solid #2d3548", borderRadius: 8, padding: "8px 12px" }}>
-      <p style={{ color: "#dde2ec", fontSize: 12, fontWeight: 600, margin: 0 }}>{name}</p>
-      <p style={{ color: entry?.color ?? "#8b93a8", fontSize: 12, margin: "2px 0 0" }}>{value}건 · {pct}%</p>
+      <p style={{ color: "#dde2ec", fontSize: 12, fontWeight: 600, margin: 0 }}>{name ?? "-"}</p>
+      <p style={{ color: entry?.color ?? "#8b93a8", fontSize: 12, margin: "2px 0 0" }}>{safeValue}건 · {pct}%</p>
     </div>
   );
 }
@@ -160,9 +168,7 @@ function InsightCard({ insight }: { insight: Insight }) {
 }
 
 export default function StatisticsPage() {
-  const [orgId, setOrgId] = useState("");
-  const [from,  setFrom]  = useState(getWeekFrom);
-  const [to,    setTo]    = useState(getToday);
+  const { orgId, from, to } = useFilter();
   const [expandedCluster, setExpandedCluster] = useState<number | null>(null);
 
   const params = new URLSearchParams({ page_size: "14" });
@@ -371,14 +377,7 @@ export default function StatisticsPage() {
           "피드백 추이에서 부정 피드백이 늘어나면 답변 품질 점검이 필요합니다.",
         ]}
       />
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <h2 className="text-text-primary font-semibold text-lg">서비스 통계</h2>
-        <PageFilters
-          orgId={orgId} onOrgChange={setOrgId}
-          from={from}   onFromChange={setFrom}
-          to={to}       onToChange={setTo}
-        />
-      </div>
+      <h2 className="text-text-primary font-semibold text-lg">서비스 통계</h2>
 
       {/* KPI 5개 */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">

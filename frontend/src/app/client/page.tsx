@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/api";
 import type { PagedResponse, DailyMetric } from "@/lib/types";
@@ -8,7 +7,7 @@ import { KpiCard } from "@/components/charts/KpiCard";
 import { MetricsLineChart } from "@/components/charts/MetricsLineChart";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
-import { PageFilters, getWeekFrom, getToday } from "@/components/ui/PageFilters";
+import { useFilter } from "@/lib/filter-context";
 
 function getKpiStatus(
   value: number | null,
@@ -21,9 +20,7 @@ function getKpiStatus(
 }
 
 export default function ClientDashboardPage() {
-  const [orgId, setOrgId] = useState("");
-  const [from, setFrom] = useState(getWeekFrom);
-  const [to, setTo] = useState(getToday);
+  const { orgId, from, to } = useFilter();
 
   const params = new URLSearchParams({ page_size: "14" });
   if (orgId) params.set("organization_id", orgId);
@@ -59,14 +56,7 @@ export default function ClientDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <h2 className="text-text-primary font-semibold text-lg">기관 대시보드</h2>
-        <PageFilters
-          orgId={orgId} onOrgChange={setOrgId}
-          from={from} onFromChange={setFrom}
-          to={to} onToChange={setTo}
-        />
-      </div>
+      <h2 className="text-text-primary font-semibold text-lg">기관 대시보드</h2>
 
       {/* 민원응대 성과 KPI — Row 1 */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">

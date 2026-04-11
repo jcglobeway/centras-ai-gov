@@ -141,7 +141,13 @@ interface JpaQuestionRepository : JpaRepository<QuestionEntity, String> {
                re.context_recall AS contextRecall
         FROM questions q
         LEFT JOIN answers a ON a.question_id = q.id
-        LEFT JOIN ragas_evaluations re ON re.question_id = q.id
+        LEFT JOIN LATERAL (
+            SELECT faithfulness, answer_relevancy, context_precision, context_recall
+            FROM ragas_evaluations
+            WHERE question_id = q.id
+            ORDER BY evaluated_at DESC
+            LIMIT 1
+        ) re ON true
         ORDER BY q.created_at DESC
     """, nativeQuery = true)
     fun findAllWithAnswers(): List<QuestionWithAnswerRow>
@@ -168,7 +174,13 @@ interface JpaQuestionRepository : JpaRepository<QuestionEntity, String> {
                re.context_recall AS contextRecall
         FROM questions q
         LEFT JOIN answers a ON a.question_id = q.id
-        LEFT JOIN ragas_evaluations re ON re.question_id = q.id
+        LEFT JOIN LATERAL (
+            SELECT faithfulness, answer_relevancy, context_precision, context_recall
+            FROM ragas_evaluations
+            WHERE question_id = q.id
+            ORDER BY evaluated_at DESC
+            LIMIT 1
+        ) re ON true
         WHERE q.chat_session_id = :sessionId
         ORDER BY q.created_at ASC
     """, nativeQuery = true)

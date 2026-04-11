@@ -8,7 +8,7 @@ import type { PagedResponse, DailyMetric, UnresolvedQuestion, LlmMetrics, Organi
 import { KpiCard } from "@/components/charts/KpiCard";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
-import { PageFilters, getWeekFrom, getToday } from "@/components/ui/PageFilters";
+import { useFilter } from "@/lib/filter-context";
 import { AlertBanner } from "@/components/ui/AlertBanner";
 import { Table, Thead, Th, Tbody, Tr, Td } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/Badge";
@@ -108,7 +108,7 @@ interface FeedbackTrendPoint {
 }
 
 interface FeedbackItem {
-  satisfactionScore: number | null;
+  rating: number | null;
 }
 
 function MiniSparkline({ values }: { values: number[] }) {
@@ -162,9 +162,7 @@ function FeedbackBar({ positive, negative }: { positive: number; negative: numbe
 // ── 메인 컴포넌트 ─────────────────────────────────────────────────────────────
 
 export default function OpsDashboardPage() {
-  const [orgId, setOrgId]               = useState("");
-  const [from, setFrom]                 = useState(getWeekFrom);
-  const [to, setTo]                     = useState(getToday);
+  const { orgId, from, to } = useFilter();
   const [alertDismissed, setAlertDismissed] = useState(false);
 
   const params = new URLSearchParams({ page_size: "200" });
@@ -177,13 +175,19 @@ export default function OpsDashboardPage() {
     fetcher
   );
 
+  const llmParams = new URLSearchParams();
+  if (orgId) llmParams.set("organization_id", orgId);
+  if (from)  llmParams.set("from_date", from);
+  if (to)    llmParams.set("to_date", to);
   const { data: llmData } = useSWR<LlmMetrics>(
-    "/api/admin/metrics/llm",
+    `/api/admin/metrics/llm?${llmParams}`,
     fetcher
   );
 
+  const unresolvedParams = new URLSearchParams({ page_size: "10" });
+  if (orgId) unresolvedParams.set("organization_id", orgId);
   const { data: questionsData } = useSWR<PagedResponse<UnresolvedQuestion>>(
-    "/api/admin/questions/unresolved?page_size=10",
+    `/api/admin/questions/unresolved?${unresolvedParams}`,
     fetcher
   );
 
@@ -192,8 +196,12 @@ export default function OpsDashboardPage() {
     fetcher
   );
 
+  const pipelineParams = new URLSearchParams();
+  if (orgId) pipelineParams.set("organization_id", orgId);
+  if (from)  pipelineParams.set("from_date", from);
+  if (to)    pipelineParams.set("to_date", to);
   const { data: pipelineData } = useSWR<PipelineLatencyData>(
-    "/api/admin/metrics/pipeline-latency",
+    `/api/admin/metrics/pipeline-latency?${pipelineParams}`,
     fetcher
   );
 
@@ -203,8 +211,10 @@ export default function OpsDashboardPage() {
     fetcher
   );
 
+  const piiParams = new URLSearchParams();
+  if (orgId) piiParams.set("organization_id", orgId);
   const { data: piiData } = useSWR<PiiCountData>(
-    "/api/admin/metrics/pii-count",
+    `/api/admin/metrics/pii-count?${piiParams}`,
     fetcher
   );
 
@@ -213,8 +223,10 @@ export default function OpsDashboardPage() {
     fetcher
   );
 
+  const feedbackTrendParams = new URLSearchParams({ days: "7" });
+  if (orgId) feedbackTrendParams.set("organization_id", orgId);
   const { data: feedbackTrendData } = useSWR<FeedbackTrendPoint[]>(
-    "/api/admin/metrics/feedback-trend?days=7",
+    `/api/admin/metrics/feedback-trend?${feedbackTrendParams}`,
     fetcher
   );
 
@@ -315,10 +327,10 @@ export default function OpsDashboardPage() {
 
   const feedbackItems = feedbacksData?.items ?? [];
   const positiveFeedbacks = feedbackItems.filter(
-    (f) => f.satisfactionScore != null && f.satisfactionScore >= 4
+    (f) => f.rating != null && f.rating >= 4
   ).length;
   const negativeFeedbacks = feedbackItems.filter(
-    (f) => f.satisfactionScore != null && f.satisfactionScore <= 2
+    (f) => f.rating != null && f.rating <= 2
   ).length;
 
   const trendPoints = feedbackTrendData ?? [];
@@ -367,14 +379,7 @@ export default function OpsDashboardPage() {
         />
       )}
 
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <h2 className="font-inter text-text-primary font-[510] text-[15px] tracking-tight">통합 관제</h2>
-        <PageFilters
-          orgId={orgId} onOrgChange={setOrgId}
-          from={from}   onFromChange={setFrom}
-          to={to}       onToChange={setTo}
-        />
-      </div>
+      <h2 className="font-inter text-text-primary font-[510] text-[15px] tracking-tight">통합 관제</h2>
 
       {/* KPI 5개 — 클릭 시 상세 페이지로 이동 */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 items-stretch">

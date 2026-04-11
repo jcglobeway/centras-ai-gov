@@ -26,12 +26,20 @@ interface Metadata {
   citationCount: number;
   confidenceScore: number;
   retrievedChunks: ChunkMeta[];
+  questionId?: string;
 }
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
   metadata?: Metadata;
+}
+interface FeedbackState {
+  rating: number | null;
+  comment: string;
+  submitting: boolean;
+  saved: boolean;
+  error: string | null;
 }
 
 function getSessionId(): string | null {
@@ -61,6 +69,9 @@ export default function SimulatorPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedMsgId, setSelectedMsgId] = useState<string | null>(null);
   const [expandedChunks, setExpandedChunks] = useState<Set<number>>(new Set());
+  const [feedbackByMsg, setFeedbackByMsg] = useState<Record<string, FeedbackState>>({});
+  const [aggregating, setAggregating] = useState(false);
+  const [aggregateResult, setAggregateResult] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const { data: orgs } = useSWR<{ items: OrgItem[] }>(
@@ -113,6 +124,126 @@ export default function SimulatorPage() {
     setInput("");
     setSelectedMsgId(null);
     setExpandedChunks(new Set());
+    setFeedbackByMsg({});
+    setAggregateResult(null);
+  }
+
+  function beginFeedback(messageId: string, rating: number) {
+    setFeedbackByMsg((prev) => {
+      const current = prev[messageId];
+      if (current?.saved || current?.submitting) return prev;
+      return {
+        ...prev,
+        [messageId]: {
+          rating,
+          comment: current?.comment ?? "",
+          submitting: false,
+          saved: false,
+          error: null,
+        },
+      };
+    });
+  }
+
+  function updateFeedbackComment(messageId: string, comment: string) {
+    setFeedbackByMsg((prev) => {
+      const current = prev[messageId] ?? {
+        rating: null,
+        comment: "",
+        submitting: false,
+        saved: false,
+        error: null,
+      };
+      return { ...prev, [messageId]: { ...current, comment } };
+    });
+  }
+
+  function cancelFeedback(messageId: string) {
+    setFeedbackByMsg((prev) => {
+      const current = prev[messageId];
+      if (!current || current.saved || current.submitting) return prev;
+      return {
+        ...prev,
+        [messageId]: {
+          rating: null,
+          comment: "",
+          submitting: false,
+          saved: false,
+          error: null,
+        },
+      };
+    });
+  }
+
+  async function submitFeedback(messageId: string) {
+    const state = feedbackByMsg[messageId];
+    const msg = messages.find((m) => m.id === messageId);
+    const questionId = msg?.metadata?.questionId;
+    if (!state || !msg || !questionId || !state.rating || !orgId || !serviceId || !chatSessionId) {
+      setFeedbackByMsg((prev) => ({
+        ...prev,
+        [messageId]: {
+          rating: prev[messageId]?.rating ?? null,
+          comment: prev[messageId]?.comment ?? "",
+          submitting: false,
+          saved: false,
+          error: "피드백 저장에 필요한 정보가 부족합니다.",
+        },
+      }));
+      return;
+    }
+
+    setFeedbackByMsg((prev) => ({
+      ...prev,
+      [messageId]: { ...prev[messageId], submitting: true, error: null },
+    }));
+
+    try {
+      const res = await fetch("/api/admin/feedbacks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Admin-Session-Id": getSessionId() ?? "",
+        },
+        body: JSON.stringify({
+          organizationId: orgId,
+          serviceId,
+          questionId,
+          sessionId: chatSessionId,
+          rating: state.rating,
+          comment: state.comment.trim() || null,
+          channel: "simulator",
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setFeedbackByMsg((prev) => ({
+        ...prev,
+        [messageId]: { ...prev[messageId], submitting: false, saved: true, error: null },
+      }));
+    } catch {
+      setFeedbackByMsg((prev) => ({
+        ...prev,
+        [messageId]: { ...prev[messageId], submitting: false, saved: false, error: "저장 실패" },
+      }));
+    }
+  }
+
+  async function triggerAggregation() {
+    setAggregating(true);
+    setAggregateResult(null);
+    try {
+      const res = await fetch("/api/admin/metrics/trigger-aggregation", {
+        method: "POST",
+        headers: { "X-Admin-Session-Id": getSessionId() ?? "" },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setAggregateResult(`집계 완료 (${data.date})`);
+    } catch {
+      setAggregateResult("집계 실패 — 백엔드를 확인하세요");
+    } finally {
+      setAggregating(false);
+    }
   }
 
   async function sendMessage(e: React.FormEvent) {
@@ -146,6 +277,7 @@ export default function SimulatorPage() {
           organizationId: orgId,
           serviceId,
           sessionId: chatSessionId,
+          adminSessionId: getSessionId() ?? "",
         }),
       });
 
@@ -182,6 +314,7 @@ export default function SimulatorPage() {
                 citationCount: parsed.citation_count ?? 0,
                 confidenceScore: parsed.confidence_score ?? 0,
                 retrievedChunks: parsed.retrieved_chunks ?? [],
+                questionId: parsed.question_id ?? parsed.questionId ?? undefined,
               };
               setMessages((prev) =>
                 prev.map((m) =>
@@ -230,9 +363,17 @@ export default function SimulatorPage() {
           </p>
         </div>
         {chatSessionId && (
-          <Button onClick={resetSession} variant="secondary">
-            대화 초기화
-          </Button>
+          <div className="flex items-center gap-2">
+            {aggregateResult && (
+              <span className="text-[11px] font-mono text-text-muted">{aggregateResult}</span>
+            )}
+            <Button onClick={triggerAggregation} variant="secondary" disabled={aggregating}>
+              {aggregating ? "집계 중..." : "지표 집계"}
+            </Button>
+            <Button onClick={resetSession} variant="secondary">
+              대화 초기화
+            </Button>
+          </div>
         )}
       </div>
 
@@ -370,16 +511,65 @@ export default function SimulatorPage() {
                   </div>
                   {/* 어시스턴트 메시지의 소스 뱃지 */}
                   {m.role === "assistant" && m.metadata && (
-                    <button
-                      onClick={() => setSelectedMsgId(m.id)}
-                      className={`mt-1 text-[11px] px-2 py-0.5 rounded-full border transition-colors ${
-                        selectedMsgId === m.id
-                          ? "border-accent text-accent bg-accent/10"
-                          : "border-white/10 text-text-muted hover:border-accent/50 hover:text-accent/70"
-                      }`}
-                    >
-                      소스 {m.metadata.citationCount}개 · {m.metadata.responseTimeMs}ms
-                    </button>
+                    <div className="mt-1 flex items-center gap-2">
+                      <button
+                        onClick={() => setSelectedMsgId(m.id)}
+                        className={`text-[11px] px-2 py-0.5 rounded-full border transition-colors ${
+                          selectedMsgId === m.id
+                            ? "border-accent text-accent bg-accent/10"
+                            : "border-white/10 text-text-muted hover:border-accent/50 hover:text-accent/70"
+                        }`}
+                      >
+                        소스 {m.metadata.citationCount}개 · {m.metadata.responseTimeMs}ms
+                      </button>
+                      <button
+                        onClick={() => beginFeedback(m.id, 5)}
+                        disabled={feedbackByMsg[m.id]?.saved || feedbackByMsg[m.id]?.submitting}
+                        className="text-[11px] px-2 py-0.5 rounded-full border border-white/10 text-text-muted hover:text-success hover:border-success/40 disabled:opacity-50"
+                      >
+                        👍
+                      </button>
+                      <button
+                        onClick={() => beginFeedback(m.id, 1)}
+                        disabled={feedbackByMsg[m.id]?.saved || feedbackByMsg[m.id]?.submitting}
+                        className="text-[11px] px-2 py-0.5 rounded-full border border-white/10 text-text-muted hover:text-warning hover:border-warning/40 disabled:opacity-50"
+                      >
+                        👎
+                      </button>
+                      {feedbackByMsg[m.id]?.saved && (
+                        <span className="text-[11px] text-success">피드백 저장됨</span>
+                      )}
+                    </div>
+                  )}
+                  {m.role === "assistant" && m.metadata && feedbackByMsg[m.id]?.rating && !feedbackByMsg[m.id]?.saved && (
+                    <div className="mt-2 w-[75%] max-w-[75%] rounded-lg border border-white/10 bg-bg-elevated p-2">
+                      <textarea
+                        value={feedbackByMsg[m.id]?.comment ?? ""}
+                        onChange={(e) => updateFeedbackComment(m.id, e.target.value)}
+                        placeholder="(선택) 피드백 코멘트"
+                        rows={2}
+                        className="w-full resize-none rounded border border-white/10 bg-bg-base px-2 py-1 text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent"
+                      />
+                      <div className="mt-2 flex items-center gap-2">
+                        <Button
+                          onClick={() => submitFeedback(m.id)}
+                          disabled={feedbackByMsg[m.id]?.submitting}
+                          variant="secondary"
+                        >
+                          {feedbackByMsg[m.id]?.submitting ? "저장 중..." : "피드백 저장"}
+                        </Button>
+                        <Button
+                          onClick={() => cancelFeedback(m.id)}
+                          disabled={feedbackByMsg[m.id]?.submitting}
+                          variant="secondary"
+                        >
+                          취소
+                        </Button>
+                        {feedbackByMsg[m.id]?.error && (
+                          <span className="text-[11px] text-warning">{feedbackByMsg[m.id]?.error}</span>
+                        )}
+                      </div>
+                    </div>
                   )}
                 </div>
               ))}

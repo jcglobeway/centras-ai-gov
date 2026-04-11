@@ -8,7 +8,7 @@ import { Table, Thead, Th, Tbody, Tr, Td } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
-import { PageFilters, getWeekFrom, getToday } from "@/components/ui/PageFilters";
+import { useFilter } from "@/lib/filter-context";
 import type { ComponentProps } from "react";
 
 type BadgeVariant = ComponentProps<typeof Badge>["variant"];
@@ -26,9 +26,7 @@ const INDEX_VARIANT: Record<IndexStatus, BadgeVariant> = {
 };
 
 export default function QaDocumentsPage() {
-  const [orgId, setOrgId] = useState("");
-  const [from, setFrom]   = useState(getWeekFrom);
-  const [to, setTo]       = useState(getToday);
+  const { orgId, from, to } = useFilter();
 
   const [versionsDocId, setVersionsDocId]   = useState<string | null>(null);
   const [versionsTitle, setVersionsTitle]   = useState("");
@@ -70,16 +68,9 @@ export default function QaDocumentsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-4">
-          <h2 className="text-text-primary font-semibold text-lg">문서 관리</h2>
-          <span className="text-text-muted text-xs">총 {data?.total ?? 0}건</span>
-        </div>
-        <PageFilters
-          orgId={orgId} onOrgChange={setOrgId}
-          from={from}   onFromChange={setFrom}
-          to={to}       onToChange={setTo}
-        />
+      <div className="flex items-center gap-4">
+        <h2 className="text-text-primary font-semibold text-lg">문서 관리</h2>
+        <span className="text-text-muted text-xs">총 {data?.total ?? 0}건</span>
       </div>
 
       <div className="bg-bg-surface border border-bg-border rounded-xl overflow-hidden">
