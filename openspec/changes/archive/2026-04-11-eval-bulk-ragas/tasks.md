@@ -29,5 +29,7 @@ eval-runner --from-eval-results --organization-id org_acc
 
 ## Phase 3 — 검증
 
-- [ ] ragas_evaluations 건수 확인 (482건 추가 여부)
-- [ ] `/ops/quality` RAGAS 추세 차트 데이터 증가 확인
+- [x] ragas_evaluations 건수 확인 (실제 증가분/중복 여부)
+  - 확인값: `organization_id='org_acc' and evaluated_at >= '2026-04-06'` 기준 `385` rows / `200` distinct questions
+- [x] `/ops/quality` RAGAS 추세 차트 데이터 증가 확인
+  - 확인값: `GET /api/admin/ragas-evaluations?organization_id=org_acc&page_size=30` → `items=30`, `total=1065`

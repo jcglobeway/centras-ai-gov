@@ -4,12 +4,23 @@
 
 `correction-impl`
 
+## Why
+
+`/ops/correction` 페이지는 목업 데이터 중심으로 동작하고 있어서, 실제 교정 저장과 조회 흐름을 검증할 수 없었다. Ground Truth 입력과 교정 이력 표시를 실제 API로 연결해야 운영 데이터 흐름과 화면이 일치한다.
+
+## What Changes
+
+- 프론트 `Feedback` 타입을 백엔드 응답과 맞춘다.
+- `answer_corrections` 테이블을 추가한다.
+- `POST /admin/corrections` 와 `GET /admin/corrections` 를 구현한다.
+- `/ops/correction` 페이지에서 Ground Truth 저장과 교정 이력을 실제 API로 연동한다.
+
 ## Summary
 
 - **변경 목적**: `/ops/correction` (답변 교정) 페이지를 목업에서 실제 동작하는 화면으로 전환한다. 프론트 타입 불일치 수정, Ground Truth 저장 API 신규 구현, 교정 이력 실제 연동을 포함한다.
 - **변경 범위**:
   - Phase 1 — 프론트 타입 불일치 수정: `Feedback` 인터페이스를 백엔드 `FeedbackResponse` 스펙에 맞게 수정 (`feedbackId` → `id`, `feedbackText` → `comment`), `PagedResponse<T>` → `FeedbackListResponse { items, total }` 타입 교체
-  - Phase 2 — V030 마이그레이션: `answer_corrections` 테이블 신규 생성 (chat-runtime 모듈 소속)
+  - Phase 2 — V052 마이그레이션: `answer_corrections` 테이블 신규 생성 (chat-runtime 모듈 소속)
   - Phase 3 — 백엔드 헥사고날 스택: chat-runtime 모듈 내 `AnswerCorrection` 도메인 + 포트 + 서비스 + 어댑터 전 레이어 구현, `POST /admin/corrections` / `GET /admin/corrections` API
   - Phase 4 — 프론트 연동: Ground Truth 입력 버튼 활성화, 교정 이력 실제 API 연결, 목업 제거
 - **제외 범위**:
