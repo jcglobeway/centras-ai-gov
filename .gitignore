@@ -14,3 +14,9 @@ out/
 data/
 .env
 !.env.example
+.playwright-mcp/
+*.tsbuildinfo
+**/2026-*-this-session-is-being-continued-from-a-previous*.txt
+**/2026-*-httplocalhost*.txt
+python/eval-runner/eval_results.json
+python/ingestion-worker/celerybeat-schedule.db
